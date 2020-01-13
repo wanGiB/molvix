@@ -8,6 +8,7 @@ import android.util.Pair;
 import androidx.annotation.NonNull;
 import androidx.core.app.JobIntentService;
 
+import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -28,32 +29,13 @@ public class MoviesDownloadService extends JobIntentService {
 
     @Override
     protected void onHandleWork(@NonNull Intent intent) {
-        String sampleTitle = "https://o2tvseries.com/Medical-Police/index.html";
-        String sampleTwoTitle = "https://o2tvseries.com/The-Owl-House/index.html";
-        String sampleThreeTitle = "https://o2tvseries.com/Deadwater-Fell/index.html";
-        try {
-            Document movieDoc = Jsoup.connect(sampleThreeTitle).get();
-            Element movieInfoElement = movieDoc.select("div.tv_series_info").first();
-            String movieArtUrl = movieInfoElement.select("div.img>img").attr("src");
-            String movieDescription = movieInfoElement.select("div.serial_desc").text();
-            Log.d(TAG, "MovieArtUrl: " + movieArtUrl);
-            Log.d(TAG, "MovieDescription: " + movieDescription);
-            Element movieSeasons = movieDoc.select("div.data_list").first();
-            if (movieSeasons != null) {
-                for (Element seasonElement : movieSeasons.children()) {
-                    Pair<String, String> seasonDetails = getSeasonTitleAndLink(seasonElement);
-                    Log.d(TAG, "SeasonDetails: " + seasonDetails.first + "," + seasonDetails.second);
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-            Log.d(TAG, "Failed to load Document because of " + e.getMessage());
-        }
+        String sampleLink = "https://o2tvseries.com/The-Vampire-Diaries-9/index.html";
+        extractMetaDataFromMovieLink(sampleLink);
     }
 
     private void loadMoviesTitlesAndLinks() throws IOException {
         Document document = Jsoup.connect(TV_SERIES_URL).get();
-        Element moviesTitlesAndLinks = document.getElementsByClass("data_list").first();
+        Element moviesTitlesAndLinks = document.selectFirst("div.data_list");
         if (moviesTitlesAndLinks != null) {
             Elements dataListElements = moviesTitlesAndLinks.children();
             for (Element element : dataListElements) {
@@ -69,19 +51,94 @@ public class MoviesDownloadService extends JobIntentService {
         return new Pair<>(movieTitle, movieLink);
     }
 
-    private Pair<String, String> getSeasonTitleAndLink(Element element) {
-        String seasonLink = element.select("div>a").attr("href");
-        String seasonTitle = element.text();
-        return new Pair<>(seasonTitle, seasonLink);
-    }
-
-    private void extractMetaDataFromLink(String movieLink) {
+    private void extractMetaDataFromMovieLink(String movieLink) {
         try {
-            Document movieInfoDoc = Jsoup.connect(movieLink).get();
+            Document movieDoc = Jsoup.connect(movieLink).get();
+            Element movieInfoElement = movieDoc.select("div.tv_series_info").first();
+            String movieArtUrl = movieInfoElement.select("div.img>img").attr("src");
+            String movieDescription = movieInfoElement.select("div.serial_desc").text();
+            Element otherInfoDocument = movieDoc.selectFirst("div.other_info");
+            Elements otherInfoElements = otherInfoDocument.getAllElements();
+            int totalNumberOfSeasons = 0;
+            if (otherInfoElements != null) {
+                for (Element infoElement : otherInfoElements) {
+                    Elements rowElementChildren = infoElement.children();
+                    for (Element rowChild : rowElementChildren) {
+                        String field = rowChild.select(".field").html();
+                        String value = rowChild.select(".value").html();
+                        Log.d(TAG,field+value);
+                        if (field.trim().toLowerCase().equals("seasons:")&& StringUtils.isNotEmpty(value)) {
+                            totalNumberOfSeasons = Integer.parseInt(value.trim());
+                        }
+                    }
+                }
+            }
+            Log.d(TAG, "Number of Seasons=" + totalNumberOfSeasons);
+            if (totalNumberOfSeasons != 0) {
+                for (int i = 0; i < totalNumberOfSeasons; i++) {
+                    String seasonAtI = generateSeasonFromMovieLink(movieLink, i + 1);
+                    Log.d(TAG, generateSeasonValue(i + 1) + "=" + seasonAtI);
+                    extractMetaDataFromMovieSeasonLink(seasonAtI);
+                }
+            }
         } catch (IOException e) {
             e.printStackTrace();
             Log.d(TAG, "Error loading movie document due to " + e.getMessage());
         }
+    }
+
+    private void extractMetaDataFromMovieSeasonLink(String seasonLink) {
+        try {
+            Document movieSeasonDoc = Jsoup.connect(seasonLink).get();
+            Element otherInfoDocument = movieSeasonDoc.selectFirst("div.other_info");
+            Elements otherInfoElements = otherInfoDocument.getAllElements();
+            int totalNumberOfEpisodes = 0;
+            if (otherInfoElements != null) {
+                for (Element infoElement : otherInfoElements) {
+                    Elements rowElementChildren = infoElement.children();
+                    for (Element rowChild : rowElementChildren) {
+                        String field = rowChild.select(".field").html();
+                        String value = rowChild.select(".value").html();
+                        if (field.trim().toLowerCase().equals("episodes:")&&StringUtils.isNotEmpty(value)) {
+                            totalNumberOfEpisodes = Integer.parseInt(value.trim());
+                        }
+                    }
+                }
+            }
+
+            Log.d(TAG, "Number of Episodes=" + totalNumberOfEpisodes);
+            if (totalNumberOfEpisodes != 0) {
+                for (int i = 0; i < totalNumberOfEpisodes; i++) {
+                    String episodeAtI = generateEpisodeFromSeasonLink(seasonLink, i + 1);
+                    Log.d(TAG, generateEpisodeValue(i + 1) + "=" + episodeAtI);
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            Log.d(TAG, "Error loading season details for " + seasonLink);
+        }
+    }
+
+    private String generateSeasonValue(int value) {
+        if (value < 10) {
+            return "Season-0" + value;
+        }
+        return "Season-" + value;
+    }
+
+    private String generateEpisodeValue(int value) {
+        if (value < 10) {
+            return "Episode-0" + value;
+        }
+        return "Episode-" + value;
+    }
+
+    private String generateSeasonFromMovieLink(String movieLink, int seasonValue) {
+        return movieLink.replace("index.html", generateSeasonValue(seasonValue) + "/index.html");
+    }
+
+    private String generateEpisodeFromSeasonLink(String seasonLink, int episodeValue) {
+        return seasonLink.replace("index.html", generateEpisodeValue(episodeValue) + "/index.html");
     }
 
 }
