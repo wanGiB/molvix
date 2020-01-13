@@ -5,7 +5,7 @@ import android.content.Context;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.LinearLayout;
+import android.widget.FrameLayout;
 
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
@@ -24,7 +24,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 
 @SuppressWarnings("unused")
-public class MovieView extends LinearLayout {
+public class MovieView extends FrameLayout {
 
     @BindView(R.id.movie_name_view)
     LoadingTextView movieNameView;

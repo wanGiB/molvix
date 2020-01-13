@@ -8,6 +8,8 @@ import android.util.Pair;
 import androidx.annotation.NonNull;
 import androidx.core.app.JobIntentService;
 
+import com.molvix.android.companions.AppConstants;
+
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -15,6 +17,8 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MoviesDownloadService extends JobIntentService {
 
@@ -29,7 +33,7 @@ public class MoviesDownloadService extends JobIntentService {
 
     @Override
     protected void onHandleWork(@NonNull Intent intent) {
-        String sampleLink = "https://o2tvseries.com/The-Vampire-Diaries-9/index.html";
+        String sampleLink = "https://o2tvseries.com/24-Legacy-8/Season-01/index.html";
         extractMetaDataFromMovieLink(sampleLink);
     }
 
@@ -66,8 +70,7 @@ public class MoviesDownloadService extends JobIntentService {
                     for (Element rowChild : rowElementChildren) {
                         String field = rowChild.select(".field").html();
                         String value = rowChild.select(".value").html();
-                        Log.d(TAG,field+value);
-                        if (field.trim().toLowerCase().equals("seasons:")&& StringUtils.isNotEmpty(value)) {
+                        if (field.trim().toLowerCase().equals("seasons:") && StringUtils.isNotEmpty(value)) {
                             totalNumberOfSeasons = Integer.parseInt(value.trim());
                         }
                     }
@@ -77,7 +80,6 @@ public class MoviesDownloadService extends JobIntentService {
             if (totalNumberOfSeasons != 0) {
                 for (int i = 0; i < totalNumberOfSeasons; i++) {
                     String seasonAtI = generateSeasonFromMovieLink(movieLink, i + 1);
-                    Log.d(TAG, generateSeasonValue(i + 1) + "=" + seasonAtI);
                     extractMetaDataFromMovieSeasonLink(seasonAtI);
                 }
             }
@@ -99,17 +101,19 @@ public class MoviesDownloadService extends JobIntentService {
                     for (Element rowChild : rowElementChildren) {
                         String field = rowChild.select(".field").html();
                         String value = rowChild.select(".value").html();
-                        if (field.trim().toLowerCase().equals("episodes:")&&StringUtils.isNotEmpty(value)) {
+                        if (field.trim().toLowerCase().equals("episodes:") && StringUtils.isNotEmpty(value)) {
                             totalNumberOfEpisodes = Integer.parseInt(value.trim());
                         }
                     }
                 }
             }
-
             Log.d(TAG, "Number of Episodes=" + totalNumberOfEpisodes);
             if (totalNumberOfEpisodes != 0) {
                 for (int i = 0; i < totalNumberOfEpisodes; i++) {
                     String episodeAtI = generateEpisodeFromSeasonLink(seasonLink, i + 1);
+                    if (i == totalNumberOfEpisodes - 1) {
+                        episodeAtI = checkForSeasonFinale(episodeAtI);
+                    }
                     Log.d(TAG, generateEpisodeValue(i + 1) + "=" + episodeAtI);
                 }
             }
@@ -117,6 +121,43 @@ public class MoviesDownloadService extends JobIntentService {
             e.printStackTrace();
             Log.d(TAG, "Error loading season details for " + seasonLink);
         }
+    }
+
+    private String checkForSeasonFinale(String episodeLink) {
+        try {
+            Document episodeDocument = Jsoup.connect(episodeLink).get();
+            //Bring out all href elements containing
+            Elements links = episodeDocument.select("a[href]");
+            if (links != null && !links.isEmpty()) {
+                List<String> downloadLinks = new ArrayList<>();
+                for (Element link : links) {
+                    String href = link.attr("href");
+                    String text = link.text();
+                    if (href.contains(AppConstants.DOWNLOADABLE)) {
+                        Log.d(TAG,text+"="+link);
+                        downloadLinks.add(href);
+                    }
+                }
+                if (downloadLinks.isEmpty()) {
+                    episodeLink = generateSeasonFinaleForEpisode(episodeLink);
+                }
+            } else {
+                return episodeLink;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            return episodeLink;
+        }
+        return episodeLink;
+    }
+
+    private String generateSeasonFinaleForEpisode(String episodeLink) {
+        String episodeLinkRip = StringUtils.removeEnd(episodeLink, "/index.html");
+        return episodeLinkRip + getSeasonFinaleSuffix() + "/index.html";
+    }
+
+    private String getSeasonFinaleSuffix() {
+        return "-Season-Finale";
     }
 
     private String generateSeasonValue(int value) {

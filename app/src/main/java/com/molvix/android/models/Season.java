@@ -14,7 +14,7 @@ import com.raizlabs.android.dbflow.structure.BaseModel;
 
 import java.util.List;
 
-@SuppressWarnings({"WeakerAccess", "unused", "NullableProblems"})
+@SuppressWarnings({"WeakerAccess"})
 @Table(database = MolvixDB.class,
         primaryKeyConflict = ConflictAction.REPLACE,
         insertConflict = ConflictAction.REPLACE,
@@ -25,6 +25,11 @@ public class Season extends BaseModel {
     @Column
     @Expose
     public String seasonId;
+
+    @Nullable
+    @Column
+    @Expose
+    public String seasonName;
 
     @Nullable
     @Column
@@ -41,6 +46,15 @@ public class Season extends BaseModel {
 
     public String getSeasonId() {
         return seasonId;
+    }
+
+    @Nullable
+    public String getSeasonName() {
+        return seasonName;
+    }
+
+    public void setSeasonName(@Nullable String seasonName) {
+        this.seasonName = seasonName;
     }
 
     public void setSeasonId(String seasonId) {
@@ -70,6 +84,30 @@ public class Season extends BaseModel {
 
     public void setEpisodes(List<Episode> episodes) {
         this.episodes = episodes;
+    }
+
+    @Override
+    public int hashCode() {
+        int result;
+        result = this.seasonId.hashCode();
+        final String name = getClass().getName();
+        result = 31 * result + name.hashCode();
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (obj == this) {
+            return true;
+        }
+        if (obj.getClass() != getClass()) {
+            return false;
+        }
+        Season another = (Season) obj;
+        return this.getSeasonId().equals(another.getSeasonId());
     }
 
 }

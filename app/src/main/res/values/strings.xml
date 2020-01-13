@@ -7,4 +7,5 @@
     <string name="download">DOWNLOAD</string>
     <string name="admob_app_id">ca-app-pub-2997746677651129~9657919826</string>
     <string name="native_ad_unit_id">ca-app-pub-2997746677651129/3877859979</string>
+    <string name="sorry_no_result_found">Sorry, no result found</string>
 </resources>

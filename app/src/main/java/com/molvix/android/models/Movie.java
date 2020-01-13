@@ -13,7 +13,7 @@ import com.raizlabs.android.dbflow.structure.BaseModel;
 
 import java.util.List;
 
-@SuppressWarnings({"unused", "WeakerAccess", "NullableProblems"})
+@SuppressWarnings({"WeakerAccess", "NullableProblems"})
 @Table(database = MolvixDB.class,
         primaryKeyConflict = ConflictAction.REPLACE,
         insertConflict = ConflictAction.REPLACE,
@@ -53,6 +53,30 @@ public class Movie extends BaseModel {
     @Column
     @Expose
     boolean ad;
+
+    @Column
+    @Expose
+    boolean recommendedToUser;
+
+    @Column
+    @Expose
+    boolean seenByUser;
+
+    public boolean isRecommendedToUser() {
+        return recommendedToUser;
+    }
+
+    public void setRecommendedToUser(boolean recommendedToUser) {
+        this.recommendedToUser = recommendedToUser;
+    }
+
+    public boolean isSeenByUser() {
+        return seenByUser;
+    }
+
+    public void setSeenByUser(boolean seenByUser) {
+        this.seenByUser = seenByUser;
+    }
 
     public void setAd(boolean ad) {
         this.ad = ad;
@@ -109,6 +133,30 @@ public class Movie extends BaseModel {
 
     public String getMovieLink() {
         return movieLink;
+    }
+
+    @Override
+    public int hashCode() {
+        int result;
+        result = this.movieId.hashCode();
+        final String name = getClass().getName();
+        result = 31 * result + name.hashCode();
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (obj == this) {
+            return true;
+        }
+        if (obj.getClass() != getClass()) {
+            return false;
+        }
+        Movie another = (Movie) obj;
+        return this.getMovieId().equals(another.getMovieId());
     }
 
 }

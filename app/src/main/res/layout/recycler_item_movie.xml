@@ -1,6 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.molvix.android.ui.widgets.MovieView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/movie_view"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical" />
+    android:orientation="vertical">
+
+    <com.molvix.android.ui.widgets.MovieView
+        android:id="@+id/movie_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/icons_unselected_color" />
+
+</LinearLayout>

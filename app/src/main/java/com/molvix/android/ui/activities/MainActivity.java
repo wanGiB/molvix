@@ -5,7 +5,6 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.view.View;
 import android.widget.EditText;
 
 import androidx.core.content.ContextCompat;
@@ -18,6 +17,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.molvix.android.R;
 import com.molvix.android.eventbuses.SearchEvent;
 
+import org.apache.commons.lang3.StringUtils;
 import org.greenrobot.eventbus.EventBus;
 
 import butterknife.BindView;
@@ -59,6 +59,9 @@ public class MainActivity extends BaseActivity {
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 EventBus.getDefault().post(new SearchEvent(s.toString().trim()));
+                if (StringUtils.isEmpty(s.toString().trim())) {
+                    searchBox.setCursorVisible(false);
+                }
             }
 
             @Override

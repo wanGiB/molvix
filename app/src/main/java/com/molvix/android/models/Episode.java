@@ -15,7 +15,7 @@ import com.raizlabs.android.dbflow.structure.BaseModel;
 
 import java.io.Serializable;
 
-@SuppressWarnings({"WeakerAccess", "unused", "NullableProblems"})
+@SuppressWarnings({"WeakerAccess", "NullableProblems"})
 @Table(database = MolvixDB.class,
         primaryKeyConflict = ConflictAction.REPLACE,
         insertConflict = ConflictAction.REPLACE,
@@ -48,6 +48,48 @@ public class Episode extends BaseModel implements Serializable {
     @Column(typeConverter = EpisodeQualityTypeConverter.class)
     @Expose
     public EpisodeQuality episodeQuality;
+
+    @Nullable
+    @Column
+    @Expose
+    public String highQualityDownloadLink;
+
+    @Nullable
+    @Column
+    @Expose
+    public String mediumQualityDownloadLink;
+
+    @Nullable
+    @Column
+    @Expose
+    public String lowQualityDownloadLink;
+
+    @Nullable
+    public String getHighQualityDownloadLink() {
+        return highQualityDownloadLink;
+    }
+
+    public void setHighQualityDownloadLink(@Nullable String highQualityDownloadLink) {
+        this.highQualityDownloadLink = highQualityDownloadLink;
+    }
+
+    @Nullable
+    public String getMediumQualityDownloadLink() {
+        return mediumQualityDownloadLink;
+    }
+
+    public void setMediumQualityDownloadLink(@Nullable String mediumQualityDownloadLink) {
+        this.mediumQualityDownloadLink = mediumQualityDownloadLink;
+    }
+
+    @Nullable
+    public String getLowQualityDownloadLink() {
+        return lowQualityDownloadLink;
+    }
+
+    public void setLowQualityDownloadLink(@Nullable String lowQualityDownloadLink) {
+        this.lowQualityDownloadLink = lowQualityDownloadLink;
+    }
 
     public String getEpisodeId() {
         return episodeId;
@@ -95,6 +137,30 @@ public class Episode extends BaseModel implements Serializable {
 
     public void setEpisodeQuality(EpisodeQuality episodeQuality) {
         this.episodeQuality = episodeQuality;
+    }
+
+    @Override
+    public int hashCode() {
+        int result;
+        result = this.episodeId.hashCode();
+        final String name = getClass().getName();
+        result = 31 * result + name.hashCode();
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (obj == this) {
+            return true;
+        }
+        if (obj.getClass() != getClass()) {
+            return false;
+        }
+        Episode another = (Episode) obj;
+        return this.getEpisodeId().equals(another.getEpisodeId());
     }
 
 }
