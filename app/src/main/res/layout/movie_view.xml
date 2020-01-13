@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <com.molvix.android.ui.widgets.LoadingImageView
+        android:id="@+id/movie_art_view"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:scaleType="centerCrop" />
+
+    <com.molvix.android.ui.widgets.LoadingTextView
+        android:id="@+id/movie_name_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minWidth="10dp"
+        android:minHeight="10dp"
+        android:padding="8dp"
+        android:textColor="@android:color/white"
+        android:textSize="16sp" />
+
+    <com.molvix.android.ui.widgets.LoadingTextView
+        android:id="@+id/movie_description_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ellipsize="end"
+        android:maxLines="2"
+        android:minWidth="10dp"
+        android:minHeight="10dp"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        android:paddingBottom="8dp"
+        android:textColor="@color/icons_unselected_color"
+        android:textSize="13sp" />
+
+    <com.molvix.android.ui.widgets.LoadingTextView
+        android:id="@+id/movie_seasons_count_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:gravity="center_vertical"
+        android:minWidth="10dp"
+        android:minHeight="10dp"
+        android:paddingStart="10dp"
+        android:paddingEnd="10dp"
+        android:textColor="@color/icons_unselected_color"
+        android:textSize="14sp" />
+
+</LinearLayout>

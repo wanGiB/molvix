@@ -7,19 +7,20 @@
 
     <fragment
         android:id="@+id/navigation_home"
-        android:name="com.molvix.android.ui.home.HomeFragment"
+        android:name="com.molvix.android.ui.fragments.HomeFragment"
         android:label="@string/title_home"
         tools:layout="@layout/fragment_home" />
 
     <fragment
-        android:id="@+id/navigation_dashboard"
-        android:name="com.molvix.android.ui.dashboard.DashboardFragment"
-        android:label="@string/title_dashboard"
-        tools:layout="@layout/fragment_dashboard" />
+        android:id="@+id/navigation_latest_episodes"
+        android:name="com.molvix.android.ui.fragments.NotificationsFragment"
+        android:label="@string/title_notifications"
+        tools:layout="@layout/fragment_latest_episodes" />
 
     <fragment
-        android:id="@+id/navigation_notifications"
-        android:name="com.molvix.android.ui.notifications.NotificationsFragment"
-        android:label="@string/title_notifications"
-        tools:layout="@layout/fragment_notifications" />
+        android:id="@+id/navigation_settings"
+        android:name="com.molvix.android.ui.fragments.SettingsFragment"
+        android:label="@string/title_settings"
+        tools:layout="@layout/fragment_settings" />
+
 </navigation>

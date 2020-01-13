@@ -1,6 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="colorPrimary">#3a5269</color>
-    <color name="colorPrimaryDark">#3f5264</color>
+    <color name="colorPrimaryDark">#2B3E4F</color>
     <color name="colorAccent">#FFA500</color>
+    <color name="icons_unselected_color">@color/ease_gray</color>
+    <color name="ease_gray">#adb9c1</color>
+
+    <!-- Colours for SmoothProgressBar -->
+    <color name="gplus_color_1">#3e802f</color>
+    <color name="gplus_color_2">#f4b400</color>
+    <color name="gplus_color_3">#427fed</color>
+    <color name="gplus_color_4">#b23424</color>
+
 </resources>

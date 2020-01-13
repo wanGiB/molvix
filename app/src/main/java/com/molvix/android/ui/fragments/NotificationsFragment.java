@@ -1,4 +1,4 @@
-package com.molvix.android.ui.notifications;
+package com.molvix.android.ui.fragments;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -13,6 +13,7 @@ import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
 
 import com.molvix.android.R;
+import com.molvix.android.ui.viewmodels.NotificationsViewModel;
 
 public class NotificationsFragment extends Fragment {
 
@@ -22,8 +23,8 @@ public class NotificationsFragment extends Fragment {
                              ViewGroup container, Bundle savedInstanceState) {
         notificationsViewModel =
                 ViewModelProviders.of(this).get(NotificationsViewModel.class);
-        View root = inflater.inflate(R.layout.fragment_notifications, container, false);
-        final TextView textView = root.findViewById(R.id.text_notifications);
+        View root = inflater.inflate(R.layout.fragment_latest_episodes, container, false);
+        final TextView textView = root.findViewById(R.id.text_dashboard);
         notificationsViewModel.getText().observe(this, new Observer<String>() {
             @Override
             public void onChanged(@Nullable String s) {
