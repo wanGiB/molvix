@@ -59,8 +59,10 @@ public class MainActivity extends BaseActivity {
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                EventBus.getDefault().post(new SearchEvent(s.toString().trim()));
-                if (StringUtils.isEmpty(s.toString().trim())) {
+                String searchedString = StringUtils.strip(s.toString().trim());
+                if (StringUtils.isNotEmpty(searchedString)) {
+                    EventBus.getDefault().post(new SearchEvent(searchedString));
+                } else {
                     EventBus.getDefault().post(AppConstants.EMPTY_SEARCH);
                 }
             }

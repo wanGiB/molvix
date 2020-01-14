@@ -13,15 +13,19 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.molvix.android.R;
+import com.molvix.android.beans.MovieContentItem;
 import com.molvix.android.companions.AppConstants;
 import com.molvix.android.eventbuses.DownloadEpisodeEvent;
+import com.molvix.android.jobs.ContentMiner;
 import com.molvix.android.models.Episode;
 import com.molvix.android.models.Movie;
 import com.molvix.android.models.Season;
-import com.molvix.android.ui.services.ContentGenerationService;
+import com.molvix.android.ui.adapters.SeasonsWithEpisodesAdapter;
+import com.molvix.android.utils.ConnectivityUtils;
 import com.molvix.android.utils.LocalDbUtils;
 import com.molvix.android.utils.UiUtils;
 import com.raizlabs.android.dbflow.runtime.DirectModelNotifier;
@@ -75,13 +79,54 @@ public class MovieDetailsActivity extends BaseActivity {
         ButterKnife.bind(this);
         String movieId = getIntent().getStringExtra(AppConstants.MOVIE_ID);
         if (movieId != null) {
+            loadingLayoutProgressMsgView.setText(getString(R.string.please_wait));
             movie = LocalDbUtils.getMovie(movieId);
             initModelChangeListener();
             List<Season> movieSeasons = movie.getMovieSeasons();
             if (movieSeasons == null || movieSeasons.isEmpty()) {
                 spinMovePullTask();
+            } else {
+                loadMovieDetails(movie);
             }
         }
+    }
+
+    private void loadMovieDetails(Movie movie) {
+        List<MovieContentItem> movieContentItems = new ArrayList<>();
+        addMovieHeaderView(movie, movieContentItems);
+        List<Season> movieSeasons = movie.getMovieSeasons();
+        loadInMovieSeasons(movieContentItems, movieSeasons);
+        checkAndLoadInAd(movieContentItems);
+        SeasonsWithEpisodesAdapter seasonsWithEpisodesAdapter = new SeasonsWithEpisodesAdapter(this, movieContentItems);
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
+        seasonsAndEpisodesRecyclerView.setLayoutManager(linearLayoutManager);
+        seasonsAndEpisodesRecyclerView.setAdapter(seasonsWithEpisodesAdapter);
+        UiUtils.toggleViewVisibility(loadingLayout, false);
+    }
+
+    private void checkAndLoadInAd(List<MovieContentItem> movieContentItems) {
+        if (ConnectivityUtils.isDeviceConnectedToTheInternet()) {
+            MovieContentItem adItem = new MovieContentItem("", new ArrayList<>());
+            adItem.setContentType(MovieContentItem.ContentType.AD);
+            movieContentItems.add(adItem);
+        }
+    }
+
+    private void loadInMovieSeasons(List<MovieContentItem> movieContentItems, List<Season> movieSeasons) {
+        if (movieSeasons != null && !movieSeasons.isEmpty()) {
+            for (Season season : movieSeasons) {
+                MovieContentItem movieContentItem = new MovieContentItem(season.getSeasonName(), season.getEpisodes());
+                movieContentItem.setContentType(MovieContentItem.ContentType.GROUP_HEADER);
+                movieContentItems.add(movieContentItem);
+            }
+        }
+    }
+
+    private void addMovieHeaderView(Movie movie, List<MovieContentItem> movieContentItems) {
+        MovieContentItem movieHeaderItem = new MovieContentItem("", new ArrayList<>());
+        movieHeaderItem.setMovie(movie);
+        movieHeaderItem.setContentType(MovieContentItem.ContentType.MOVIE_HEADER);
+        movieContentItems.add(movieHeaderItem);
     }
 
     @Override
@@ -100,7 +145,13 @@ public class MovieDetailsActivity extends BaseActivity {
         movieModelChangedListener = new DirectModelNotifier.ModelChangedListener<Movie>() {
             @Override
             public void onModelChanged(@NonNull Movie model, @NonNull BaseModel.Action action) {
-
+                if (action == BaseModel.Action.UPDATE || action == BaseModel.Action.CHANGE) {
+                    if (movie != null) {
+                        if (movie.getMovieId().equals(model.getMovieId())) {
+                            loadMovieDetails(model);
+                        }
+                    }
+                }
             }
 
             @Override
@@ -174,7 +225,7 @@ public class MovieDetailsActivity extends BaseActivity {
 
         @Override
         protected Void doInBackground(Void... voids) {
-            ContentGenerationService.extractMetaDataFromMovieLink(movieLink, movie);
+            ContentMiner.extractMetaDataFromMovieLink(movieLink, movie);
             return null;
         }
 

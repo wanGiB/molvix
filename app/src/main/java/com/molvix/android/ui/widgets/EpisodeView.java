@@ -70,7 +70,7 @@ public class EpisodeView extends FrameLayout {
         requestLayout();
     }
 
-    void bindEpisode(Episode episode) {
+    public void bindEpisode(Episode episode) {
         season = LocalDbUtils.getSeason(episode.getSeasonId());
         movie = LocalDbUtils.getMovie(episode.getMovieId());
         String episodeName = episode.getEpisodeName();

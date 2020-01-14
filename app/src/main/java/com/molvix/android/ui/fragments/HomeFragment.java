@@ -1,7 +1,7 @@
 package com.molvix.android.ui.fragments;
 
 import android.annotation.SuppressLint;
-import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.LayoutInflater;
@@ -20,10 +20,10 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.molvix.android.R;
 import com.molvix.android.companions.AppConstants;
 import com.molvix.android.eventbuses.SearchEvent;
+import com.molvix.android.jobs.ContentMiner;
 import com.molvix.android.models.Movie;
 import com.molvix.android.models.Movie_Table;
 import com.molvix.android.ui.adapters.MoviesAdapter;
-import com.molvix.android.ui.services.ContentGenerationService;
 import com.molvix.android.utils.ConnectivityUtils;
 import com.molvix.android.utils.UiUtils;
 import com.raizlabs.android.dbflow.runtime.DirectModelNotifier;
@@ -31,7 +31,9 @@ import com.raizlabs.android.dbflow.sql.language.SQLite;
 import com.raizlabs.android.dbflow.structure.BaseModel;
 
 import org.apache.commons.lang3.StringUtils;
+import org.greenrobot.eventbus.EventBus;
 
+import java.io.IOException;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -68,8 +70,8 @@ public class HomeFragment extends BaseFragment {
     private MoviesAdapter moviesAdapter;
 
     private Handler mUiHandler;
-
     private DirectModelNotifier.ModelChangedListener<Movie> movieModelChangedListener;
+    private ContentPullOverTask contentPullOverTask;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -124,11 +126,11 @@ public class HomeFragment extends BaseFragment {
     }
 
     private void updateMovieIndex(Movie movie) {
-            mUiHandler.post(() -> {
+        mUiHandler.post(() -> {
             if (movies.contains(movie)) {
                 int indexOfMovie = movies.indexOf(movie);
                 movies.set(indexOfMovie, movie);
-                moviesAdapter.notifyItemChanged(indexOfMovie);
+                moviesAdapter.notifyDataSetChanged();
             }
         });
     }
@@ -222,8 +224,12 @@ public class HomeFragment extends BaseFragment {
     }
 
     private void initMovieExtractionTask() {
-        Intent contentServiceIntent = new Intent(getActivity(), ContentGenerationService.class);
-        ContentGenerationService.enqueueWork(getActivity(), contentServiceIntent);
+        if (contentPullOverTask != null) {
+            contentPullOverTask.cancel(true);
+            contentPullOverTask = null;
+        }
+        contentPullOverTask = new ContentPullOverTask();
+        contentPullOverTask.execute();
     }
 
     private void searchMovies(String searchString) {
@@ -256,6 +262,7 @@ public class HomeFragment extends BaseFragment {
             if (StringUtils.isNotEmpty(searchString)) {
                 mUiHandler.post(() -> searchMovies(searchEvent.getSearchString().toLowerCase()));
             } else {
+                nullifySearch();
                 fetchAllAvailableMovies();
             }
         } else if (event instanceof Exception) {
@@ -270,11 +277,29 @@ public class HomeFragment extends BaseFragment {
             mUiHandler.post(() -> {
                 String s = (String) event;
                 if (s.equals(AppConstants.EMPTY_SEARCH)) {
-                    moviesAdapter.setSearchString("");
-                    moviesAdapter.notifyDataSetChanged();
+                    nullifySearch();
                     UiUtils.toggleViewVisibility(nothingFoundMessageView, false);
                 }
             });
         }
     }
+
+    private void nullifySearch() {
+        moviesAdapter.setSearchString(null);
+        moviesAdapter.notifyDataSetChanged();
+    }
+
+    static class ContentPullOverTask extends AsyncTask<Void, Void, Void> {
+        @Override
+        protected Void doInBackground(Void... voids) {
+            try {
+                ContentMiner.mineContentData();
+            } catch (IOException e) {
+                e.printStackTrace();
+                EventBus.getDefault().post(e);
+            }
+            return null;
+        }
+    }
+
 }

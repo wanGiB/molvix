@@ -35,9 +35,6 @@
         </activity>
         <activity android:name=".ui.activities.MovieDetailsActivity" />
 
-        <service android:name=".ui.services.MoviesDownloadService" />
-        <service android:name=".ui.services.ContentGenerationService" />
-
     </application>
 
 </manifest>

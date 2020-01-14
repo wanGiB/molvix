@@ -1,28 +1,39 @@
 package com.molvix.android.beans;
 
 import com.molvix.android.models.Episode;
+import com.molvix.android.models.Movie;
 import com.molvix.android.models.Season;
 import com.thoughtbot.expandablerecyclerview.models.ExpandableGroup;
 
 import java.util.List;
 
 public class MovieContentItem extends ExpandableGroup {
+
     private List<Episode> episodes;
     private String title;
+    private Movie movie;
 
-    public MovieContentItem(String title, List items) {
+    public MovieContentItem(String title, List<Episode> items) {
         super(title, items);
         this.title = title;
         this.episodes = items;
+    }
+
+    public void setMovie(Movie movie) {
+        this.movie = movie;
+    }
+
+    public Movie getMovie() {
+        return movie;
     }
 
     public List<Episode> getEpisodes() {
         return episodes;
     }
 
-    enum ContentType {
+    public enum ContentType {
         AD,
-        ANON_HEADER,
+        MOVIE_HEADER,
         GROUP_HEADER
     }
 

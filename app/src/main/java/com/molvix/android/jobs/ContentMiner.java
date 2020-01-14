@@ -1,12 +1,7 @@
-package com.molvix.android.ui.services;
+package com.molvix.android.jobs;
 
-import android.content.Context;
-import android.content.Intent;
 import android.os.AsyncTask;
 import android.util.Pair;
-
-import androidx.annotation.NonNull;
-import androidx.core.app.JobIntentService;
 
 import com.molvix.android.companions.AppConstants;
 import com.molvix.android.models.Episode;
@@ -27,34 +22,22 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ContentGenerationService extends JobIntentService {
+public class ContentMiner {
 
-    private static final int JOB_ID = 1;
-
-    public static void enqueueWork(Context context, Intent intent) {
-        enqueueWork(context, ContentGenerationService.class, JOB_ID, intent);
-    }
-
-    @Override
-    protected void onHandleWork(@NonNull Intent intent) {
-        try {
-            loadMoviesTitlesAndLinks();
-            SQLite.select().from(Movie.class)
-                    .async()
-                    .queryListResultCallback((transaction, tResult) -> {
-                        if (!tResult.isEmpty()) {
-                            for (Movie movie : tResult) {
-                                String movieLink = movie.getMovieLink();
-                                if (StringUtils.isNotEmpty(movieLink)) {
-                                    new FurtherExtractionTask(movieLink, movie).execute();
-                                }
+    public static void mineContentData() throws IOException {
+        loadMoviesTitlesAndLinks();
+        SQLite.select().from(Movie.class)
+                .async()
+                .queryListResultCallback((transaction, tResult) -> {
+                    if (!tResult.isEmpty()) {
+                        for (Movie movie : tResult) {
+                            String movieLink = movie.getMovieLink();
+                            if (StringUtils.isNotEmpty(movieLink)) {
+                                new FurtherExtractionTask(movieLink, movie).execute();
                             }
                         }
-                    }).execute();
-        } catch (IOException e) {
-            e.printStackTrace();
-            EventBus.getDefault().post(e);
-        }
+                    }
+                }).execute();
     }
 
     static class FurtherExtractionTask extends AsyncTask<Void, Void, Void> {
@@ -74,7 +57,7 @@ public class ContentGenerationService extends JobIntentService {
         }
     }
 
-    private void loadMoviesTitlesAndLinks() throws IOException {
+    public static void loadMoviesTitlesAndLinks() throws IOException {
         String TV_SERIES_URL = "https://o2tvseries.com/search/list_all_tv_series";
         Document document = Jsoup.connect(TV_SERIES_URL).get();
         Element moviesTitlesAndLinks = document.selectFirst("div.data_list");
@@ -101,7 +84,7 @@ public class ContentGenerationService extends JobIntentService {
         }
     }
 
-    private Pair<String, String> getMovieTitleAndLink(Element element) {
+    private static Pair<String, String> getMovieTitleAndLink(Element element) {
         String movieLink = element.select("div>a").attr("href");
         String movieTitle = element.text();
         return new Pair<>(movieTitle, movieLink);

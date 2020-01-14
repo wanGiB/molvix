@@ -10,6 +10,7 @@
     <string name="sorry_no_result_found">Sorry, no result found</string>
     <string name="cancel">CANCEL</string>
     <string name="play">PLAY</string>
+    <string name="please_wait">Please wait...</string>
     <array name="episode_download_options">
         <item>Highest Quality</item>
         <item>Standard Quality</item>
