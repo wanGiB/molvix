@@ -15,7 +15,7 @@
         android:id="@+id/navigation_latest_episodes"
         android:name="com.molvix.android.ui.fragments.NotificationsFragment"
         android:label="@string/title_notifications"
-        tools:layout="@layout/fragment_latest_episodes" />
+        tools:layout="@layout/fragment_notifications" />
 
     <fragment
         android:id="@+id/navigation_settings"

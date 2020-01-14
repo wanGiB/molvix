@@ -2,10 +2,13 @@ package com.molvix.android.ui.widgets;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.graphics.drawable.ColorDrawable;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
+import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
@@ -26,17 +29,20 @@ import butterknife.ButterKnife;
 @SuppressWarnings("unused")
 public class MovieView extends FrameLayout {
 
+    @BindView(R.id.parent_card_view)
+    View parentCardView;
+
     @BindView(R.id.movie_name_view)
-    LoadingTextView movieNameView;
+    TextView movieNameView;
 
     @BindView(R.id.movie_art_view)
-    LoadingImageView movieArtView;
+    ImageView movieArtView;
 
     @BindView(R.id.movie_description_view)
-    LoadingTextView movieDescriptionView;
+    TextView movieDescriptionView;
 
     @BindView(R.id.movie_seasons_count_view)
-    LoadingTextView movieSeasonsCountView;
+    TextView movieSeasonsCountView;
 
     private String searchString;
 
@@ -77,38 +83,41 @@ public class MovieView extends FrameLayout {
         String movieDescription = movie.getMovieDescription();
         String movieArtUrl = movie.getMovieArtUrl();
         List<Season> movieSeasonsCount = movie.getMovieSeasons();
-
-        loadTextViews();
         if (StringUtils.isNotEmpty(getSearchString())) {
-            movieNameView.setText(UiUtils.highlightTextIfNecessary(getSearchString(), WordUtils.capitalize(movieName), ContextCompat.getColor(getContext(), R.color.colorAccent)));
-            stopLoading(movieNameView);
+            movieNameView.setText(UiUtils.highlightTextIfNecessary(getSearchString(), WordUtils.capitalize(movieName), ContextCompat.getColor(getContext(), R.color.colorAccentDark)));
         } else {
             movieNameView.setText(WordUtils.capitalize(movieName));
-            stopLoading(movieNameView);
         }
         if (StringUtils.isNotEmpty(movieDescription)) {
             movieDescriptionView.setText(StringUtils.capitalize(movieDescription));
-            stopLoading(movieDescriptionView);
+        } else {
+            movieDescriptionView.setText("");
         }
         if (movieSeasonsCount != null && !movieSeasonsCount.isEmpty()) {
             int seasonsCount = movieSeasonsCount.size();
             movieSeasonsCountView.setText("Seasons " + seasonsCount);
-            stopLoading(movieSeasonsCountView);
+        } else {
+            movieSeasonsCountView.setText("");
         }
         if (StringUtils.isNotEmpty(movieArtUrl)) {
             UiUtils.loadImageIntoView(movieArtView, movieArtUrl);
+        } else {
+            movieArtView.setImageDrawable(new ColorDrawable(ContextCompat.getColor(getContext(), R.color.light_grey)));
         }
+        View.OnClickListener onClickListener = v -> {
+            UiUtils.blinkView(parentCardView);
+            openMovieDetails(movie);
+        };
+        setOnClickListener(onClickListener);
+        movieArtView.setOnClickListener(onClickListener);
+        movieNameView.setOnClickListener(onClickListener);
+        movieDescriptionView.setOnClickListener(onClickListener);
+        movieSeasonsCountView.setOnClickListener(onClickListener);
+        parentCardView.setOnClickListener(onClickListener);
     }
 
-    private void stopLoading(LoadingTextView loadingTextView) {
-        loadingTextView.stopLoading();
-    }
+    private void openMovieDetails(Movie movie) {
 
-    private void loadTextViews() {
-        movieNameView.startLoading();
-        movieDescriptionView.startLoading();
-        movieSeasonsCountView.startLoading();
-        movieArtView.startLoading();
     }
 
 }

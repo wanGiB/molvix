@@ -7,6 +7,9 @@ import android.graphics.Paint;
 import android.util.AttributeSet;
 
 import androidx.appcompat.widget.AppCompatTextView;
+import androidx.core.content.ContextCompat;
+
+import com.molvix.android.R;
 
 public class LoadingTextView extends AppCompatTextView {
     private boolean isLoading = false;
@@ -26,9 +29,9 @@ public class LoadingTextView extends AppCompatTextView {
 
     private void init(Context context) {
         loadingPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        loadingPaint.setColor(Color.parseColor("#ffe2e2e2"));
+        loadingPaint.setColor(ContextCompat.getColor(getContext(), R.color.colorPrimary));
         ripplePaint = new Paint();
-        ripplePaint.setColor(Color.parseColor("#44f0f0f0"));
+        ripplePaint.setColor(ContextCompat.getColor(getContext(), R.color.icons_unselected_color));
     }
 
     @Override

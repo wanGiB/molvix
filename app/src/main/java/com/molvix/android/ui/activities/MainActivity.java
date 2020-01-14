@@ -15,6 +15,7 @@ import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.molvix.android.R;
+import com.molvix.android.companions.AppConstants;
 import com.molvix.android.eventbuses.SearchEvent;
 
 import org.apache.commons.lang3.StringUtils;
@@ -60,7 +61,7 @@ public class MainActivity extends BaseActivity {
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 EventBus.getDefault().post(new SearchEvent(s.toString().trim()));
                 if (StringUtils.isEmpty(s.toString().trim())) {
-                    searchBox.setCursorVisible(false);
+                    EventBus.getDefault().post(AppConstants.EMPTY_SEARCH);
                 }
             }
 
@@ -79,12 +80,12 @@ public class MainActivity extends BaseActivity {
     private void initNavBarTints() {
         ColorStateList iconsColorStates = new ColorStateList(
                 new int[][]{new int[]{-android.R.attr.state_checked}, new int[]{android.R.attr.state_checked}},
-                new int[]{ContextCompat.getColor(this, R.color.icons_unselected_color), Color.WHITE});
+                new int[]{ContextCompat.getColor(this, R.color.grey500), Color.BLACK});
 
         ColorStateList textColorStates = new ColorStateList(
                 new int[][]{new int[]{-android.R.attr.state_checked},
                         new int[]{android.R.attr.state_checked}},
-                new int[]{ContextCompat.getColor(this, R.color.icons_unselected_color), Color.WHITE});
+                new int[]{ContextCompat.getColor(this, R.color.grey500), Color.BLACK});
         bottomNavView.setItemIconTintList(iconsColorStates);
         bottomNavView.setItemTextColor(textColorStates);
     }

@@ -2,6 +2,7 @@ package com.molvix.android.ui.activities;
 
 import android.Manifest;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 
 import androidx.annotation.Nullable;
@@ -20,6 +21,14 @@ public class SplashActivity extends BaseActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
+        if (Build.VERSION.SDK_INT >= 23) {
+            checkMarshmallowRuntimePermissions();
+        } else {
+            navigateToMainActivity();
+        }
+    }
+
+    private void checkMarshmallowRuntimePermissions() {
         Dexter.withActivity(this)
                 .withPermissions(
                         Manifest.permission.READ_PHONE_STATE,

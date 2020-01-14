@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/colorPrimary">
+    android:background="@color/white">
 
     <TextView
         android:id="@+id/nothing_found_error_message"
@@ -11,7 +12,7 @@
         android:layout_centerHorizontal="true"
         android:padding="10dp"
         android:text="@string/sorry_no_result_found"
-        android:textColor="@color/icons_unselected_color"
+        android:textColor="@color/gray50"
         android:visibility="gone" />
 
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
@@ -22,7 +23,8 @@
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/movies_recycler_view"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="match_parent"
+            tools:listitem="@layout/recycler_item_movie" />
 
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
@@ -45,7 +47,7 @@
             android:layout_gravity="center_horizontal"
             android:gravity="center_horizontal"
             android:text="loading"
-            android:textColor="#E5EBF1"
+            android:textColor="@color/gray50"
             android:textSize="13sp" />
 
     </LinearLayout>

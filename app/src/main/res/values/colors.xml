@@ -1,15 +1,344 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#3a5269</color>
-    <color name="colorPrimaryDark">#2B3E4F</color>
-    <color name="colorAccent">#FFA500</color>
+
+    <color name="psts_background_tab_pressed">#1AFFFFFF</color>
+    <color name="ripple_black">#80000000</color>
     <color name="icons_unselected_color">@color/ease_gray</color>
+    <color name="text_black">#333333</color>
+    <color name="base_gray">#999999</color>
+    <color name="touch_highlight">#400099cc</color>
+    <color name="device_link_item_background_light">#ffffffff</color>
+    <color name="device_link_item_background_dark">#ff333333</color>
+    <color name="mcab_dark_grey">#212121</color>
+    <color name="import_export_item_background_light">#ffeeeeee</color>
+    <color name="import_export_item_background_dark">#ff333333</color>
+    <color name="import_export_item_background_shadow_light">#ffd5d5d5</color>
+    <color name="import_export_item_background_shadow_dark">#ff222222</color>
+    <color name="import_export_touch_highlight_light">#400099cc</color>
+    <color name="import_export_touch_highlight_dark">#40ffffff</color>
+
+    <color name="light_button">#33ffffff</color>
+    <color name="light_button_highlight">#66ffffff</color>
+
+    <color name="status_background_white">#fffafafa</color>
+
+    <color name="gray5">#ffeeeeee</color>
+    <color name="gray10">#ffdddddd</color>
+    <color name="gray12">#ffe0e0e0</color>
+    <color name="gray13">#ffababab</color>
+    <color name="gray20">#ffcccccc</color>
+    <color name="gray27">#ffbbbbbb</color>
+    <color name="black_transparent_70percent">#B3000000</color>
+
+    <color name="gray65">#ff595959</color>
+    <color name="gray70">#ff4d4d4d</color>
+    <color name="gray78">#ff383838</color>
+    <color name="gray95">#ff111111</color>
+    <color name="sticker_selected_color">#8cf437</color>
+    <color name="conversation_compose_divider">#32000000</color>
+    <color name="conversation_list_item_background_read_light">@color/gray5</color>
+    <color name="conversation_list_item_background_unread_light">#ffffffff</color>
+    <color name="conversation_list_item_background_read_dark">#ff000000</color>
+    <color name="conversation_list_item_background_unread_dark">#ff333333</color>
+    <color name="background_tab_pressed">#6633B5E5</color>
+    <color name="info_message_background_color">#f6f6f6</color>
+    <color name="colorPrimary">@color/light_gray</color>
+    <color name="colorPrimaryDark">@color/light_gray</color>
+    <color name="butter_bar_transparent">#00000000</color>
+    <color name="colorPrimaryDarker">#2f3e51</color>
+    <color name="bubble_tint">#F6F4F6</color>
+    <color name="colorAccent">#E8A723</color>
+    <color name="conversation_sent_item_tint_color">#FDF8ED</color>
+    <color name="conversation_received_item_tint_color">@color/white</color>
+    <color name="main_color_grey_700">#616161</color>
+    <color name="tab_unselected_color">#bfb0bd</color>
+    <color name="emenu_color_one">#3EB890</color>
+    <color name="emenu_color_two">#70CADB</color>
+    <color name="emenu_color_three">#E8A723</color>
+    <color name="emenu_color_four">#E01765</color>
+    <color name="emenu_color_five">#443642</color>
+    <color name="news_feed_indicator_icons">#edf2fa</color>
+    <color name="list_items_selector_background">#C9BBC7</color>
+    <color name="text_hint_primary_dark">#ff808c92</color>
+    <color name="ripple_background_color">#70CADB</color>
+    <color name="aliyun_divider_line">#1f000000</color>
+    <color name="list_item_secondary_text">#546e7a</color>
     <color name="ease_gray">#adb9c1</color>
+    <color name="ease_gray_dark">#5c6e79</color>
+    <color name="conversation_background">#eeeeee</color>
+    <color name="list_item_primary_text">#1b1d1d</color>
+    <color name="capp_listitem_pressed_bg">#ffebebeb</color>
+    <color name="capp_title_text_color">#de000000</color>
+    <color name="capp_description_text_color">#8a000000</color>
+    <color name="textIconColorPrimary">#FFFFFF</color>
+    <color name="outgoing_bubbles_color">#FBF0DA</color>
+    <color name="incoming_bubbles_color">#F1F6F8</color>
+    <color name="unread_news_feed_background">#EBFAFF</color>
+    <color name="transluscent_black">#20000000</color>
+    <color name="emenu_material_grey_800">#424242</color>
+    <color name="attachment_preview_more_items_text_background">#44000000</color>
+    <color name="pretty_black_with_transparency">#60000000</color>
+    <color name="rippelColor">#0099CC</color>
+    <color name="darkTextVariant">#1976D2</color>
+    <color name="dark_black">#ff000000</color>
+    <color name="colorAccentDark">#ffcc5135</color>
+    <color name="gray50">#ff808080</color>
+    <color name="white">#ffffff</color>
+    <color name="list_item_info">#74000000</color>
+    <color name="conversation_list_divider_light">#15000000</color>
+    <color name="conversation_list_divider_dark">#22ffffff</color>
+    <color name="textsecure_holo_blue_light">#ff33b5e5</color>
+
+    <color name="iron">#CCCCCC</color>
+    <color name="medium_grey">#333333</color>
+    <color name="signal_primary">#ff2090ea</color>
+    <color name="signal_primary_dark">#ff1c7ac5</color>
+    <color name="signal_primary_alpha33">#552090ea</color>
+    <color name="signal_primary_alpha_focus">#882090ea</color>
+    <color name="textsecure_primary">@color/signal_primary</color>
+    <color name="textsecure_primary_dark">@color/signal_primary_dark</color>
+    <color name="textsecure_primary_alpha33">@color/signal_primary_alpha33</color>
+
+    <color name="image_tint">#40000000</color>
+    <color name="emenu_material_grey_300">#e0e0e0</color>
+    <color name="emenu_material_grey_400">#e5e5e5</color>
+    <color name="emenu_material_grey_600">#757575</color>
+
+    <color name="emenu_material_grey_50">#f9fafa</color>
+    <color name="emenu_material_grey_100">#f4f5f5</color>
+
+    <color name="colorBlue">#0096DE</color>
+    <color name="grey500">#ff9e9e9e</color>
+
+    <color name="colorGreen">#4caf50</color>
+    <color name="red500">#fff44336</color>
+    <color name="red800">#ffc62828</color>
+    <color name="orange500">#ffff9800</color>
+    <color name="green500">#ff259b24</color>
+
+    <color name="audio_picker_level_primary_color">#29000000</color>
+    <color name="audio_record_control_button_stroke">#30000000</color>
+    <color name="audio_picker_hint_text_color">#40000000</color>
+    <color name="audio_picker_timer_text_color">#323232</color>
+    <color name="audio_attachment_timer_text_color">#323232</color>
+    <color name="audio_progress_bar_color">@color/colorPrimary</color>
+    <color name="contact_list_alphabet_header">@color/colorPrimary</color>
+
+    <color name="message_title_text">#ff323232</color>
+    <color name="message_download_failed_status_text">#000000</color>
+    <color name="message_info_text">#99ffffff</color>
+    <color name="message_info_text_incoming_download_failed">#6a6a6a</color>
+    <color name="message_download_failed_timestamp_text">#007fce</color>
+    <color name="message_failed_timestamp_text">#99ff0000</color>
+    <color name="message_action_status_text">#ffffffff</color>
+    <color name="message_action_info_text">#99ffffff</color>
+    <color name="message_action_timestamp_text">#ffffffff</color>
+
+    <color name="attachment_chooser_audio_background">#eeeeee</color>
+    <color name="attachment_chooser_vcard_background">#eeeeee</color>
+    <color name="message_image_selected_tint">#80689F38</color>
+
+    <color name="timestamp_text_outgoing">#99323232</color>
+    <color name="timestamp_text_incoming">#99ffffff</color>
+    <color name="timestamp_text_failed">#99ff0000</color>
+
+    <color name="whitesmoke">#f5f5f5</color>
+    <color name="about_version_text">#757575</color>
+    <color name="text_light_dark">#ff6c6c6c</color>
+    <color name="text_dark">#343434</color>
+    <color name="outgoing_blue">#eee1f3fd</color>
+    <color name="outgoing_message_time_color">@color/black</color>
+    <color name="incoming_message_time_color">@android:color/darker_gray</color>
+    <color name="message_text_color_outgoing">#ff323232</color>
+    <color name="notification_sender_text">#DE000000</color>
+    <color name="notification_secondary_text">#8A000000</color>
+    <color name="notification_tertiary_text">#8A000000</color>
+    <color name="notification_subject_color">#DE000000</color>
+
+    <color name="decline_chat_color">#fdfdfd</color>
+
+    <color name="message_reply_text_color">#8798a4</color>
+    <color name="ease_white">#ffffff</color>
+    <color name="ease_black">#000000</color>
+    <color name="gray_normal">#666667</color>
+    <color name="emojicon_tab_selected">#D9D9D9</color>
+    <color name="emojicon_tab_nomal">#ffffff</color>
+
+    <!--Bottom bar colors-->
+    <color name="bb_inActiveBottomBarItemColor">#747474</color>
+    <color name="bb_darkBackgroundColor">#212121</color>
+    <color name="bb_tabletRightBorderDark">#505050</color>
+    <color name="emenu_color">#FFFFA500</color>
+
+    <color name="chip">#333333</color>
+    <color name="dark_grey">#333333</color>
+    <color name="light_grey">#bbbbbb</color>
+
+    <color name="selected_color">#ffffaa</color>
+    <color name="selected_font_color">#999933</color>
+
+    <color name="deselected_color">#aaffaa</color>
+    <color name="deselected_font_color">#339933</color>
+
+    <!-- Button colors -->
+    <color name="colorFacebook">#374D8D</color>
+    <color name="colorGoogle">#D8461C</color>
+    <color name="colorTwitter">#00B4FE</color>
+    <color name="linked_in">#007bb6</color>
+
+    <color name="from">@color/medium_grey</color>
+    <color name="tab_indicator_color">#42a4d1</color>
+    <color name="subject">#111111</color>
+    <color name="timestamp">#4285f4</color>
+    <color name="message">#7a7a7a</color>
+    <color name="icon_tint_normal">#7a7a7a</color>
+    <color name="icon_tint_selected">#fed776</color>
+    <color name="row_activated">#e0e0e0</color>
+    <color name="bg_action_mode">#757575</color>
+    <color name="bg_circle_default">#666666</color>
+
+    <color name="post_compose_field_empty">#eaeaea</color>
+    <color name="lighter_blue">#e1e8ed</color>
+    <color name="light_blue">#ffAAAAAA</color>
 
     <!-- Colours for SmoothProgressBar -->
     <color name="gplus_color_1">#3e802f</color>
     <color name="gplus_color_2">#f4b400</color>
     <color name="gplus_color_3">#427fed</color>
     <color name="gplus_color_4">#b23424</color>
+
+    <integer-array name="gplus_colors">
+        <item>@color/gplus_color_1</item>
+        <item>@color/gplus_color_2</item>
+        <item>@color/gplus_color_3</item>
+        <item>@color/gplus_color_4</item>
+    </integer-array>
+
+    <array name="dot_colors">
+        <item>#03A9F4</item>
+        <item>#E65100</item>
+        <item>#FFBB00</item>
+    </array>
+
+    <!--Light Theme Colors-->
+    <color name="news_feed_card_day_theme_color">@color/white</color>
+
+    <color name="divider_color">#F0F0F0</color>
+    <color name="black">#000000</color>
+    <color name="transparent">#00000000</color>
+    <color name="semi_transparent">#33000000</color>
+    <color name="suggestion_item_regular_color">#FAFAFA</color>
+    <color name="suggestion_item_pressed_color">#bbbbbb</color>
+    <color name="suggestion_list_color">#FFFFFF</color>
+    <color name="search_input_background_color">#FFFFFF</color>
+    <color name="light_gray_inactive_icon">#BEBEBE</color>
+    <color name="gray_active_icon">#787878</color>
+    <color name="dark_gray">#787878</color>
+    <color name="light_gray">#e9e9e9</color>
+    <color name="pressed_color">#E7E7E7</color>
+    <color name="background">#FFFFFF</color>
+    <color name="divider">#F0F0F0</color>
+    <color name="menu_icon_color">#787878</color>
+    <color name="left_action_icon">#787878</color>
+    <color name="clear_btn_color">#787878</color>
+    <color name="overflow_icon_color">#787878</color>
+    <color name="hint_color">#808080</color>
+    <color name="window_background">#FFF5F5F5</color>
+    <color name="window_background_dark">#212121</color>
+    <color name="window_background_black">#000000</color>
+    <color name="bt_accent">#00B8D4</color>
+    <color name="colorPrimaryDarkTheme">#1C2736</color>
+    <color name="colorPrimaryDarkDarkTheme">#151E28</color>
+
+    <color name="progressBackgroundColorLight">#33000000</color>
+    <color name="progressBackgroundColorDark">#33ffffff</color>
+
+    <color name="colorPrimaryLightDefault">#FAFAFA</color>
+    <color name="colorAccentLightDefault">@color/colorAccent</color>
+
+    <color name="colorPrimaryDarkDefault">#37474F</color>
+    <color name="colorAccentDarkDefault">#2196F3</color>
+
+    <color name="colorSelectableItemWhite">#77ffffff</color>
+    <color name="windowBackground">#FFFFFF</color>
+
+    <color name="conversation_item_received_text_secondary_color">#BFffffff</color>
+    <color name="conversation_item_sent_text_indicator_tab_color">#99ffffff</color>
+
+    <!--layout_background-->
+    <color name="dark_background">#243e55</color>
+    <color name="light_background">#3d5b76</color>
+    <color name="gray_background">#ced3d9</color>
+    <color name="white_background">#ffffff</color>
+
+    <color name="message_sent_color">@color/white</color>
+    <color name="message_delivered_color">@color/gray5</color>
+    <color name="progress_animation_background_color">#0284B4</color>
+
+    <color name="light_status_dark_primary_color">#E5E5E5</color>
+
+    <!--white color-->
+    <color name="em_white_100">#ffffffff</color>
+    <color name="em_white_87">#ddffffff</color>
+    <color name="em_white_54">#89ffffff</color>
+    <color name="em_white_38">#61ffffff</color>
+    <color name="em_white_12">#1effffff</color>
+    <color name="em_gray">#50cccccc</color>
+    <color name="em_transparent">#00000000</color>
+
+    <!--red color -->
+    <color name="em_red_100">#ffe62f17</color>
+    <color name="em_red_87">#dde62f17</color>
+    <color name="em_red_54">#89e62f17</color>
+    <color name="em_red_38">#42e62f17</color>
+
+    <!--green color-->
+    <color name="em_green_100">#ff00ba6e</color>
+    <color name="em_green_87">#dd00ba6e</color>
+    <color name="em_green_54">#8900ba6e</color>
+    <color name="em_green_38">#6100ba6e</color>
+    <color name="em_green_12">#1e00ba6e</color>
+
+    <color name="space_background_color">#757575</color>
+    <color name="butter_bar_white">#ffffff</color>
+    <color name="butter_bar_default_color">#2A3137</color>
+    <color name="centre_button_color">#55acee</color>
+
+    <color name="default_inactive_item_color">#9e9e9e</color>
+    <color name="colorBackgroundHighlightWhite">#8dffffff</color>
+
+    <color name="text_black_87">#de000000</color>
+    <color name="text_white_87">#deFFFFFF</color>
+
+    <color name="story_background_color">#6e88ab</color>
+
+    <color name="red_active">#f44336</color>
+    <color name="purple_active">#9c27b0</color>
+    <color name="blue_active">#03a9f4</color>
+    <color name="green_active">#4caf50</color>
+    <color name="blue_grey_active">#607d8b</color>
+    <color name="yellow_active">#ffeb3b</color>
+    <color name="orange_active">#ff9800</color>
+    <color name="grey_active">#9e9e9e</color>
+
+    <color name="red_inactive">#e57373</color>
+    <color name="purple_inactive">#ba68c8</color>
+    <color name="blue_inactive">#64b5f6</color>
+    <color name="green_inactive">#81c784</color>
+    <color name="blue_grey_inactive">#90a4ae</color>
+    <color name="yellow_inactive">#fff176</color>
+    <color name="orange_inactive">#ffb74d</color>
+    <color name="gery_inactive">#e0e0e0</color>
+
+    <color name="default_inactive">#78909c</color>
+
+    <color name="red_bg_light">#ffebee</color>
+    <color name="purple_bg_light">#f3e5f5</color>
+    <color name="blue_bg_light">#e3f2fd</color>
+    <color name="green_bg_light">#e8f5e9</color>
+    <color name="blue_grey_bg_light">#eceff1</color>
+    <color name="yellow_bg_light">#fffde7</color>
+    <color name="orange_bg_light">#fff3e0</color>
+    <color name="grey_bg_light">#fafafa</color>
 
 </resources>

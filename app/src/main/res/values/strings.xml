@@ -3,7 +3,7 @@
     <string name="title_home">Movies</string>
     <string name="title_notifications">Notifications</string>
     <string name="title_settings">Settings</string>
-    <string name="search_movies">Search Movies/Series</string>
+    <string name="search_movies">Search Movies</string>
     <string name="download">DOWNLOAD</string>
     <string name="admob_app_id">ca-app-pub-2997746677651129~9657919826</string>
     <string name="native_ad_unit_id">ca-app-pub-2997746677651129/3877859979</string>

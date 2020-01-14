@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:clipChildren="true"
     android:clipToPadding="true"
-    app:cardBackgroundColor="@color/colorPrimaryDark"
-    app:cardElevation="2dp">
+    app:cardBackgroundColor="@color/white"
+    app:cardElevation="5dp">
 
     <com.google.android.gms.ads.formats.UnifiedNativeAdView
         android:id="@+id/ad_unified"
@@ -17,7 +18,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:background="@color/colorPrimaryDark"
+            android:background="@color/white"
             android:minHeight="50dp"
             android:orientation="vertical">
 
@@ -45,7 +46,8 @@
                         android:paddingEnd="5dp"
                         android:paddingRight="5dp"
                         android:paddingBottom="5dp"
-                        android:scaleType="centerCrop" />
+                        android:scaleType="centerCrop"
+                        tools:ignore="ContentDescription" />
 
                     <LinearLayout
                         android:layout_width="0dp"
@@ -70,7 +72,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="match_parent"
                                 android:gravity="bottom"
-                                android:textColor="@color/icons_unselected_color"
+                                android:textColor="@color/gray65"
                                 android:textSize="14sp"
                                 android:textStyle="bold" />
 
@@ -99,7 +101,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="20dp"
-                        android:textColor="@android:color/white"
+                        android:textColor="@color/black"
                         android:textSize="12sp" />
 
                     <com.google.android.gms.ads.formats.MediaView
@@ -125,7 +127,7 @@
                             android:paddingLeft="5dp"
                             android:paddingEnd="5dp"
                             android:paddingRight="5dp"
-                            android:textColor="@color/icons_unselected_color"
+                            android:textColor="@color/gray50"
                             android:textSize="12sp" />
 
                         <TextView
@@ -136,7 +138,7 @@
                             android:paddingLeft="5dp"
                             android:paddingEnd="5dp"
                             android:paddingRight="5dp"
-                            android:textColor="@android:color/white"
+                            android:textColor="@color/gray78"
                             android:textSize="12sp" />
 
                         <Button
