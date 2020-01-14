@@ -1,19 +1,50 @@
 package com.molvix.android.ui.activities;
 
+import android.Manifest;
 import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.annotation.Nullable;
 
+import com.karumi.dexter.Dexter;
+import com.karumi.dexter.MultiplePermissionsReport;
+import com.karumi.dexter.PermissionToken;
+import com.karumi.dexter.listener.PermissionRequest;
+import com.karumi.dexter.listener.multi.MultiplePermissionsListener;
 import com.molvix.android.R;
-import com.molvix.android.ui.services.MoviesDownloadService;
+
+import java.util.List;
 
 public class SplashActivity extends BaseActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
-        Intent moviesDownloadIntent = new Intent(this, MoviesDownloadService.class);
-        MoviesDownloadService.enqueueWork(this, moviesDownloadIntent);
+        Dexter.withActivity(this)
+                .withPermissions(
+                        Manifest.permission.READ_PHONE_STATE,
+                        Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                        Manifest.permission.READ_EXTERNAL_STORAGE)
+                .withListener(new MultiplePermissionsListener() {
+                    @Override
+                    public void onPermissionsChecked(MultiplePermissionsReport report) {
+                        if (report.areAllPermissionsGranted()) {
+                            navigateToMainActivity();
+                        }
+                    }
+
+                    @Override
+                    public void onPermissionRationaleShouldBeShown(List<PermissionRequest> permissions, PermissionToken token) {
+                        token.continuePermissionRequest();
+                    }
+
+                }).check();
     }
+
+    private void navigateToMainActivity() {
+        Intent mainIntent = new Intent(this, MainActivity.class);
+        startActivity(mainIntent);
+        finish();
+    }
+
 }

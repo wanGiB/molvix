@@ -33,7 +33,7 @@ public class MoviesDownloadService extends JobIntentService {
 
     @Override
     protected void onHandleWork(@NonNull Intent intent) {
-        String sampleLink = "https://o2tvseries.com/24-Legacy-8/Season-01/index.html";
+        String sampleLink = "https://o2tvseries.com/24-Legacy-8/index.html";
         extractMetaDataFromMovieLink(sampleLink);
     }
 
@@ -134,7 +134,7 @@ public class MoviesDownloadService extends JobIntentService {
                     String href = link.attr("href");
                     String text = link.text();
                     if (href.contains(AppConstants.DOWNLOADABLE)) {
-                        Log.d(TAG,text+"="+link);
+                        Log.d(TAG, text + ":" + href);
                         downloadLinks.add(href);
                     }
                 }
@@ -149,6 +149,27 @@ public class MoviesDownloadService extends JobIntentService {
             return episodeLink;
         }
         return episodeLink;
+    }
+
+    private void fetchDownloadOptionsForEpisode(String episodeLink) {
+        try {
+            Document episodeDocument = Jsoup.connect(episodeLink).get();
+            //Bring out all href elements containing
+            Elements links = episodeDocument.select("a[href]");
+            if (links != null && !links.isEmpty()) {
+                List<String> downloadLinks = new ArrayList<>();
+                for (Element link : links) {
+                    String episodeFileName = link.text();
+                    String episodeDownloadLink = link.attr("href");
+                    if (episodeDownloadLink.contains(AppConstants.DOWNLOADABLE)) {
+                        Log.d(TAG, episodeFileName + ":" + episodeDownloadLink);
+                        downloadLinks.add(episodeDownloadLink);
+                    }
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private String generateSeasonFinaleForEpisode(String episodeLink) {
