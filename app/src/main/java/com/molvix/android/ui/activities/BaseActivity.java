@@ -13,11 +13,17 @@ import androidx.core.content.ContextCompat;
 import com.molvix.android.R;
 import com.molvix.android.utils.UiUtils;
 
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
+
 public abstract class BaseActivity extends AppCompatActivity {
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
         super.onCreate(savedInstanceState);
+        checkAndRegisterEventBus();
         tintToolbarAndTabLayout(ContextCompat.getColor(this, R.color.light_grey));
     }
 
@@ -27,6 +33,42 @@ public abstract class BaseActivity extends AppCompatActivity {
             window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
             window.setStatusBarColor(UiUtils.darker(colorPrimary, 0.9f));
         }
+    }
+
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        checkAndUnRegisterEventBus();
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        checkAndUnRegisterEventBus();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        checkAndRegisterEventBus();
+    }
+
+    private void checkAndRegisterEventBus() {
+        if (!EventBus.getDefault().isRegistered(this)) {
+            EventBus.getDefault().register(this);
+        }
+    }
+
+    private void checkAndUnRegisterEventBus() {
+        if (EventBus.getDefault().isRegistered(this)) {
+            EventBus.getDefault().unregister(this);
+        }
+    }
+
+    @Subscribe(threadMode = ThreadMode.ASYNC)
+    public void onEventMainThread(Object event) {
+
     }
 
 }

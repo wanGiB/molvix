@@ -57,7 +57,7 @@ public class Episode extends BaseModel implements Serializable {
     @Nullable
     @Column
     @Expose
-    public String mediumQualityDownloadLink;
+    public String standardQualityDownloadLink;
 
     @Nullable
     @Column
@@ -74,12 +74,12 @@ public class Episode extends BaseModel implements Serializable {
     }
 
     @Nullable
-    public String getMediumQualityDownloadLink() {
-        return mediumQualityDownloadLink;
+    public String getStandardQualityDownloadLink() {
+        return standardQualityDownloadLink;
     }
 
-    public void setMediumQualityDownloadLink(@Nullable String mediumQualityDownloadLink) {
-        this.mediumQualityDownloadLink = mediumQualityDownloadLink;
+    public void setStandardQualityDownloadLink(@Nullable String standardQualityDownloadLink) {
+        this.standardQualityDownloadLink = standardQualityDownloadLink;
     }
 
     @Nullable

@@ -33,7 +33,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".ui.activities.MovieDetailsPage" />
+        <activity android:name=".ui.activities.MovieDetailsActivity" />
 
         <service android:name=".ui.services.MoviesDownloadService" />
         <service android:name=".ui.services.ContentGenerationService" />

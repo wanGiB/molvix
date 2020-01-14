@@ -107,7 +107,7 @@ public class ContentGenerationService extends JobIntentService {
         return new Pair<>(movieTitle, movieLink);
     }
 
-    private static void extractMetaDataFromMovieLink(String movieLink, Movie movie) {
+    public static void extractMetaDataFromMovieLink(String movieLink, Movie movie) {
         try {
             Document movieDoc = Jsoup.connect(movieLink).get();
             Element movieInfoElement = movieDoc.select("div.tv_series_info").first();

@@ -1,5 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <declare-styleable name="MolvixTextView">
+        <attr name="textStyle" />
+        <attr name="text_animationStyle" />
+    </declare-styleable>
+    <attr name="textStyle" format="enum">
+        <enum name="regular" value="0" />
+        <enum name="bold" value="1" />
+        <enum name="italic" value="2" />
+        <enum name="light" value="3" />
+        <enum name="medium" value="4" />
+        <enum name="thin" value="5" />
+        <enum name="colophon" value="6" />
+        <enum name="font_awesome" value="7" />
+        <enum name="none" value="8" />
+        <enum name="bold_normal" value="9" />
+    </attr>
     <declare-styleable name="RoundedImageView">
         <attr name="riv_corner_radius" format="dimension" />
         <attr name="riv_corner_radius_top_left" format="dimension" />

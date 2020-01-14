@@ -2,6 +2,7 @@ package com.molvix.android.ui.widgets;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.drawable.ColorDrawable;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
@@ -14,8 +15,10 @@ import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 
 import com.molvix.android.R;
+import com.molvix.android.companions.AppConstants;
 import com.molvix.android.models.Movie;
 import com.molvix.android.models.Season;
+import com.molvix.android.ui.activities.MovieDetailsActivity;
 import com.molvix.android.utils.UiUtils;
 
 import org.apache.commons.lang3.StringUtils;
@@ -117,7 +120,9 @@ public class MovieView extends FrameLayout {
     }
 
     private void openMovieDetails(Movie movie) {
-
+        Intent movieDetailsIntent = new Intent(getContext(), MovieDetailsActivity.class);
+        movieDetailsIntent.putExtra(AppConstants.MOVIE_ID, movie.getMovieId());
+        getContext().startActivity(movieDetailsIntent);
     }
 
 }
