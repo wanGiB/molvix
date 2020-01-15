@@ -7,7 +7,7 @@
     android:clipChildren="true"
     android:clipToPadding="true"
     app:cardBackgroundColor="@color/white"
-    app:cardElevation="5dp">
+    app:cardElevation="0dp">
 
     <com.google.android.gms.ads.formats.UnifiedNativeAdView
         android:id="@+id/ad_unified"
