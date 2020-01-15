@@ -17,10 +17,10 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import com.liucanwen.app.headerfooterrecyclerview.EndlessRecyclerOnScrollListener;
 import com.liucanwen.app.headerfooterrecyclerview.HeaderAndFooterRecyclerViewAdapter;
 import com.liucanwen.app.headerfooterrecyclerview.RecyclerViewUtils;
 import com.molvix.android.R;
-import com.molvix.android.companions.AppConstants;
 import com.molvix.android.eventbuses.SearchEvent;
 import com.molvix.android.jobs.ContentMiner;
 import com.molvix.android.models.Movie;
@@ -46,8 +46,6 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import jp.wasabeef.recyclerview.animators.ScaleInAnimator;
 
-import static android.view.View.GONE;
-
 @SuppressWarnings("ConstantConditions")
 public class HomeFragment extends BaseFragment {
 
@@ -66,9 +64,6 @@ public class HomeFragment extends BaseFragment {
     @BindView(R.id.movies_recycler_view)
     RecyclerView moviesRecyclerView;
 
-    @BindView(R.id.nothing_found_error_message)
-    TextView nothingFoundMessageView;
-
     private List<Movie> movies = new ArrayList<>();
     private MoviesAdapter moviesAdapter;
 
@@ -77,6 +72,7 @@ public class HomeFragment extends BaseFragment {
     private ContentPullOverTask contentPullOverTask;
 
     private TextView headerTextView;
+    private String activeSearchString;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -94,7 +90,6 @@ public class HomeFragment extends BaseFragment {
             spinMoviesDownloadJob();
         });
         listenToChangesInLocalMoviesDatabase();
-        fetchAllAvailableMovies();
     }
 
     private void listenToChangesInLocalMoviesDatabase() {
@@ -165,7 +160,7 @@ public class HomeFragment extends BaseFragment {
     }
 
     private void checkAndInvalidateUI() {
-        UiUtils.toggleViewVisibility(contentLoadingView, nothingFoundMessageView.getVisibility() == GONE && movies.isEmpty());
+        UiUtils.toggleViewVisibility(contentLoadingView, movies.isEmpty());
     }
 
     @Override
@@ -173,6 +168,7 @@ public class HomeFragment extends BaseFragment {
         super.onActivityCreated(savedInstanceState);
         setupSwipeRefreshLayoutColorScheme();
         initMoviesAdapter();
+        fetchAllAvailableMovies(0);
     }
 
     @SuppressWarnings("ConstantConditions")
@@ -184,7 +180,7 @@ public class HomeFragment extends BaseFragment {
         swipeRefreshLayout.setOnRefreshListener(() -> {
             movies.clear();
             moviesAdapter.notifyDataSetChanged();
-            fetchAllAvailableMovies();
+            fetchAllAvailableMovies(0);
         });
     }
 
@@ -198,6 +194,22 @@ public class HomeFragment extends BaseFragment {
         moviesRecyclerView.setItemAnimator(new ScaleInAnimator());
         moviesRecyclerView.setAdapter(headerAndFooterRecyclerViewAdapter);
         RecyclerViewUtils.setHeaderView(moviesRecyclerView, headerView);
+        moviesRecyclerView.addOnScrollListener(new EndlessRecyclerOnScrollListener() {
+            @Override
+            public void onLoadNextPage(View view) {
+                if (!movies.isEmpty()) {
+                    if (StringUtils.isNotEmpty(getActiveSearchString())) {
+                        searchMovies(getActiveSearchString(), movies.size());
+                    } else {
+                        fetchAllAvailableMovies(movies.size());
+                    }
+                }
+            }
+        });
+    }
+
+    private String getActiveSearchString() {
+        return activeSearchString;
     }
 
     @Override
@@ -206,9 +218,12 @@ public class HomeFragment extends BaseFragment {
         DirectModelNotifier.get().unregisterForModelChanges(Movie.class, movieModelChangedListener);
     }
 
-    private void fetchAllAvailableMovies() {
+    private void fetchAllAvailableMovies(int skip) {
+        nullifySearch();
         SQLite.select()
                 .from(Movie.class)
+                .offset(skip)
+                .limit(2000)
                 .async()
                 .queryListResultCallback((transaction, tResult) -> {
                     if (!tResult.isEmpty()) {
@@ -254,23 +269,24 @@ public class HomeFragment extends BaseFragment {
         contentPullOverTask.execute();
     }
 
-    private void searchMovies(String searchString) {
+    private void searchMovies(String searchString, int skip) {
         SQLite.select()
                 .from(Movie.class)
-                .where(Movie_Table.movieName.like("%" + searchString + "%"))
-                .or(Movie_Table.movieDescription.like("%" + searchString + "%"))
+                .where(Movie_Table.movieName.like("%" + searchString.toLowerCase() + "%"))
+                .or(Movie_Table.movieDescription.like("%" + searchString.toLowerCase() + "%"))
+                .offset(skip)
+                .limit(2000)
                 .async()
                 .queryListResultCallback((transaction, queriedMovies) -> mUiHandler.post(() -> {
                     movies.clear();
+                    moviesAdapter.setSearchString(searchString);
                     moviesAdapter.notifyDataSetChanged();
                     if (!queriedMovies.isEmpty()) {
-                        moviesAdapter.setSearchString(searchString);
                         for (Movie movie : queriedMovies) {
                             addMovie(movie);
                         }
-                        displayFoundResults(queriedMovies);
                     }
-                    UiUtils.toggleViewVisibility(nothingFoundMessageView, queriedMovies.isEmpty());
+                    displayFoundResults(queriedMovies);
                 }))
                 .execute();
     }
@@ -280,7 +296,8 @@ public class HomeFragment extends BaseFragment {
         mUiHandler.post(() -> {
             int totalNumberOfMovies = queriedMovies.size();
             DecimalFormat moviesNoFormatter = new DecimalFormat("#,###");
-            headerTextView.setText(moviesNoFormatter.format(totalNumberOfMovies) + " results found");
+            String resultMsg = totalNumberOfMovies == 1 ? "result" : "results";
+            headerTextView.setText(moviesNoFormatter.format(totalNumberOfMovies) + " " + resultMsg + " found");
         });
     }
 
@@ -291,11 +308,11 @@ public class HomeFragment extends BaseFragment {
         if (event instanceof SearchEvent) {
             SearchEvent searchEvent = (SearchEvent) event;
             String searchString = searchEvent.getSearchString();
+            setActiveSearchString(searchString);
             if (StringUtils.isNotEmpty(searchString)) {
-                mUiHandler.post(() -> searchMovies(searchEvent.getSearchString().toLowerCase()));
+                mUiHandler.post(() -> searchMovies(searchEvent.getSearchString().toLowerCase(), 0));
             } else {
-                nullifySearch();
-                fetchAllAvailableMovies();
+                fetchAllAvailableMovies(0);
             }
         } else if (event instanceof Exception) {
             mUiHandler.post(() -> {
@@ -305,15 +322,11 @@ public class HomeFragment extends BaseFragment {
                     contentLoadingProgressMessageView.setText("Network error.Please review your data connection and tap here to try again.");
                 }
             });
-        } else if (event instanceof String) {
-            mUiHandler.post(() -> {
-                String s = (String) event;
-                if (s.equals(AppConstants.EMPTY_SEARCH)) {
-                    nullifySearch();
-                    UiUtils.toggleViewVisibility(nothingFoundMessageView, false);
-                }
-            });
         }
+    }
+
+    private void setActiveSearchString(String searchString) {
+        this.activeSearchString = searchString;
     }
 
     private void nullifySearch() {

@@ -192,6 +192,7 @@ public class MovieDetailsActivity extends BaseActivity {
         if (movieSeasons != null && !movieSeasons.isEmpty()) {
             for (Season season : movieSeasons) {
                 MovieContentItem movieContentItem = new MovieContentItem(season.getSeasonName(), season.getEpisodes());
+                movieContentItem.setSeason(season);
                 movieContentItem.setContentType(MovieContentItem.ContentType.GROUP_HEADER);
                 movieContentItems.add(movieContentItem);
             }

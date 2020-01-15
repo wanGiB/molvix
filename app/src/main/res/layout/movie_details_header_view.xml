@@ -47,18 +47,20 @@
             android:id="@+id/movie_seasons_count_view"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical"
+            android:layout_gravity="center_vertical|end"
             android:gravity="center_vertical"
             android:paddingStart="8dp"
+            android:paddingTop="5dp"
             android:paddingEnd="8dp"
-            android:textColor="@color/colorAccentDark"
-            android:textSize="15sp"
+            android:paddingBottom="2dp"
+            android:textColor="@color/ease_gray_dark"
+            android:textSize="14sp"
             app:textStyle="medium" />
 
         <View
             android:layout_width="match_parent"
             android:layout_height="0.5dp"
-            android:background="@color/ease_gray" />
+            android:background="@color/light_grey" />
 
     </LinearLayout>
 

@@ -1,11 +1,15 @@
 package com.molvix.android.ui.activities;
 
+import android.annotation.SuppressLint;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.view.MotionEvent;
+import android.view.View;
 import android.widget.EditText;
+import android.widget.ImageView;
 
 import androidx.core.content.ContextCompat;
 import androidx.navigation.NavController;
@@ -15,8 +19,8 @@ import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.molvix.android.R;
-import com.molvix.android.companions.AppConstants;
 import com.molvix.android.eventbuses.SearchEvent;
+import com.molvix.android.utils.UiUtils;
 
 import org.apache.commons.lang3.StringUtils;
 import org.greenrobot.eventbus.EventBus;
@@ -26,8 +30,14 @@ import butterknife.ButterKnife;
 
 public class MainActivity extends BaseActivity {
 
+    @BindView(R.id.search_box_outter_container)
+    View searchBoxOutterContainer;
+
     @BindView(R.id.search_box)
     EditText searchBox;
+
+    @BindView(R.id.close_search)
+    ImageView closeSearchView;
 
     @BindView(R.id.bottom_navigation_view)
     BottomNavigationView bottomNavView;
@@ -44,14 +54,23 @@ public class MainActivity extends BaseActivity {
         initEventHandlers();
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     private void initEventHandlers() {
         searchBox.setOnClickListener(v -> searchBox.setCursorVisible(true));
+        searchBox.setOnTouchListener((v, event) -> {
+            if (!searchBox.isCursorVisible()) {
+                searchBox.setCursorVisible(true);
+            }
+            return false;
+        });
+        searchBoxOutterContainer.setOnClickListener(v -> searchBox.performClick());
         searchBox.setOnFocusChangeListener((v, hasFocus) -> {
             if (!hasFocus) {
                 searchBox.setCursorVisible(false);
             }
         });
         searchBox.addTextChangedListener(new TextWatcher() {
+
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
 
@@ -60,18 +79,27 @@ public class MainActivity extends BaseActivity {
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 String searchedString = StringUtils.strip(s.toString().trim());
-                if (StringUtils.isNotEmpty(searchedString)) {
-                    EventBus.getDefault().post(new SearchEvent(searchedString));
-                } else {
-                    EventBus.getDefault().post(AppConstants.EMPTY_SEARCH);
-                }
+                EventBus.getDefault().post(new SearchEvent(searchedString));
+                UiUtils.toggleViewVisibility(closeSearchView, StringUtils.isNotEmpty(searchedString));
             }
 
             @Override
             public void afterTextChanged(Editable s) {
 
             }
+
         });
+        closeSearchView.setOnClickListener(v -> searchBox.setText(""));
+    }
+
+    @Override
+    public void onBackPressed() {
+        String searchString = searchBox.getText().toString().trim();
+        if (StringUtils.isNotEmpty(searchString)) {
+            searchBox.setText("");
+        } else {
+            super.onBackPressed();
+        }
     }
 
     private void initSearchBox() {

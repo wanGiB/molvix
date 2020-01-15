@@ -14,12 +14,13 @@
         android:id="@+id/frontLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/white">
+        android:background="@color/light_gray">
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/seasons_and_episodes_recycler_view"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="wrap_content"
+            android:background="@color/light_gray" />
 
         <LinearLayout
             android:id="@+id/content_loading_layout"

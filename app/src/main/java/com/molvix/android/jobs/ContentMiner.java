@@ -101,6 +101,7 @@ public class ContentMiner {
                     season.setSeasonName(seasonName);
                     season.setMovieId(movie.getMovieId());
                     season.setSeasonLink(seasonAtI);
+                    season.setSeasonId(CryptoUtils.getSha256Digest(seasonAtI));
                     if (!seasons.contains(season)) {
                         seasons.add(season);
                     }

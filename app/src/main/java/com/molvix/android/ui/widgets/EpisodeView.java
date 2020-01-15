@@ -9,6 +9,7 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.FrameLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -146,15 +147,23 @@ public class EpisodeView extends FrameLayout {
 
     private void initSpinner(Episode episode) {
         episodeDownloadOptionsSpinner.setSelection(1);
-        episodeDownloadOptionsSpinner.setOnItemClickListener((parent, view, position, id) -> {
-            if (position == 0) {
-                episode.setEpisodeQuality(EpisodeQuality.HIGH_QUALITY);
-            } else if (position == 1) {
-                episode.setEpisodeQuality(EpisodeQuality.STANDARD_QUALITY);
-            } else {
-                episode.setEpisodeQuality(EpisodeQuality.LOW_QUALITY);
+        episodeDownloadOptionsSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                if (position == 0) {
+                    episode.setEpisodeQuality(EpisodeQuality.HIGH_QUALITY);
+                } else if (position == 1) {
+                    episode.setEpisodeQuality(EpisodeQuality.STANDARD_QUALITY);
+                } else {
+                    episode.setEpisodeQuality(EpisodeQuality.LOW_QUALITY);
+                }
+                episode.update();
             }
-            episode.update();
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
         });
     }
 

@@ -79,9 +79,7 @@ public class MoviesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         }
 
         void bindData(Movie movie, String searchString) {
-            if (searchString != null) {
-                movieView.setSearchString(searchString);
-            }
+            movieView.setSearchString(searchString);
             movieView.setupMovie(movie);
         }
     }

@@ -98,13 +98,18 @@ public class MovieView extends FrameLayout {
             movieNameView.setText(WordUtils.capitalize(movieName));
         }
         if (StringUtils.isNotEmpty(movieDescription)) {
-            movieDescriptionView.setText(StringUtils.capitalize(movieDescription));
+            if (StringUtils.isNotEmpty(getSearchString())) {
+                movieDescriptionView.setText(UiUtils.highlightTextIfNecessary(getSearchString(), StringUtils.capitalize(movieDescription), ContextCompat.getColor(getContext(), R.color.colorAccentDark)));
+            } else {
+                movieDescriptionView.setText(StringUtils.capitalize(movieDescription));
+            }
         } else {
             movieDescriptionView.setText("");
         }
         if (movieSeasonsCount != null && !movieSeasonsCount.isEmpty()) {
             int seasonsCount = movieSeasonsCount.size();
-            movieSeasonsCountView.setText("Seasons " + seasonsCount);
+            String pluralizer = seasonsCount == 1 ? " Season" : " Seasons";
+            movieSeasonsCountView.setText(seasonsCount + pluralizer);
         } else {
             movieSeasonsCountView.setText("");
         }

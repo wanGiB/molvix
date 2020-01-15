@@ -3,20 +3,24 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:background="@color/white"
+    android:clickable="true"
+    android:focusable="true"
     android:orientation="vertical">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="10dp">
+        android:paddingTop="10dp"
+        android:paddingStart="5dp"
+        android:paddingBottom="10dp"
+        android:orientation="horizontal">
 
         <com.molvix.android.ui.widgets.MolvixTextView
             android:id="@+id/list_item_season_name"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
-            android:layout_marginStart="@dimen/list_item_left_margin"
             android:layout_weight="1"
             android:gravity="center_vertical"
             android:text="Season"

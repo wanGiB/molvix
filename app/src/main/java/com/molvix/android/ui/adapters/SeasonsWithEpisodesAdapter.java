@@ -191,7 +191,7 @@ public class SeasonsWithEpisodesAdapter extends MultiTypeExpandableRecyclerViewA
         MolvixTextView movieDescriptionView;
 
         @BindView(R.id.movie_seasons_count_view)
-        MolvixTextView movieSeasonsCountView;
+        MolvixTextView seasonsCountView;
 
         MovieHeaderViewHolder(View itemView) {
             super(itemView);
@@ -212,9 +212,13 @@ public class SeasonsWithEpisodesAdapter extends MultiTypeExpandableRecyclerViewA
             } else {
                 movieArtView.setImageDrawable(new ColorDrawable(ContextCompat.getColor(context, R.color.light_grey)));
             }
-            List<Season> movieSeasons = movie.getMovieSeasons();
-            if (movieSeasons != null && !movieSeasons.isEmpty()) {
-                movieSeasonsCountView.setText("Seasons " + movieSeasons.size());
+            List<Season> movieSeasonsCount = movie.getMovieSeasons();
+            if (movieSeasonsCount != null && !movieSeasonsCount.isEmpty()) {
+                int seasonsCount = movieSeasonsCount.size();
+                String pluralizer = seasonsCount == 1 ? " Season" : " Seasons";
+                seasonsCountView.setText(seasonsCount + pluralizer);
+            } else {
+                seasonsCountView.setText("");
             }
         }
 
