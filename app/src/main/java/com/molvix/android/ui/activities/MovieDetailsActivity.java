@@ -28,6 +28,7 @@ import com.molvix.android.models.Movie;
 import com.molvix.android.models.Season;
 import com.molvix.android.ui.adapters.SeasonsWithEpisodesAdapter;
 import com.molvix.android.utils.ConnectivityUtils;
+import com.molvix.android.utils.FileUtils;
 import com.molvix.android.utils.LocalDbUtils;
 import com.molvix.android.utils.UiUtils;
 import com.raizlabs.android.dbflow.runtime.DirectModelNotifier;
@@ -207,7 +208,12 @@ public class MovieDetailsActivity extends BaseActivity {
                     tryEpisodeDownloadOptions(episode.getEpisodeLink());
                 } else if (EpisodeDownloadOptionsResolutionManager.getTargetLinkForEpisodeLink(episode.getEpisodeLink()) != null) {
                     //Inject document manipulation command
-
+                    String javascriptCodeInjection =
+                            "javascript:function clickCaptchaButton(){\n" +
+                                    "    document.getElementsByTagName('input')[0].click();\n" +
+                                    "}\n" +
+                                    "clickCaptchaButton();";
+                    hackWebView.loadUrl(javascriptCodeInjection);
                 } else {
                     Log.d(TAG, "DownloadOptions are: " + downloadOptions);
                     UiUtils.showSafeToast("DownloadOptions are: " + downloadOptions);
@@ -255,6 +261,11 @@ public class MovieDetailsActivity extends BaseActivity {
             @Override
             public void onPageStarted(WebView view, String url, Bitmap favicon) {
                 super.onPageStarted(view, url, favicon);
+                String mimeTypeOfUrl = FileUtils.getMimeType(url);
+                if (mimeTypeOfUrl.toLowerCase().contains("video")) {
+                    Log.d(TAG, "Download Url of Video=" + url);
+                    UiUtils.showSafeToast("DownloadUrl Of Video=" + url);
+                }
             }
 
         });
