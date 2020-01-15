@@ -201,21 +201,21 @@ public class MovieDetailsActivity extends BaseActivity {
             @Override
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
-            }
-
-            @Override
-            public void onPageStarted(WebView view, String url, Bitmap favicon) {
-                super.onPageStarted(view, url, favicon);
                 List<String> downloadOptions = EpisodeDownloadOptionsResolutionManager.getDownloadOptions(episode.getEpisodeLink());
                 if (downloadOptions.isEmpty()) {
                     tryEpisodeDownloadOptions(episode.getEpisodeLink());
                 } else {
                     Log.d(TAG, "DownloadOptions are: " + downloadOptions);
                     UiUtils.showSafeToast("DownloadOptions are: " + downloadOptions);
-
-                    //Pick the option based on the user's selection and navigate to solving captcha and
+                    //Pick the option based on the user's
+                    //selection and navigate to solving captcha and
                     //Ultimately downloading
                 }
+            }
+
+            @Override
+            public void onPageStarted(WebView view, String url, Bitmap favicon) {
+                super.onPageStarted(view, url, favicon);
             }
 
         });
