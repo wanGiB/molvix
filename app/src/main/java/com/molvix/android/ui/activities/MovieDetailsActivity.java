@@ -64,6 +64,7 @@ public class MovieDetailsActivity extends BaseActivity {
     @BindView(R.id.content_loading_progress_msg)
     TextView loadingLayoutProgressMsgView;
 
+    @SuppressWarnings("unused")
     @BindView(R.id.content_loading_progress)
     ProgressBar loadingLayoutProgressBar;
 
@@ -208,12 +209,7 @@ public class MovieDetailsActivity extends BaseActivity {
                     tryEpisodeDownloadOptions(episode.getEpisodeLink());
                 } else if (EpisodeDownloadOptionsResolutionManager.getTargetLinkForEpisodeLink(episode.getEpisodeLink()) != null) {
                     //Inject document manipulation command
-                    String javascriptCodeInjection =
-                            "javascript:function clickCaptchaButton(){\n" +
-                                    "    document.getElementsByTagName('input')[0].click();\n" +
-                                    "}\n" +
-                                    "clickCaptchaButton();";
-                    hackWebView.loadUrl(javascriptCodeInjection);
+                    injectMagicScript();
                 } else {
                     Log.d(TAG, "DownloadOptions are: " + downloadOptions);
                     UiUtils.showSafeToast("DownloadOptions are: " + downloadOptions);
@@ -270,6 +266,15 @@ public class MovieDetailsActivity extends BaseActivity {
 
         });
         hackWebView.loadUrl(episode.getEpisodeLink());
+    }
+
+    private void injectMagicScript() {
+        String javascriptCodeInjection =
+                "javascript:function clickCaptchaButton(){\n" +
+                        "    document.getElementsByTagName('input')[0].click();\n" +
+                        "}\n" +
+                        "clickCaptchaButton();";
+        hackWebView.loadUrl(javascriptCodeInjection);
     }
 
     static class MoviePullTask extends AsyncTask<Void, Void, Void> {
