@@ -7,6 +7,7 @@ import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -16,6 +17,7 @@ import com.molvix.android.jobs.ContentMiner;
 import com.molvix.android.models.Movie;
 import com.molvix.android.models.Season;
 import com.molvix.android.utils.LocalDbUtils;
+import com.molvix.android.utils.UiUtils;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -24,6 +26,12 @@ public class SeasonView extends FrameLayout {
 
     @BindView(R.id.list_item_season_name)
     MolvixTextView seasonNameView;
+
+    @BindView(R.id.list_item_season_arrow)
+    ImageView arrow;
+
+    @BindView(R.id.root_view)
+    View rootView;
 
     private Movie movie;
     private Season season;
@@ -52,11 +60,23 @@ public class SeasonView extends FrameLayout {
         requestLayout();
     }
 
-    public void bindSeason(Season season) {
+    public void bindSeason(Season season, View itemView) {
         this.season = season;
         movie = LocalDbUtils.getMovie(season.getMovieId());
         seasonNameView.setText(season.getSeasonName());
         loadSeasonEpisodes();
+        View.OnClickListener onClickListener = v -> {
+            UiUtils.blinkView(rootView);
+            itemView.performClick();
+        };
+        seasonNameView.setOnClickListener(onClickListener);
+        arrow.setOnClickListener(onClickListener);
+        setOnClickListener(onClickListener);
+        rootView.setOnClickListener(onClickListener);
+    }
+
+    public ImageView getArrow() {
+        return arrow;
     }
 
     private void loadSeasonEpisodes() {

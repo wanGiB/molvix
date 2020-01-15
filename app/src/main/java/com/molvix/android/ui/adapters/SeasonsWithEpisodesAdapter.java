@@ -6,6 +6,7 @@ import android.graphics.drawable.ColorDrawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.RotateAnimation;
 import android.widget.ImageView;
 
 import androidx.core.content.ContextCompat;
@@ -32,6 +33,8 @@ import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+
+import static android.view.animation.Animation.RELATIVE_TO_SELF;
 
 public class SeasonsWithEpisodesAdapter extends MultiTypeExpandableRecyclerViewAdapter<GroupViewHolder, ChildViewHolder> {
 
@@ -134,7 +137,7 @@ public class SeasonsWithEpisodesAdapter extends MultiTypeExpandableRecyclerViewA
     static class SeasonHeaderGroupViewHolder extends GroupViewHolder {
 
         @BindView(R.id.season_view)
-        SeasonView seasonNameView;
+        SeasonView seasonView;
 
         SeasonHeaderGroupViewHolder(View itemView) {
             super(itemView);
@@ -142,7 +145,33 @@ public class SeasonsWithEpisodesAdapter extends MultiTypeExpandableRecyclerViewA
         }
 
         void bindSeasonData(Season season) {
-            seasonNameView.bindSeason(season);
+            seasonView.bindSeason(season, itemView);
+        }
+
+        @Override
+        public void expand() {
+            animateExpand();
+        }
+
+        @Override
+        public void collapse() {
+            animateCollapse();
+        }
+
+        private void animateExpand() {
+            RotateAnimation rotate =
+                    new RotateAnimation(360, 180, RELATIVE_TO_SELF, 0.5f, RELATIVE_TO_SELF, 0.5f);
+            rotate.setDuration(300);
+            rotate.setFillAfter(true);
+            seasonView.getArrow().setAnimation(rotate);
+        }
+
+        private void animateCollapse() {
+            RotateAnimation rotate =
+                    new RotateAnimation(180, 360, RELATIVE_TO_SELF, 0.5f, RELATIVE_TO_SELF, 0.5f);
+            rotate.setDuration(300);
+            rotate.setFillAfter(true);
+            seasonView.getArrow().setAnimation(rotate);
         }
 
     }

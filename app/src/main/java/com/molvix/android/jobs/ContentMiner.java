@@ -32,23 +32,22 @@ public class ContentMiner {
         Element moviesTitlesAndLinks = document.selectFirst("div.data_list");
         if (moviesTitlesAndLinks != null) {
             Elements dataListElements = moviesTitlesAndLinks.children();
+            List<Movie> movies = new ArrayList<>();
             for (Element element : dataListElements) {
                 Pair<String, String> movieTitleAndLink = getMovieTitleAndLink(element);
                 String movieTitle = movieTitleAndLink.first;
                 String movieLink = movieTitleAndLink.second;
                 if (StringUtils.isNotEmpty(movieTitle) && StringUtils.isNotEmpty(movieLink)) {
                     String movieId = CryptoUtils.getSha256Digest(movieLink);
-                    //Persist movie details to database
-                    Movie existingMovie = LocalDbUtils.getMovie(movieId);
-                    if (existingMovie != null) {
-                        return;
-                    }
                     Movie newMovie = new Movie();
                     newMovie.setMovieId(movieId);
                     newMovie.setMovieName(movieTitle.toLowerCase());
                     newMovie.setMovieLink(movieLink);
-                    newMovie.save();
+                    movies.add(newMovie);
                 }
+            }
+            if (!movies.isEmpty()) {
+                LocalDbUtils.performBulkInsertionOfMovies(movies);
             }
         }
     }
@@ -133,7 +132,6 @@ public class ContentMiner {
                 if (episodesList == null) {
                     episodesList = new ArrayList<>();
                 }
-                int existingEpisodeListSize = episodesList.size();
                 for (int i = 0; i < totalNumberOfEpisodes; i++) {
                     String episodeLink = generateEpisodeFromSeasonLink(seasonLink, i + 1);
                     if (i == totalNumberOfEpisodes - 1) {
@@ -147,14 +145,6 @@ public class ContentMiner {
                     Episode newEpisode = getEpisode(movie, currentSeason, episodeLink, episodeName, episodeId);
                     if (!episodesList.contains(newEpisode)) {
                         episodesList.add(newEpisode);
-                        if (existingEpisodeListSize > 0) {
-                            int newSize = episodesList.size();
-                            int diff = newSize - existingEpisodeListSize;
-                            //noinspection StatementWithEmptyBody
-                            if (diff > 0) {
-                                //TODO:Blow a notification that a new episode has being added to this movie season
-                            }
-                        }
                     } else {
                         int indexOfEpisode = episodesList.indexOf(newEpisode);
                         newEpisode = episodesList.get(indexOfEpisode);

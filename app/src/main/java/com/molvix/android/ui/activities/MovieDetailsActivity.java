@@ -73,6 +73,7 @@ public class MovieDetailsActivity extends BaseActivity {
     private DirectModelNotifier.ModelChangedListener<Movie> movieModelChangedListener;
     private DirectModelNotifier.ModelChangedListener<DownloadableEpisodes> downloadableEpisodesModelChangedListener;
     private static final String TAG = MovieDetailsActivity.class.getSimpleName();
+    private SeasonsWithEpisodesAdapter seasonsWithEpisodesAdapter;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -93,6 +94,22 @@ public class MovieDetailsActivity extends BaseActivity {
             } else {
                 loadMovieDetails(movie);
             }
+        }
+    }
+
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        if (seasonsWithEpisodesAdapter!=null){
+            seasonsWithEpisodesAdapter.onSaveInstanceState(outState);
+        }
+    }
+
+    @Override
+    protected void onRestoreInstanceState(@NonNull Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        if (seasonsWithEpisodesAdapter!=null){
+            seasonsWithEpisodesAdapter.onRestoreInstanceState(savedInstanceState);
         }
     }
 
@@ -172,7 +189,7 @@ public class MovieDetailsActivity extends BaseActivity {
             List<Season> movieSeasons = movie.getMovieSeasons();
             loadInMovieSeasons(movieContentItems, movieSeasons);
             checkAndLoadInAd(movieContentItems);
-            SeasonsWithEpisodesAdapter seasonsWithEpisodesAdapter = new SeasonsWithEpisodesAdapter(MovieDetailsActivity.this, movieContentItems);
+            seasonsWithEpisodesAdapter = new SeasonsWithEpisodesAdapter(MovieDetailsActivity.this, movieContentItems);
             LinearLayoutManager linearLayoutManager = new LinearLayoutManager(MovieDetailsActivity.this);
             seasonsAndEpisodesRecyclerView.setLayoutManager(linearLayoutManager);
             seasonsAndEpisodesRecyclerView.setAdapter(seasonsWithEpisodesAdapter);
