@@ -21,6 +21,7 @@ import com.molvix.android.beans.MovieContentItem;
 import com.molvix.android.companions.AppConstants;
 import com.molvix.android.eventbuses.DownloadEpisodeEvent;
 import com.molvix.android.jobs.ContentMiner;
+import com.molvix.android.jobs.EpisodeDownloadOptionsResolutionManager;
 import com.molvix.android.models.Episode;
 import com.molvix.android.models.Movie;
 import com.molvix.android.models.Season;
@@ -39,7 +40,6 @@ import org.jsoup.select.Elements;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -69,7 +69,6 @@ public class MovieDetailsActivity extends BaseActivity {
     private MoviePullTask moviePullTask;
     private DirectModelNotifier.ModelChangedListener<Movie> movieModelChangedListener;
 
-    private static AtomicBoolean downloadOptionsPageVisited = new AtomicBoolean(false);
     private static final String TAG = MovieDetailsActivity.class.getSimpleName();
 
     @Override
@@ -207,7 +206,16 @@ public class MovieDetailsActivity extends BaseActivity {
             @Override
             public void onPageStarted(WebView view, String url, Bitmap favicon) {
                 super.onPageStarted(view, url, favicon);
-                tryEpisodeDownloadOptions(episode.getEpisodeLink());
+                List<String> downloadOptions = EpisodeDownloadOptionsResolutionManager.getDownloadOptions(episode.getEpisodeLink());
+                if (downloadOptions.isEmpty()) {
+                    tryEpisodeDownloadOptions(episode.getEpisodeLink());
+                } else {
+                    Log.d(TAG, "DownloadOptions are: " + downloadOptions);
+                    UiUtils.showSafeToast("DownloadOptions are: " + downloadOptions);
+
+                    //Pick the option based on the user's selection and navigate to solving captcha and
+                    //Ultimately downloading
+                }
             }
 
         });
@@ -265,9 +273,7 @@ public class MovieDetailsActivity extends BaseActivity {
                         }
                     }
                     if (!downloadLinks.isEmpty()) {
-                        downloadOptionsPageVisited.set(true);
-                        //Solve Captcha and download episode based on selected
-                        //Quality
+                        EpisodeDownloadOptionsResolutionManager.captureOptions(downloadLinks, episodeLink);
                     }
                 }
             } catch (IOException e) {
