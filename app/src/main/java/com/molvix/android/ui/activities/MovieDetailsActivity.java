@@ -25,6 +25,7 @@ import com.molvix.android.companions.AppConstants;
 import com.molvix.android.enums.EpisodeQuality;
 import com.molvix.android.eventbuses.CheckForPendingDownloadableEpisodes;
 import com.molvix.android.eventbuses.EpisodeResolutionEvent;
+import com.molvix.android.eventbuses.UpdateSeason;
 import com.molvix.android.jobs.ContentMiner;
 import com.molvix.android.jobs.EpisodesResolutionManager;
 import com.molvix.android.models.DownloadableEpisodes;
@@ -74,6 +75,7 @@ public class MovieDetailsActivity extends BaseActivity {
     private static final String TAG = MovieDetailsActivity.class.getSimpleName();
     private SeasonsWithEpisodesAdapter seasonsWithEpisodesAdapter;
     private String movieId;
+    private List<MovieContentItem> movieContentItems;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -184,7 +186,7 @@ public class MovieDetailsActivity extends BaseActivity {
 
     private void loadMovieDetails(Movie movie) {
         runOnUiThread(() -> {
-            List<MovieContentItem> movieContentItems = new ArrayList<>();
+            movieContentItems = new ArrayList<>();
             addMovieHeaderView(movie, movieContentItems);
             List<Season> movieSeasons = movie.getMovieSeasons();
             loadInMovieSeasons(movieContentItems, movieSeasons);
@@ -294,6 +296,22 @@ public class MovieDetailsActivity extends BaseActivity {
                     solveEpisodeCaptchaChallenge(episodeList.get(episodeList.size() - 1));
                 }
             }
+        } else if (event instanceof UpdateSeason) {
+            runOnUiThread(() -> {
+                UpdateSeason updateSeason = (UpdateSeason) event;
+                Season updatedSeason = updateSeason.getSeason();
+                for (MovieContentItem movieContentItem : movieContentItems) {
+                    Season itemSeason = movieContentItem.getSeason();
+                    if (itemSeason != null) {
+                        if (itemSeason.getSeasonId().equals(updatedSeason.getSeasonId())) {
+                            movieContentItem.setSeason(updatedSeason);
+                            int indexOfMovieItem = movieContentItems.indexOf(movieContentItem);
+                            movieContentItems.set(indexOfMovieItem, movieContentItem);
+                            seasonsWithEpisodesAdapter.notifyDataSetChanged();
+                        }
+                    }
+                }
+            });
         }
     }
 

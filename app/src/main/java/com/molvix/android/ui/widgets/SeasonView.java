@@ -13,10 +13,13 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.molvix.android.R;
+import com.molvix.android.eventbuses.UpdateSeason;
 import com.molvix.android.jobs.ContentMiner;
 import com.molvix.android.models.Season;
 import com.raizlabs.android.dbflow.runtime.DirectModelNotifier;
 import com.raizlabs.android.dbflow.structure.BaseModel;
+
+import org.greenrobot.eventbus.EventBus;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -73,6 +76,7 @@ public class SeasonView extends FrameLayout {
                 if (action == BaseModel.Action.UPDATE) {
                     if (season.getSeasonId().equals(model.getSeasonId())) {
                         season.setEpisodes(model.getEpisodes());
+                        EventBus.getDefault().post(new UpdateSeason(season));
                     }
                 }
             }
