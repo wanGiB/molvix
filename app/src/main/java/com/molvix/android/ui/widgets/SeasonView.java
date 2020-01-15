@@ -17,7 +17,6 @@ import com.molvix.android.jobs.ContentMiner;
 import com.molvix.android.models.Movie;
 import com.molvix.android.models.Season;
 import com.molvix.android.utils.LocalDbUtils;
-import com.molvix.android.utils.UiUtils;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -65,10 +64,7 @@ public class SeasonView extends FrameLayout {
         movie = LocalDbUtils.getMovie(season.getMovieId());
         seasonNameView.setText(season.getSeasonName());
         loadSeasonEpisodes();
-        View.OnClickListener onClickListener = v -> {
-            UiUtils.blinkView(rootView);
-            itemView.performClick();
-        };
+        View.OnClickListener onClickListener = v -> itemView.performClick();
         seasonNameView.setOnClickListener(onClickListener);
         arrow.setOnClickListener(onClickListener);
         setOnClickListener(onClickListener);
