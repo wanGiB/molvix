@@ -47,4 +47,13 @@ public class AppPrefs {
         return downloadOptionsResult;
     }
 
+    @SuppressLint("ApplySharedPref")
+    public static void persistDownloadableEpisodeTargetLink(String targetLink, String episodeLink) {
+        getAppPreferences().edit().putString(CryptoUtils.getSha256Digest(episodeLink), targetLink).commit();
+    }
+
+    public static String getTargetLinkOfEpisode(String episodeLink) {
+        return getAppPreferences().getString(CryptoUtils.getSha256Digest(episodeLink), null);
+    }
+
 }

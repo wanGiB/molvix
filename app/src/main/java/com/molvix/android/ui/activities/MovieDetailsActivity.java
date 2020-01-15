@@ -19,6 +19,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.molvix.android.R;
 import com.molvix.android.beans.MovieContentItem;
 import com.molvix.android.companions.AppConstants;
+import com.molvix.android.enums.EpisodeQuality;
 import com.molvix.android.eventbuses.DownloadEpisodeEvent;
 import com.molvix.android.jobs.ContentMiner;
 import com.molvix.android.jobs.EpisodeDownloadOptionsResolutionManager;
@@ -204,12 +205,50 @@ public class MovieDetailsActivity extends BaseActivity {
                 List<String> downloadOptions = EpisodeDownloadOptionsResolutionManager.getDownloadOptions(episode.getEpisodeLink());
                 if (downloadOptions.isEmpty()) {
                     tryEpisodeDownloadOptions(episode.getEpisodeLink());
+                } else if (EpisodeDownloadOptionsResolutionManager.getTargetLinkForEpisodeLink(episode.getEpisodeLink()) != null) {
+                    //Inject document manipulation command
+
                 } else {
                     Log.d(TAG, "DownloadOptions are: " + downloadOptions);
                     UiUtils.showSafeToast("DownloadOptions are: " + downloadOptions);
                     //Pick the option based on the user's
                     //selection and navigate to solving captcha and
                     //Ultimately downloading
+                    String targetLink = null;
+                    if (downloadOptions.size() == 2) {
+                        try {
+                            String standard = downloadOptions.get(0);
+                            String lowest = downloadOptions.get(1);
+                            if (episode.getEpisodeQuality() == EpisodeQuality.HIGH_QUALITY || episode.getEpisodeQuality() == EpisodeQuality.STANDARD_QUALITY) {
+                                targetLink = standard;
+                            } else {
+                                targetLink = lowest;
+                            }
+                        } catch (Exception ignored) {
+
+                        }
+                    } else if (downloadOptions.size() == 3) {
+                        try {
+                            String standard = downloadOptions.get(0);
+                            String highest = downloadOptions.get(1);
+                            String lowest = downloadOptions.get(2);
+                            if (episode.getEpisodeQuality() == EpisodeQuality.HIGH_QUALITY) {
+                                targetLink = highest;
+                            } else if (episode.getEpisodeQuality() == EpisodeQuality.STANDARD_QUALITY) {
+                                targetLink = standard;
+                            } else {
+                                targetLink = lowest;
+                            }
+                        } catch (Exception ignored) {
+
+                        }
+                    }
+                    if (targetLink != null) {
+                        UiUtils.showSafeToast("Target Episode Link=" + targetLink);
+                        //Visit Captcha Solve and download Page of episode target link
+                        EpisodeDownloadOptionsResolutionManager.captureTargetLink(targetLink, episode.getEpisodeLink());
+                        hackWebView.loadUrl(targetLink);
+                    }
                 }
             }
 

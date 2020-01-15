@@ -14,4 +14,12 @@ public class EpisodeDownloadOptionsResolutionManager {
         return AppPrefs.getDownloadOptionsForEpisodeLink(episodeLink);
     }
 
+    public static void captureTargetLink(String targetLink, String episodeLink) {
+        AppPrefs.persistDownloadableEpisodeTargetLink(targetLink, episodeLink);
+    }
+
+    public static String getTargetLinkForEpisodeLink(String episodeLink) {
+        return AppPrefs.getTargetLinkOfEpisode(episodeLink);
+    }
+
 }
