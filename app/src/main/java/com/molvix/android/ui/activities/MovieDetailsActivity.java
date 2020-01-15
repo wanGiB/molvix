@@ -305,6 +305,8 @@ public class MovieDetailsActivity extends BaseActivity {
                     if (itemSeason != null) {
                         if (itemSeason.getSeasonId().equals(updatedSeason.getSeasonId())) {
                             movieContentItem.setSeason(updatedSeason);
+                            int indexOfMovieItem = movieContentItems.indexOf(movieContentItem);
+                            movieContentItems.set(indexOfMovieItem, movieContentItem);
                             seasonsWithEpisodesAdapter.notifyDataSetChanged();
                         }
                     }

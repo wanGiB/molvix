@@ -228,4 +228,5 @@ public class ContentMiner {
     private static String generateEpisodeFromSeasonLink(String seasonLink, int episodeValue) {
         return seasonLink.replace("index.html", generateEpisodeValue(episodeValue) + "/index.html");
     }
+
 }
