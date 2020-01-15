@@ -227,6 +227,10 @@ public class HomeFragment extends BaseFragment {
                 .async()
                 .queryListResultCallback((transaction, tResult) -> {
                     if (!tResult.isEmpty()) {
+                        if (skip == 0) {
+                            movies.clear();
+                            moviesAdapter.notifyDataSetChanged();
+                        }
                         Collections.shuffle(tResult, new SecureRandom());
                         for (Movie movie : tResult) {
                             addMovie(movie);
@@ -278,7 +282,9 @@ public class HomeFragment extends BaseFragment {
                 .limit(2000)
                 .async()
                 .queryListResultCallback((transaction, queriedMovies) -> mUiHandler.post(() -> {
-                    movies.clear();
+                    if (skip == 0) {
+                        movies.clear();
+                    }
                     moviesAdapter.setSearchString(searchString);
                     moviesAdapter.notifyDataSetChanged();
                     if (!queriedMovies.isEmpty()) {

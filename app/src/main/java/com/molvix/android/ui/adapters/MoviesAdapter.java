@@ -27,8 +27,10 @@ public class MoviesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
     private final int ITEM_TYPE_MOVIE = 0;
     private final int ITEM_TYPE_AD = 1;
     private String searchString;
+    private Context context;
 
     public MoviesAdapter(Context context, List<Movie> movies) {
+        this.context = context;
         layoutInflater = LayoutInflater.from(context);
         this.movies = movies;
     }
@@ -46,7 +48,7 @@ public class MoviesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
             moviesItemViewHolder.bindData(movies.get(position), getSearchString());
         } else {
             AdMobItemViewHolder adMobItemViewHolder = (AdMobItemViewHolder) holder;
-            adMobItemViewHolder.refreshAd();
+            adMobItemViewHolder.refreshAd(context);
         }
     }
 
@@ -94,8 +96,8 @@ public class MoviesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
             ButterKnife.bind(this, itemView);
         }
 
-        void refreshAd() {
-            adMobNativeAdView.refreshAd();
+        void refreshAd(Context context) {
+            adMobNativeAdView.refreshAd(context);
         }
 
     }

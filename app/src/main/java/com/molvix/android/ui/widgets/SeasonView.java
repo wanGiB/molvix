@@ -59,16 +59,20 @@ public class SeasonView extends FrameLayout {
         requestLayout();
     }
 
-    public void bindSeason(Season season, View itemView) {
+    public void bindSeason(Season season) {
         this.season = season;
         movie = LocalDbUtils.getMovie(season.getMovieId());
         seasonNameView.setText(season.getSeasonName());
         loadSeasonEpisodes();
-        View.OnClickListener onClickListener = v -> itemView.performClick();
-        seasonNameView.setOnClickListener(onClickListener);
-        arrow.setOnClickListener(onClickListener);
-        setOnClickListener(onClickListener);
-        rootView.setOnClickListener(onClickListener);
+    }
+
+    public MolvixTextView getSeasonNameView() {
+        return seasonNameView;
+    }
+
+    @Override
+    public View getRootView() {
+        return rootView;
     }
 
     public ImageView getArrow() {

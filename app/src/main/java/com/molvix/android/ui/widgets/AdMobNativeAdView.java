@@ -143,15 +143,12 @@ public class AdMobNativeAdView extends FrameLayout {
         }
     }
 
-    public void refreshAd(){
-        refreshAd(getContext());
-    }
     /**
      * Creates a request for a new native ad based on the boolean parameters and calls the
      * corresponding "populate" method when one is successfully returned.
      */
     public void refreshAd(Context context) {
-        AdLoader.Builder builder = new AdLoader.Builder(getContext(), context.getString(R.string.native_ad_unit_id));
+        AdLoader.Builder builder = new AdLoader.Builder(context, context.getString(R.string.native_ad_unit_id));
         // OnUnifiedNativeAdLoadedListener implementation.
         builder.forUnifiedNativeAd(unifiedNativeAd -> {
             // You must call destroy on old ads when you are done with them,

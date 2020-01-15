@@ -100,7 +100,7 @@ public class MovieDetailsActivity extends BaseActivity {
     @Override
     protected void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
-        if (seasonsWithEpisodesAdapter!=null){
+        if (seasonsWithEpisodesAdapter != null) {
             seasonsWithEpisodesAdapter.onSaveInstanceState(outState);
         }
     }
@@ -108,7 +108,7 @@ public class MovieDetailsActivity extends BaseActivity {
     @Override
     protected void onRestoreInstanceState(@NonNull Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
-        if (seasonsWithEpisodesAdapter!=null){
+        if (seasonsWithEpisodesAdapter != null) {
             seasonsWithEpisodesAdapter.onRestoreInstanceState(savedInstanceState);
         }
     }
@@ -190,7 +190,7 @@ public class MovieDetailsActivity extends BaseActivity {
             loadInMovieSeasons(movieContentItems, movieSeasons);
             checkAndLoadInAd(movieContentItems);
             seasonsWithEpisodesAdapter = new SeasonsWithEpisodesAdapter(MovieDetailsActivity.this, movieContentItems);
-            LinearLayoutManager linearLayoutManager = new LinearLayoutManager(MovieDetailsActivity.this);
+            LinearLayoutManager linearLayoutManager = new LinearLayoutManager(MovieDetailsActivity.this, RecyclerView.VERTICAL, false);
             seasonsAndEpisodesRecyclerView.setLayoutManager(linearLayoutManager);
             seasonsAndEpisodesRecyclerView.setAdapter(seasonsWithEpisodesAdapter);
             UiUtils.toggleViewVisibility(loadingLayout, false);

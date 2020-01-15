@@ -98,7 +98,7 @@ public class SeasonsWithEpisodesAdapter extends MultiTypeExpandableRecyclerViewA
             seasonHeaderGroupViewHolder.bindSeasonData(movieContentItem.getSeason());
         } else if (holder instanceof AdHeaderViewHolder) {
             AdHeaderViewHolder adHeaderViewHolder = (AdHeaderViewHolder) holder;
-            adHeaderViewHolder.refreshAd();
+            adHeaderViewHolder.refreshAd(context);
         }
     }
 
@@ -145,7 +145,11 @@ public class SeasonsWithEpisodesAdapter extends MultiTypeExpandableRecyclerViewA
         }
 
         void bindSeasonData(Season season) {
-            seasonView.bindSeason(season, itemView);
+            seasonView.bindSeason(season);
+            View.OnClickListener onClickListener = v -> itemView.performClick();
+            seasonView.getArrow().setOnClickListener(onClickListener);
+            seasonView.getSeasonNameView().setOnClickListener(onClickListener);
+            seasonView.getRootView().setOnClickListener(onClickListener);
         }
 
         @Override
@@ -263,8 +267,8 @@ public class SeasonsWithEpisodesAdapter extends MultiTypeExpandableRecyclerViewA
             ButterKnife.bind(this, itemView);
         }
 
-        void refreshAd() {
-            adMobNativeAdView.refreshAd();
+        void refreshAd(Context context) {
+            adMobNativeAdView.refreshAd(context);
         }
 
     }
