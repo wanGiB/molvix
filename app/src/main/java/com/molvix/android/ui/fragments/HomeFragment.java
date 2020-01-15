@@ -225,11 +225,13 @@ public class HomeFragment extends BaseFragment {
 
     @SuppressLint("SetTextI18n")
     private void displayTotalNumberOfMoviesLoadedInHeader() {
-        if (!movies.isEmpty()) {
-            int totalNumberOfMovies = movies.size();
-            DecimalFormat moviesNoFormatter = new DecimalFormat("#,###");
-            headerTextView.setText("About " + moviesNoFormatter.format(totalNumberOfMovies) + " movies available");
-        }
+        mUiHandler.post(() -> {
+            if (!movies.isEmpty()) {
+                int totalNumberOfMovies = movies.size();
+                DecimalFormat moviesNoFormatter = new DecimalFormat("#,###");
+                headerTextView.setText("About " + moviesNoFormatter.format(totalNumberOfMovies) + " movies available");
+            }
+        });
     }
 
     @SuppressLint("SetTextI18n")
@@ -275,9 +277,11 @@ public class HomeFragment extends BaseFragment {
 
     @SuppressLint("SetTextI18n")
     private void displayFoundResults(List<Movie> queriedMovies) {
-        int totalNumberOfMovies = queriedMovies.size();
-        DecimalFormat moviesNoFormatter = new DecimalFormat("#,###");
-        headerTextView.setText(moviesNoFormatter.format(totalNumberOfMovies) + " results found");
+        mUiHandler.post(() -> {
+            int totalNumberOfMovies = queriedMovies.size();
+            DecimalFormat moviesNoFormatter = new DecimalFormat("#,###");
+            headerTextView.setText(moviesNoFormatter.format(totalNumberOfMovies) + " results found");
+        });
     }
 
     @SuppressLint("SetTextI18n")
