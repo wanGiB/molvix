@@ -10,6 +10,7 @@ import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -64,6 +65,9 @@ public class MovieDetailsActivity extends BaseActivity {
     @BindView(R.id.content_loading_progress)
     ProgressBar loadingLayoutProgressBar;
 
+    @BindView(R.id.back_button)
+    ImageView backButton;
+
     private Movie movie;
     private MoviePullTask moviePullTask;
     private DirectModelNotifier.ModelChangedListener<Movie> movieModelChangedListener;
@@ -76,6 +80,7 @@ public class MovieDetailsActivity extends BaseActivity {
         setContentView(R.layout.activity_movie_details);
         ButterKnife.bind(this);
         initWebView();
+        initBackButton();
         String movieId = getIntent().getStringExtra(AppConstants.MOVIE_ID);
         listenToIncomingDownloadableEpisodes();
         if (movieId != null) {
@@ -89,6 +94,10 @@ public class MovieDetailsActivity extends BaseActivity {
                 loadMovieDetails(movie);
             }
         }
+    }
+
+    private void initBackButton() {
+        backButton.setOnClickListener(v -> finish());
     }
 
     private void listenToIncomingDownloadableEpisodes() {
@@ -157,16 +166,18 @@ public class MovieDetailsActivity extends BaseActivity {
     }
 
     private void loadMovieDetails(Movie movie) {
-        List<MovieContentItem> movieContentItems = new ArrayList<>();
-        addMovieHeaderView(movie, movieContentItems);
-        List<Season> movieSeasons = movie.getMovieSeasons();
-        loadInMovieSeasons(movieContentItems, movieSeasons);
-        checkAndLoadInAd(movieContentItems);
-        SeasonsWithEpisodesAdapter seasonsWithEpisodesAdapter = new SeasonsWithEpisodesAdapter(this, movieContentItems);
-        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
-        seasonsAndEpisodesRecyclerView.setLayoutManager(linearLayoutManager);
-        seasonsAndEpisodesRecyclerView.setAdapter(seasonsWithEpisodesAdapter);
-        UiUtils.toggleViewVisibility(loadingLayout, false);
+        runOnUiThread(() -> {
+            List<MovieContentItem> movieContentItems = new ArrayList<>();
+            addMovieHeaderView(movie, movieContentItems);
+            List<Season> movieSeasons = movie.getMovieSeasons();
+            loadInMovieSeasons(movieContentItems, movieSeasons);
+            checkAndLoadInAd(movieContentItems);
+            SeasonsWithEpisodesAdapter seasonsWithEpisodesAdapter = new SeasonsWithEpisodesAdapter(MovieDetailsActivity.this, movieContentItems);
+            LinearLayoutManager linearLayoutManager = new LinearLayoutManager(MovieDetailsActivity.this);
+            seasonsAndEpisodesRecyclerView.setLayoutManager(linearLayoutManager);
+            seasonsAndEpisodesRecyclerView.setAdapter(seasonsWithEpisodesAdapter);
+            UiUtils.toggleViewVisibility(loadingLayout, false);
+        });
     }
 
     private void checkAndLoadInAd(List<MovieContentItem> movieContentItems) {

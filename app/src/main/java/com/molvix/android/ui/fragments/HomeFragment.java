@@ -17,6 +17,8 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import com.liucanwen.app.headerfooterrecyclerview.HeaderAndFooterRecyclerViewAdapter;
+import com.liucanwen.app.headerfooterrecyclerview.RecyclerViewUtils;
 import com.molvix.android.R;
 import com.molvix.android.companions.AppConstants;
 import com.molvix.android.eventbuses.SearchEvent;
@@ -35,6 +37,7 @@ import org.greenrobot.eventbus.EventBus;
 
 import java.io.IOException;
 import java.security.SecureRandom;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -72,6 +75,8 @@ public class HomeFragment extends BaseFragment {
     private Handler mUiHandler;
     private DirectModelNotifier.ModelChangedListener<Movie> movieModelChangedListener;
     private ContentPullOverTask contentPullOverTask;
+
+    private TextView headerTextView;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -183,11 +188,16 @@ public class HomeFragment extends BaseFragment {
         });
     }
 
+    @SuppressLint("InflateParams")
     private void initMoviesAdapter() {
+        View headerView = LayoutInflater.from(getActivity()).inflate(R.layout.home_recycler_view_header, null);
+        headerTextView = headerView.findViewById(R.id.header_text_view);
         moviesAdapter = new MoviesAdapter(getActivity(), movies);
+        HeaderAndFooterRecyclerViewAdapter headerAndFooterRecyclerViewAdapter = new HeaderAndFooterRecyclerViewAdapter(moviesAdapter);
         moviesRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity(), RecyclerView.VERTICAL, false));
         moviesRecyclerView.setItemAnimator(new ScaleInAnimator());
-        moviesRecyclerView.setAdapter(moviesAdapter);
+        moviesRecyclerView.setAdapter(headerAndFooterRecyclerViewAdapter);
+        RecyclerViewUtils.setHeaderView(moviesRecyclerView, headerView);
     }
 
     @Override
@@ -206,10 +216,20 @@ public class HomeFragment extends BaseFragment {
                         for (Movie movie : tResult) {
                             addMovie(movie);
                         }
+                        displayTotalNumberOfMoviesLoadedInHeader();
                     }
                 })
                 .execute();
         spinMoviesDownloadJob();
+    }
+
+    @SuppressLint("SetTextI18n")
+    private void displayTotalNumberOfMoviesLoadedInHeader() {
+        if (!movies.isEmpty()) {
+            int totalNumberOfMovies = movies.size();
+            DecimalFormat moviesNoFormatter = new DecimalFormat("#,###");
+            headerTextView.setText("About " + moviesNoFormatter.format(totalNumberOfMovies) + " movies available");
+        }
     }
 
     @SuppressLint("SetTextI18n")
@@ -246,10 +266,18 @@ public class HomeFragment extends BaseFragment {
                         for (Movie movie : queriedMovies) {
                             addMovie(movie);
                         }
+                        displayFoundResults(queriedMovies);
                     }
                     UiUtils.toggleViewVisibility(nothingFoundMessageView, queriedMovies.isEmpty());
                 }))
                 .execute();
+    }
+
+    @SuppressLint("SetTextI18n")
+    private void displayFoundResults(List<Movie> queriedMovies) {
+        int totalNumberOfMovies = queriedMovies.size();
+        DecimalFormat moviesNoFormatter = new DecimalFormat("#,###");
+        headerTextView.setText(moviesNoFormatter.format(totalNumberOfMovies) + " results found");
     }
 
     @SuppressLint("SetTextI18n")
@@ -293,7 +321,7 @@ public class HomeFragment extends BaseFragment {
         @Override
         protected Void doInBackground(Void... voids) {
             try {
-                ContentMiner.mineContentData();
+                ContentMiner.mineData();
             } catch (IOException e) {
                 e.printStackTrace();
                 EventBus.getDefault().post(e);

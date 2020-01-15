@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.ColorDrawable;
+import android.os.AsyncTask;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,6 +17,7 @@ import androidx.core.content.ContextCompat;
 
 import com.molvix.android.R;
 import com.molvix.android.companions.AppConstants;
+import com.molvix.android.jobs.ContentMiner;
 import com.molvix.android.models.Movie;
 import com.molvix.android.models.Season;
 import com.molvix.android.ui.activities.MovieDetailsActivity;
@@ -47,7 +49,10 @@ public class MovieView extends FrameLayout {
     @BindView(R.id.movie_seasons_count_view)
     TextView movieSeasonsCountView;
 
+    private Movie movie;
+
     private String searchString;
+    private MovieMetadataExtractionTask movieMetadataExtractionTask;
 
     public MovieView(Context context) {
         super(context);
@@ -82,6 +87,7 @@ public class MovieView extends FrameLayout {
 
     @SuppressLint("SetTextI18n")
     public void setupMovie(Movie movie) {
+        this.movie = movie;
         String movieName = movie.getMovieName();
         String movieDescription = movie.getMovieDescription();
         String movieArtUrl = movie.getMovieArtUrl();
@@ -117,12 +123,43 @@ public class MovieView extends FrameLayout {
         movieDescriptionView.setOnClickListener(onClickListener);
         movieSeasonsCountView.setOnClickListener(onClickListener);
         parentCardView.setOnClickListener(onClickListener);
+        refreshMovieDetails(movie);
     }
 
     private void openMovieDetails(Movie movie) {
         Intent movieDetailsIntent = new Intent(getContext(), MovieDetailsActivity.class);
         movieDetailsIntent.putExtra(AppConstants.MOVIE_ID, movie.getMovieId());
         getContext().startActivity(movieDetailsIntent);
+    }
+
+    private void refreshMovieDetails(Movie movie) {
+        if (movieMetadataExtractionTask != null) {
+            movieMetadataExtractionTask.cancel(true);
+        }
+        movieMetadataExtractionTask = new MovieMetadataExtractionTask(movie);
+        movieMetadataExtractionTask.execute();
+    }
+
+    @Override
+    protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        refreshMovieDetails(movie);
+    }
+
+    static class MovieMetadataExtractionTask extends AsyncTask<Void, Void, Void> {
+
+        private Movie movie;
+
+        MovieMetadataExtractionTask(Movie movie) {
+            this.movie = movie;
+        }
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            ContentMiner.extractMetaDataFromMovieLink(movie.getMovieLink(), movie);
+            return null;
+        }
+
     }
 
 }

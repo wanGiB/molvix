@@ -1,6 +1,5 @@
 package com.molvix.android.jobs;
 
-import android.os.AsyncTask;
 import android.util.Pair;
 
 import com.molvix.android.companions.AppConstants;
@@ -9,7 +8,6 @@ import com.molvix.android.models.Movie;
 import com.molvix.android.models.Season;
 import com.molvix.android.utils.CryptoUtils;
 import com.molvix.android.utils.LocalDbUtils;
-import com.raizlabs.android.dbflow.sql.language.SQLite;
 
 import org.apache.commons.lang3.StringUtils;
 import org.greenrobot.eventbus.EventBus;
@@ -24,40 +22,11 @@ import java.util.List;
 
 public class ContentMiner {
 
-    public static void mineContentData() throws IOException {
+    public static void mineData() throws IOException {
         loadMoviesTitlesAndLinks();
-        SQLite.select().from(Movie.class)
-                .async()
-                .queryListResultCallback((transaction, tResult) -> {
-                    if (!tResult.isEmpty()) {
-                        for (Movie movie : tResult) {
-                            String movieLink = movie.getMovieLink();
-                            if (StringUtils.isNotEmpty(movieLink)) {
-                                new FurtherExtractionTask(movieLink, movie).execute();
-                            }
-                        }
-                    }
-                }).execute();
     }
 
-    static class FurtherExtractionTask extends AsyncTask<Void, Void, Void> {
-
-        private String movieLink;
-        private Movie movie;
-
-        FurtherExtractionTask(String movieLink, Movie movie) {
-            this.movie = movie;
-            this.movieLink = movieLink;
-        }
-
-        @Override
-        protected Void doInBackground(Void... voids) {
-            extractMetaDataFromMovieLink(movieLink, movie);
-            return null;
-        }
-    }
-
-    public static void loadMoviesTitlesAndLinks() throws IOException {
+    private static void loadMoviesTitlesAndLinks() throws IOException {
         String TV_SERIES_URL = "https://o2tvseries.com/search/list_all_tv_series";
         Document document = Jsoup.connect(TV_SERIES_URL).get();
         Element moviesTitlesAndLinks = document.selectFirst("div.data_list");
@@ -121,11 +90,23 @@ public class ContentMiner {
                 }
             }
             if (totalNumberOfSeasons != 0) {
+                List<Season> seasons = new ArrayList<>();
+                if (movie.getMovieSeasons() != null) {
+                    seasons = movie.getMovieSeasons();
+                }
                 for (int i = 0; i < totalNumberOfSeasons; i++) {
                     String seasonAtI = generateSeasonFromMovieLink(movieLink, i + 1);
                     String seasonName = generateSeasonValue(i + 1);
-                    extractMetaDataFromMovieSeasonLink(seasonAtI, seasonName, movie);
+                    Season season = new Season();
+                    season.setSeasonName(seasonName);
+                    season.setMovieId(movie.getMovieId());
+                    season.setSeasonLink(seasonAtI);
+                    if (!seasons.contains(season)) {
+                        seasons.add(season);
+                    }
                 }
+                movie.setMovieSeasons(seasons);
+                movie.update();
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -133,7 +114,7 @@ public class ContentMiner {
         }
     }
 
-    private static void extractMetaDataFromMovieSeasonLink(String seasonLink, String seasonName, Movie movie) {
+    public static void extractMetaDataFromMovieSeasonLink(String seasonLink, String seasonName, Movie movie) {
         try {
             int totalNumberOfEpisodes = getTotalNumberOfEpisodes(seasonLink);
             if (totalNumberOfEpisodes != 0) {

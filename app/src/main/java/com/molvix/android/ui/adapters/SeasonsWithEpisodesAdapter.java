@@ -18,6 +18,7 @@ import com.molvix.android.models.Season;
 import com.molvix.android.ui.widgets.AdMobNativeAdView;
 import com.molvix.android.ui.widgets.EpisodeView;
 import com.molvix.android.ui.widgets.MolvixTextView;
+import com.molvix.android.ui.widgets.SeasonView;
 import com.molvix.android.utils.UiUtils;
 import com.thoughtbot.expandablerecyclerview.MultiTypeExpandableRecyclerViewAdapter;
 import com.thoughtbot.expandablerecyclerview.models.ExpandableGroup;
@@ -35,13 +36,13 @@ import butterknife.ButterKnife;
 public class SeasonsWithEpisodesAdapter extends MultiTypeExpandableRecyclerViewAdapter<GroupViewHolder, ChildViewHolder> {
 
     //Group Types
-    private static final int MOVIE_HEADER = 0;
-    private static final int SEASON_HEADER = 1;
-    private static final int AD_HEADER = 2;
+    private static final int MOVIE_HEADER = 10;
+    private static final int SEASON_HEADER = 11;
+    private static final int AD_HEADER = 12;
 
     //Child Types
-    private static final int EMPTY_CHILD_VIEW = 0;
-    private static final int NON_EMPTY_CHILD_VIEW = 1;
+    private static final int EMPTY_CHILD_VIEW = 13;
+    private static final int NON_EMPTY_CHILD_VIEW = 14;
 
     private Context context;
 
@@ -111,6 +112,16 @@ public class SeasonsWithEpisodesAdapter extends MultiTypeExpandableRecyclerViewA
     }
 
     @Override
+    public boolean isGroup(int viewType) {
+        return viewType == MOVIE_HEADER || viewType == AD_HEADER || viewType == SEASON_HEADER;
+    }
+
+    @Override
+    public boolean isChild(int viewType) {
+        return viewType == EMPTY_CHILD_VIEW || viewType == NON_EMPTY_CHILD_VIEW;
+    }
+
+    @Override
     public int getChildViewType(int position, ExpandableGroup group, int childIndex) {
         MovieContentItem movieContentItem = (MovieContentItem) group;
         if (movieContentItem.getEpisodes().isEmpty()) {
@@ -122,8 +133,8 @@ public class SeasonsWithEpisodesAdapter extends MultiTypeExpandableRecyclerViewA
 
     static class SeasonHeaderGroupViewHolder extends GroupViewHolder {
 
-        @BindView(R.id.list_item_season_name)
-        MolvixTextView seasonNameView;
+        @BindView(R.id.season_view)
+        SeasonView seasonNameView;
 
         SeasonHeaderGroupViewHolder(View itemView) {
             super(itemView);
@@ -131,7 +142,7 @@ public class SeasonsWithEpisodesAdapter extends MultiTypeExpandableRecyclerViewA
         }
 
         void bindSeasonData(Season season) {
-            seasonNameView.setText(season.getSeasonName());
+            seasonNameView.bindSeason(season);
         }
 
     }
