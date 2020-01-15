@@ -49,9 +49,6 @@ import im.delight.android.webview.AdvancedWebView;
 
 public class MovieDetailsActivity extends BaseActivity {
 
-    @BindView(R.id.frontLayout)
-    View frontView;
-
     @BindView(R.id.hack_web_view)
     AdvancedWebView hackWebView;
 
@@ -187,10 +184,7 @@ public class MovieDetailsActivity extends BaseActivity {
         super.onEventMainThread(event);
         if (event instanceof DownloadEpisodeEvent) {
             DownloadEpisodeEvent downloadEpisodeEvent = (DownloadEpisodeEvent) event;
-            runOnUiThread(() -> {
-                UiUtils.toggleViewVisibility(frontView, false);
-                hackMovieSeasonEpisode(downloadEpisodeEvent.getEpisode());
-            });
+            runOnUiThread(() -> hackMovieSeasonEpisode(downloadEpisodeEvent.getEpisode()));
         }
     }
 
