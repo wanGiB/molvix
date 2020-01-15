@@ -146,7 +146,10 @@ public class SeasonsWithEpisodesAdapter extends MultiTypeExpandableRecyclerViewA
 
         void bindSeasonData(Season season) {
             seasonView.bindSeason(season);
-            View.OnClickListener onClickListener = v -> itemView.performClick();
+            View.OnClickListener onClickListener = v -> {
+                UiUtils.blinkView(itemView);
+                itemView.performClick();
+            };
             seasonView.getArrow().setOnClickListener(onClickListener);
             seasonView.getSeasonNameView().setOnClickListener(onClickListener);
             seasonView.getRootView().setOnClickListener(onClickListener);

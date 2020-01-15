@@ -96,9 +96,9 @@ public class HomeFragment extends BaseFragment {
         movieModelChangedListener = new DirectModelNotifier.ModelChangedListener<Movie>() {
             @Override
             public void onModelChanged(@NonNull Movie model, @NonNull BaseModel.Action action) {
-                if (action == BaseModel.Action.SAVE || action == BaseModel.Action.INSERT) {
+                if (action == BaseModel.Action.SAVE) {
                     addMovie(model);
-                } else if (action == BaseModel.Action.CHANGE || action == BaseModel.Action.UPDATE) {
+                } else if (action == BaseModel.Action.UPDATE) {
                     updateMovieIndex(model);
                 } else if (action == BaseModel.Action.DELETE) {
                     removeMovie(model);

@@ -239,7 +239,7 @@ public class MovieDetailsActivity extends BaseActivity {
         movieModelChangedListener = new DirectModelNotifier.ModelChangedListener<Movie>() {
             @Override
             public void onModelChanged(@NonNull Movie model, @NonNull BaseModel.Action action) {
-                if (action == BaseModel.Action.UPDATE || action == BaseModel.Action.CHANGE) {
+                if (action == BaseModel.Action.UPDATE) {
                     if (movie != null) {
                         if (movie.getMovieId().equals(model.getMovieId())) {
                             loadMovieDetails(model);
