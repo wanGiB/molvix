@@ -84,7 +84,7 @@ public class MovieDetailsActivity extends BaseActivity {
             initModelChangeListener();
             List<Season> movieSeasons = movie.getMovieSeasons();
             if (movieSeasons == null || movieSeasons.isEmpty()) {
-                spinMovePullTask();
+                spinMoviePullTask();
             } else {
                 loadMovieDetails(movie);
             }
@@ -171,7 +171,7 @@ public class MovieDetailsActivity extends BaseActivity {
         hackWebView.onDestroy();
     }
 
-    private void spinMovePullTask() {
+    private void spinMoviePullTask() {
         if (moviePullTask != null) {
             moviePullTask.cancel(true);
             moviePullTask = null;
