@@ -1,10 +1,13 @@
 package com.molvix.android.jobs;
 
+import com.molvix.android.eventbuses.CheckForPendingDownloadableEpisodes;
 import com.molvix.android.models.DownloadableEpisodes;
 import com.molvix.android.models.Episode;
 import com.molvix.android.preferences.AppPrefs;
 import com.molvix.android.utils.CryptoUtils;
 import com.raizlabs.android.dbflow.sql.language.SQLite;
+
+import org.greenrobot.eventbus.EventBus;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,7 +40,6 @@ public class EpisodesResolutionManager {
     }
 
     public static void popEpisode(Episode episode) {
-        unLockCaptureSolver(episode.getEpisodeId());
         DownloadableEpisodes downloadableEpisodes = SQLite.select()
                 .from(DownloadableEpisodes.class)
                 .querySingle();
@@ -47,6 +49,8 @@ public class EpisodesResolutionManager {
                 episodeList.remove(episode);
                 downloadableEpisodes.setDownloadableEpisodes(episodeList);
                 downloadableEpisodes.update();
+                unLockCaptureSolver(episode.getEpisodeId());
+                EventBus.getDefault().post(new CheckForPendingDownloadableEpisodes());
             }
         }
     }

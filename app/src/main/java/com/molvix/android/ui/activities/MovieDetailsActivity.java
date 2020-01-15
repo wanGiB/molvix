@@ -22,6 +22,7 @@ import com.molvix.android.R;
 import com.molvix.android.beans.MovieContentItem;
 import com.molvix.android.companions.AppConstants;
 import com.molvix.android.enums.EpisodeQuality;
+import com.molvix.android.eventbuses.CheckForPendingDownloadableEpisodes;
 import com.molvix.android.eventbuses.EpisodeResolutionEvent;
 import com.molvix.android.jobs.ContentMiner;
 import com.molvix.android.jobs.EpisodesResolutionManager;
@@ -35,6 +36,7 @@ import com.molvix.android.utils.FileUtils;
 import com.molvix.android.utils.LocalDbUtils;
 import com.molvix.android.utils.UiUtils;
 import com.raizlabs.android.dbflow.runtime.DirectModelNotifier;
+import com.raizlabs.android.dbflow.sql.language.SQLite;
 import com.raizlabs.android.dbflow.structure.BaseModel;
 
 import java.util.ArrayList;
@@ -252,6 +254,16 @@ public class MovieDetailsActivity extends BaseActivity {
         if (event instanceof EpisodeResolutionEvent) {
             EpisodeResolutionEvent episodeResolutionEvent = (EpisodeResolutionEvent) event;
             runOnUiThread(() -> hackWebView.loadUrl(episodeResolutionEvent.getEpisode().getEpisodeLink()));
+        } else if (event instanceof CheckForPendingDownloadableEpisodes) {
+            DownloadableEpisodes downloadableEpisodes = SQLite.select()
+                    .from(DownloadableEpisodes.class)
+                    .querySingle();
+            if (downloadableEpisodes != null) {
+                List<Episode> episodeList = downloadableEpisodes.getDownloadableEpisodes();
+                if (episodeList != null && !episodeList.isEmpty()) {
+                    solveEpisodeCaptchaChallenge(episodeList.get(episodeList.size() - 1));
+                }
+            }
         }
     }
 
