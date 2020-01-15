@@ -68,12 +68,12 @@ public class MovieDetailsActivity extends BaseActivity {
     @BindView(R.id.back_button)
     ImageView backButton;
 
-    private Movie movie;
     private MoviePullTask moviePullTask;
     private DirectModelNotifier.ModelChangedListener<Movie> movieModelChangedListener;
     private DirectModelNotifier.ModelChangedListener<DownloadableEpisodes> downloadableEpisodesModelChangedListener;
     private static final String TAG = MovieDetailsActivity.class.getSimpleName();
     private SeasonsWithEpisodesAdapter seasonsWithEpisodesAdapter;
+    private String movieId;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -82,11 +82,11 @@ public class MovieDetailsActivity extends BaseActivity {
         ButterKnife.bind(this);
         initWebView();
         initBackButton();
-        String movieId = getIntent().getStringExtra(AppConstants.MOVIE_ID);
+        movieId = getIntent().getStringExtra(AppConstants.MOVIE_ID);
         listenToIncomingDownloadableEpisodes();
         if (movieId != null) {
             loadingLayoutProgressMsgView.setText(getString(R.string.please_wait));
-            movie = LocalDbUtils.getMovie(movieId);
+            Movie movie = LocalDbUtils.getMovie(movieId);
             initModelChangeListener();
             List<Season> movieSeasons = movie.getMovieSeasons();
             if (movieSeasons == null || movieSeasons.isEmpty()) {
@@ -240,8 +240,8 @@ public class MovieDetailsActivity extends BaseActivity {
             @Override
             public void onModelChanged(@NonNull Movie model, @NonNull BaseModel.Action action) {
                 if (action == BaseModel.Action.UPDATE) {
-                    if (movie != null) {
-                        if (movie.getMovieId().equals(model.getMovieId())) {
+                    if (movieId != null) {
+                        if (movieId.equals(model.getMovieId())) {
                             loadMovieDetails(model);
                         }
                     }
@@ -273,6 +273,7 @@ public class MovieDetailsActivity extends BaseActivity {
             moviePullTask.cancel(true);
             moviePullTask = null;
         }
+        Movie movie = LocalDbUtils.getMovie(movieId);
         moviePullTask = new MoviePullTask(movie.getMovieLink(), movie);
         moviePullTask.execute();
     }
