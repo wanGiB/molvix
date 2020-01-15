@@ -6,6 +6,8 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.webkit.WebResourceError;
+import android.webkit.WebResourceRequest;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.ProgressBar;
@@ -20,9 +22,10 @@ import com.molvix.android.R;
 import com.molvix.android.beans.MovieContentItem;
 import com.molvix.android.companions.AppConstants;
 import com.molvix.android.enums.EpisodeQuality;
-import com.molvix.android.eventbuses.DownloadEpisodeEvent;
+import com.molvix.android.eventbuses.EpisodeResolutionEvent;
 import com.molvix.android.jobs.ContentMiner;
-import com.molvix.android.jobs.EpisodeDownloadOptionsResolutionManager;
+import com.molvix.android.jobs.EpisodesResolutionManager;
+import com.molvix.android.models.DownloadableEpisodes;
 import com.molvix.android.models.Episode;
 import com.molvix.android.models.Movie;
 import com.molvix.android.models.Season;
@@ -34,12 +37,6 @@ import com.molvix.android.utils.UiUtils;
 import com.raizlabs.android.dbflow.runtime.DirectModelNotifier;
 import com.raizlabs.android.dbflow.structure.BaseModel;
 
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
-
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -68,7 +65,7 @@ public class MovieDetailsActivity extends BaseActivity {
     private Movie movie;
     private MoviePullTask moviePullTask;
     private DirectModelNotifier.ModelChangedListener<Movie> movieModelChangedListener;
-
+    private DirectModelNotifier.ModelChangedListener<DownloadableEpisodes> downloadableEpisodesModelChangedListener;
     private static final String TAG = MovieDetailsActivity.class.getSimpleName();
 
     @Override
@@ -76,7 +73,9 @@ public class MovieDetailsActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_movie_details);
         ButterKnife.bind(this);
+        initWebView();
         String movieId = getIntent().getStringExtra(AppConstants.MOVIE_ID);
+        listenToIncomingDownloadableEpisodes();
         if (movieId != null) {
             loadingLayoutProgressMsgView.setText(getString(R.string.please_wait));
             movie = LocalDbUtils.getMovie(movieId);
@@ -88,6 +87,71 @@ public class MovieDetailsActivity extends BaseActivity {
                 loadMovieDetails(movie);
             }
         }
+    }
+
+    private void listenToIncomingDownloadableEpisodes() {
+        downloadableEpisodesModelChangedListener = new DirectModelNotifier.ModelChangedListener<DownloadableEpisodes>() {
+            @Override
+            public void onModelChanged(@NonNull DownloadableEpisodes model, @NonNull BaseModel.Action action) {
+                List<Episode> episodes = model.getDownloadableEpisodes();
+                if (episodes != null && !episodes.isEmpty()) {
+                    if (EpisodesResolutionManager.isCaptchaSolvable()) {
+                        solveEpisodeCaptchaChallenge(episodes.get(episodes.size() - 1));
+                    }
+                }
+            }
+
+            @Override
+            public void onTableChanged(@Nullable Class<?> tableChanged, @NonNull BaseModel.Action action) {
+
+            }
+        };
+        DirectModelNotifier.get().registerForModelChanges(DownloadableEpisodes.class, downloadableEpisodesModelChangedListener);
+    }
+
+    @SuppressLint("SetJavaScriptEnabled")
+    private void initWebView() {
+        hackWebView.getSettings().setJavaScriptEnabled(true);
+        hackWebView.setCookiesEnabled(true);
+        hackWebView.setMixedContentAllowed(true);
+        hackWebView.setThirdPartyCookiesEnabled(true);
+    }
+
+    private void solveEpisodeCaptchaChallenge(Episode episode) {
+        EpisodesResolutionManager.lockCaptureSolver(episode.getEpisodeId());
+        hackWebView.setWebViewClient(new WebViewClient() {
+            @Override
+            public void onPageFinished(WebView view, String url) {
+                super.onPageFinished(view, url);
+                injectMagicScript();
+            }
+
+            @Override
+            public void onPageStarted(WebView view, String url, Bitmap favicon) {
+                super.onPageStarted(view, url, favicon);
+                String mimeTypeOfUrl = FileUtils.getMimeType(url);
+                if (mimeTypeOfUrl.toLowerCase().contains("video")) {
+                    Log.d(TAG, "Download Url of Video=" + url);
+                    UiUtils.showSafeToast("DownloadUrl Of Video=" + url);
+                    if (episode.getEpisodeQuality() == EpisodeQuality.STANDARD_QUALITY) {
+                        episode.setStandardQualityDownloadLink(url);
+                    } else if (episode.getEpisodeQuality() == EpisodeQuality.HIGH_QUALITY) {
+                        episode.setHighQualityDownloadLink(url);
+                    } else {
+                        episode.setLowQualityDownloadLink(url);
+                    }
+                    episode.update();
+                    EpisodesResolutionManager.popEpisode(episode);
+                }
+            }
+
+            @Override
+            public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
+                super.onReceivedError(view, request, error);
+            }
+
+        });
+        hackWebView.loadUrl(episode.getEpisodeCaptchaSolverLink());
     }
 
     private void loadMovieDetails(Movie movie) {
@@ -167,6 +231,9 @@ public class MovieDetailsActivity extends BaseActivity {
         if (movieModelChangedListener != null) {
             DirectModelNotifier.get().unregisterForModelChanges(Movie.class, movieModelChangedListener);
         }
+        if (downloadableEpisodesModelChangedListener != null) {
+            DirectModelNotifier.get().unregisterForModelChanges(DownloadableEpisodes.class, downloadableEpisodesModelChangedListener);
+        }
         hackWebView.onDestroy();
     }
 
@@ -182,84 +249,10 @@ public class MovieDetailsActivity extends BaseActivity {
     @Override
     public void onEventMainThread(Object event) {
         super.onEventMainThread(event);
-        if (event instanceof DownloadEpisodeEvent) {
-            DownloadEpisodeEvent downloadEpisodeEvent = (DownloadEpisodeEvent) event;
-            runOnUiThread(() -> hackMovieSeasonEpisode(downloadEpisodeEvent.getEpisode()));
+        if (event instanceof EpisodeResolutionEvent) {
+            EpisodeResolutionEvent episodeResolutionEvent = (EpisodeResolutionEvent) event;
+            runOnUiThread(() -> hackWebView.loadUrl(episodeResolutionEvent.getEpisode().getEpisodeLink()));
         }
-    }
-
-    @SuppressLint("SetJavaScriptEnabled")
-    private void hackMovieSeasonEpisode(Episode episode) {
-        hackWebView.getSettings().setJavaScriptEnabled(true);
-        hackWebView.setCookiesEnabled(true);
-        hackWebView.setMixedContentAllowed(true);
-        hackWebView.setThirdPartyCookiesEnabled(true);
-        hackWebView.setWebViewClient(new WebViewClient() {
-            @Override
-            public void onPageFinished(WebView view, String url) {
-                super.onPageFinished(view, url);
-                List<String> downloadOptions = EpisodeDownloadOptionsResolutionManager.getDownloadOptions(episode.getEpisodeLink());
-                if (downloadOptions.isEmpty()) {
-                    tryEpisodeDownloadOptions(episode.getEpisodeLink());
-                } else if (EpisodeDownloadOptionsResolutionManager.getTargetLinkForEpisodeLink(episode.getEpisodeLink()) != null) {
-                    //Inject document manipulation command
-                    injectMagicScript();
-                } else {
-                    Log.d(TAG, "DownloadOptions are: " + downloadOptions);
-                    UiUtils.showSafeToast("DownloadOptions are: " + downloadOptions);
-                    //Pick the option based on the user's
-                    //selection and navigate to solving captcha and
-                    //Ultimately downloading
-                    String targetLink = null;
-                    if (downloadOptions.size() == 2) {
-                        try {
-                            String standard = downloadOptions.get(0);
-                            String lowest = downloadOptions.get(1);
-                            if (episode.getEpisodeQuality() == EpisodeQuality.HIGH_QUALITY || episode.getEpisodeQuality() == EpisodeQuality.STANDARD_QUALITY) {
-                                targetLink = standard;
-                            } else {
-                                targetLink = lowest;
-                            }
-                        } catch (Exception ignored) {
-
-                        }
-                    } else if (downloadOptions.size() == 3) {
-                        try {
-                            String standard = downloadOptions.get(0);
-                            String highest = downloadOptions.get(1);
-                            String lowest = downloadOptions.get(2);
-                            if (episode.getEpisodeQuality() == EpisodeQuality.HIGH_QUALITY) {
-                                targetLink = highest;
-                            } else if (episode.getEpisodeQuality() == EpisodeQuality.STANDARD_QUALITY) {
-                                targetLink = standard;
-                            } else {
-                                targetLink = lowest;
-                            }
-                        } catch (Exception ignored) {
-
-                        }
-                    }
-                    if (targetLink != null) {
-                        UiUtils.showSafeToast("Target Episode Link=" + targetLink);
-                        //Visit Captcha Solve and download Page of episode target link
-                        EpisodeDownloadOptionsResolutionManager.captureTargetLink(targetLink, episode.getEpisodeLink());
-                        hackWebView.loadUrl(targetLink);
-                    }
-                }
-            }
-
-            @Override
-            public void onPageStarted(WebView view, String url, Bitmap favicon) {
-                super.onPageStarted(view, url, favicon);
-                String mimeTypeOfUrl = FileUtils.getMimeType(url);
-                if (mimeTypeOfUrl.toLowerCase().contains("video")) {
-                    Log.d(TAG, "Download Url of Video=" + url);
-                    UiUtils.showSafeToast("DownloadUrl Of Video=" + url);
-                }
-            }
-
-        });
-        hackWebView.loadUrl(episode.getEpisodeLink());
     }
 
     private void injectMagicScript() {
@@ -286,49 +279,6 @@ public class MovieDetailsActivity extends BaseActivity {
             return null;
         }
 
-    }
-
-    private void tryEpisodeDownloadOptions(String episodeLink) {
-        new EpisodeDownloadOptionsExtractionTask(episodeLink).execute();
-    }
-
-    static class EpisodeDownloadOptionsExtractionTask extends AsyncTask<Void, Void, Void> {
-
-        private String episodeLink;
-
-        EpisodeDownloadOptionsExtractionTask(String episodeLink) {
-            this.episodeLink = episodeLink;
-        }
-
-        @Override
-        protected Void doInBackground(Void... voids) {
-            fetchDownloadOptionsForEpisode(episodeLink);
-            return null;
-        }
-
-        private void fetchDownloadOptionsForEpisode(String episodeLink) {
-            try {
-                Document episodeDocument = Jsoup.connect(episodeLink).get();
-                //Bring out all href elements containing
-                Elements links = episodeDocument.select("a[href]");
-                if (links != null && !links.isEmpty()) {
-                    List<String> downloadLinks = new ArrayList<>();
-                    for (Element link : links) {
-                        String episodeFileName = link.text();
-                        String episodeDownloadLink = link.attr("href");
-                        if (episodeDownloadLink.contains(AppConstants.DOWNLOADABLE)) {
-                            Log.d(TAG, episodeFileName + ", " + episodeDownloadLink);
-                            downloadLinks.add(episodeDownloadLink);
-                        }
-                    }
-                    if (!downloadLinks.isEmpty()) {
-                        EpisodeDownloadOptionsResolutionManager.captureOptions(downloadLinks, episodeLink);
-                    }
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
     }
 
 }

@@ -6,4 +6,5 @@ public class AppConstants {
     public static final String EMPTY_SEARCH = "*";
     public static final String MOVIE_ID = "movie_id";
     public static final String APP_PREFS_NAME = "molvixapp_prefs";
+    public static final String CAPTCHA_SOLVING = "captcha_solving";
 }

@@ -65,6 +65,20 @@ public class Episode extends BaseModel implements Serializable {
     public String lowQualityDownloadLink;
 
     @Nullable
+    @Column
+    @Expose
+    public String episodeCaptchaSolverLink;
+
+    public void setEpisodeCaptchaSolverLink(@Nullable String episodeCaptchaSolverLink) {
+        this.episodeCaptchaSolverLink = episodeCaptchaSolverLink;
+    }
+
+    @Nullable
+    public String getEpisodeCaptchaSolverLink() {
+        return episodeCaptchaSolverLink;
+    }
+
+    @Nullable
     public String getHighQualityDownloadLink() {
         return highQualityDownloadLink;
     }

@@ -1,9 +1,12 @@
 package com.molvix.android.ui.widgets;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.FrameLayout;
@@ -15,8 +18,9 @@ import androidx.annotation.Nullable;
 import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat;
 
 import com.molvix.android.R;
+import com.molvix.android.companions.AppConstants;
 import com.molvix.android.enums.EpisodeQuality;
-import com.molvix.android.eventbuses.DownloadEpisodeEvent;
+import com.molvix.android.jobs.EpisodesResolutionManager;
 import com.molvix.android.models.Episode;
 import com.molvix.android.models.Movie;
 import com.molvix.android.models.Season;
@@ -26,14 +30,22 @@ import com.molvix.android.utils.UiUtils;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.text.WordUtils;
-import org.greenrobot.eventbus.EventBus;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
 public class EpisodeView extends FrameLayout {
+
+    private static String TAG = EpisodeView.class.getSimpleName();
 
     @BindView(R.id.episode_name_view)
     TextView episodeNameView;
@@ -63,7 +75,7 @@ public class EpisodeView extends FrameLayout {
     }
 
     private void init(Context context) {
-        View rootView = LayoutInflater.from(context).inflate(R.layout.episode_view, null);
+        @SuppressLint("InflateParams") View rootView = LayoutInflater.from(context).inflate(R.layout.episode_view, null);
         ButterKnife.bind(this, rootView);
         removeAllViews();
         addView(rootView);
@@ -103,7 +115,7 @@ public class EpisodeView extends FrameLayout {
                     UiUtils.showSafeToast("Oops! Sorry, an error occurred while attempting to play video.");
                 }
             } else {
-                EventBus.getDefault().post(new DownloadEpisodeEvent(episode));
+                extractEpisodeDownloadOptions(episode);
             }
         });
     }
@@ -150,6 +162,82 @@ public class EpisodeView extends FrameLayout {
         VectorDrawableCompat downloadIcon = VectorDrawableCompat.create(getResources(), R.drawable.ic_file_download_white_24dp, null);
         downloadButton.setText(getContext().getString(R.string.download));
         downloadButton.setCompoundDrawablesWithIntrinsicBounds(downloadIcon, null, null, null);
+    }
+
+    private void extractEpisodeDownloadOptions(Episode episode) {
+        new EpisodeDownloadOptionsExtractionTask(episode).execute();
+    }
+
+    static class EpisodeDownloadOptionsExtractionTask extends AsyncTask<Void, Void, Void> {
+
+        private Episode episode;
+
+        EpisodeDownloadOptionsExtractionTask(Episode episode) {
+            this.episode = episode;
+        }
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            fetchDownloadOptionsForEpisode(episode);
+            return null;
+        }
+
+        private void fetchDownloadOptionsForEpisode(Episode episode) {
+            try {
+                Document episodeDocument = Jsoup.connect(episode.getEpisodeLink()).get();
+                //Bring out all href elements containing
+                Elements links = episodeDocument.select("a[href]");
+                if (links != null && !links.isEmpty()) {
+                    List<String> downloadOptions = new ArrayList<>();
+                    for (Element link : links) {
+                        String episodeFileName = link.text();
+                        String episodeDownloadLink = link.attr("href");
+                        if (episodeDownloadLink.contains(AppConstants.DOWNLOADABLE)) {
+                            Log.d(TAG, episodeFileName + ", " + episodeDownloadLink);
+                            downloadOptions.add(episodeDownloadLink);
+                        }
+                    }
+                    if (!downloadOptions.isEmpty()) {
+                        String episodeCaptchaSolverLink = null;
+                        if (downloadOptions.size() == 2) {
+                            try {
+                                String standard = downloadOptions.get(0);
+                                String lowest = downloadOptions.get(1);
+                                if (episode.getEpisodeQuality() == EpisodeQuality.HIGH_QUALITY || episode.getEpisodeQuality() == EpisodeQuality.STANDARD_QUALITY) {
+                                    episodeCaptchaSolverLink = standard;
+                                } else {
+                                    episodeCaptchaSolverLink = lowest;
+                                }
+                            } catch (Exception ignored) {
+
+                            }
+                        } else if (downloadOptions.size() == 3) {
+                            try {
+                                String standard = downloadOptions.get(0);
+                                String highest = downloadOptions.get(1);
+                                String lowest = downloadOptions.get(2);
+                                if (episode.getEpisodeQuality() == EpisodeQuality.HIGH_QUALITY) {
+                                    episodeCaptchaSolverLink = highest;
+                                } else if (episode.getEpisodeQuality() == EpisodeQuality.STANDARD_QUALITY) {
+                                    episodeCaptchaSolverLink = standard;
+                                } else {
+                                    episodeCaptchaSolverLink = lowest;
+                                }
+                            } catch (Exception ignored) {
+
+                            }
+                        }
+                        if (episodeCaptchaSolverLink != null) {
+                            episode.setEpisodeCaptchaSolverLink(episodeCaptchaSolverLink);
+                            episode.update();
+                            EpisodesResolutionManager.enqueEpisodeForDownload(episode);
+                        }
+                    }
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
 }
