@@ -114,26 +114,14 @@ public class ContentMiner {
         }
     }
 
-    public static void extractMetaDataFromMovieSeasonLink(String seasonLink, String seasonName, Movie movie) {
+    @SuppressWarnings("ConstantConditions")
+    public static void extractMetaDataFromMovieSeasonLink(Season season) {
         try {
-            int totalNumberOfEpisodes = getTotalNumberOfEpisodes(seasonLink);
+            int totalNumberOfEpisodes = getTotalNumberOfEpisodes(season.getSeasonLink());
             if (totalNumberOfEpisodes != 0) {
-                List<Season> existingSeasons = movie.getMovieSeasons();
-                if (existingSeasons == null) {
-                    existingSeasons = new ArrayList<>();
-                }
-                String seasonId = CryptoUtils.getSha256Digest(seasonLink);
-                Season currentSeason = getSeason(seasonName, movie, seasonId, seasonLink);
-                if (existingSeasons.contains(currentSeason)) {
-                    int indexOfCurrentSeason = existingSeasons.indexOf(currentSeason);
-                    currentSeason = existingSeasons.get(indexOfCurrentSeason);
-                }
-                List<Episode> episodesList = currentSeason.getEpisodes();
-                if (episodesList == null) {
-                    episodesList = new ArrayList<>();
-                }
+                List<Episode> episodesList = new ArrayList<>();
                 for (int i = 0; i < totalNumberOfEpisodes; i++) {
-                    String episodeLink = generateEpisodeFromSeasonLink(seasonLink, i + 1);
+                    String episodeLink = generateEpisodeFromSeasonLink(season.getSeasonLink(), i + 1);
                     if (i == totalNumberOfEpisodes - 1) {
                         episodeLink = checkForSeasonFinale(episodeLink);
                     }
@@ -141,29 +129,11 @@ public class ContentMiner {
                     if (StringUtils.containsIgnoreCase(episodeLink, getSeasonFinaleSuffix())) {
                         episodeName = generateEpisodeValue(i + 1) + getSeasonFinaleSuffix();
                     }
-                    String episodeId = CryptoUtils.getSha256Digest(episodeLink);
-                    Episode newEpisode = getEpisode(movie, currentSeason, episodeLink, episodeName, episodeId);
-                    if (!episodesList.contains(newEpisode)) {
-                        episodesList.add(newEpisode);
-                    } else {
-                        int indexOfEpisode = episodesList.indexOf(newEpisode);
-                        newEpisode = episodesList.get(indexOfEpisode);
-                        newEpisode.setEpisodeLink(episodeLink);
-                        newEpisode.setEpisodeName(episodeName);
-                        episodesList.set(indexOfEpisode, newEpisode);
-                    }
+                    Episode newEpisode = generateNewEpisode(season, episodeLink, episodeName);
+                    episodesList.add(newEpisode);
                 }
-                currentSeason.setEpisodes(episodesList);
-                if (!existingSeasons.contains(currentSeason)) {
-                    existingSeasons.add(currentSeason);
-                } else {
-                    int indexOfCurrentSeason = existingSeasons.indexOf(currentSeason);
-                    currentSeason = existingSeasons.get(indexOfCurrentSeason);
-                    currentSeason.setEpisodes(episodesList);
-                    existingSeasons.set(indexOfCurrentSeason, currentSeason);
-                }
-                movie.setMovieSeasons(existingSeasons);
-                movie.update();
+                season.setEpisodes(episodesList);
+                season.update();
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -171,23 +141,15 @@ public class ContentMiner {
         }
     }
 
-    private static Episode getEpisode(Movie movie, Season currentSeason, String episodeLink, String episodeName, String episodeId) {
+    private static Episode generateNewEpisode(Season season, String episodeLink, String episodeName) {
+        String episodeId = CryptoUtils.getSha256Digest(episodeLink);
         Episode newEpisode = new Episode();
         newEpisode.setEpisodeId(episodeId);
         newEpisode.setEpisodeLink(episodeLink);
         newEpisode.setEpisodeName(episodeName);
-        newEpisode.setMovieId(movie.getMovieId());
-        newEpisode.setSeasonId(currentSeason.getSeasonId());
+        newEpisode.setMovieId(season.getMovieId());
+        newEpisode.setSeasonId(season.getSeasonId());
         return newEpisode;
-    }
-
-    private static Season getSeason(String seasonName, Movie movie, String seasonId, String seasonLink) {
-        Season currentSeason = new Season();
-        currentSeason.setSeasonId(seasonId);
-        currentSeason.setMovieId(movie.getMovieId());
-        currentSeason.setSeasonName(seasonName);
-        currentSeason.setSeasonLink(seasonLink);
-        return currentSeason;
     }
 
     private static int getTotalNumberOfEpisodes(String seasonLink) throws IOException {

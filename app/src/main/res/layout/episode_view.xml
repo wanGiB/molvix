@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@color/whitesmoke"
+    android:background="@color/incoming_bubbles_color"
     android:orientation="vertical">
 
     <com.molvix.android.ui.widgets.MolvixTextView

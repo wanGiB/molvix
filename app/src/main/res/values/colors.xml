@@ -72,7 +72,7 @@
     <color name="capp_description_text_color">#8a000000</color>
     <color name="textIconColorPrimary">#FFFFFF</color>
     <color name="outgoing_bubbles_color">#FBF0DA</color>
-    <color name="incoming_bubbles_color">#F1F6F8</color>
+    <color name="incoming_bubbles_color">#FAFAF8</color>
     <color name="unread_news_feed_background">#EBFAFF</color>
     <color name="transluscent_black">#20000000</color>
     <color name="emenu_material_grey_800">#424242</color>

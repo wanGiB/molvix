@@ -14,9 +14,9 @@ import androidx.annotation.Nullable;
 
 import com.molvix.android.R;
 import com.molvix.android.jobs.ContentMiner;
-import com.molvix.android.models.Movie;
 import com.molvix.android.models.Season;
-import com.molvix.android.utils.LocalDbUtils;
+import com.raizlabs.android.dbflow.runtime.DirectModelNotifier;
+import com.raizlabs.android.dbflow.structure.BaseModel;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -32,9 +32,9 @@ public class SeasonView extends FrameLayout {
     @BindView(R.id.root_view)
     View rootView;
 
-    private Movie movie;
     private Season season;
     private SeasonEpisodesExtractionTask seasonEpisodesExtractionTask;
+    private DirectModelNotifier.ModelChangedListener<Season> seasonModelChangedListener;
 
     public SeasonView(@NonNull Context context) {
         super(context);
@@ -61,9 +61,32 @@ public class SeasonView extends FrameLayout {
 
     public void bindSeason(Season season) {
         this.season = season;
-        movie = LocalDbUtils.getMovie(season.getMovieId());
         seasonNameView.setText(season.getSeasonName());
         loadSeasonEpisodes();
+        registerSeasonModelChangeListener();
+    }
+
+    private void registerSeasonModelChangeListener() {
+        seasonModelChangedListener = new DirectModelNotifier.ModelChangedListener<Season>() {
+            @Override
+            public void onModelChanged(@NonNull Season model, @NonNull BaseModel.Action action) {
+                if (action == BaseModel.Action.UPDATE) {
+                    if (season.getSeasonId().equals(model.getSeasonId())) {
+                        season.setEpisodes(model.getEpisodes());
+                    }
+                }
+            }
+
+            @Override
+            public void onTableChanged(@Nullable Class<?> tableChanged, @NonNull BaseModel.Action action) {
+
+            }
+        };
+        DirectModelNotifier.get().registerForModelChanges(Season.class, seasonModelChangedListener);
+    }
+
+    private void unRegisterSeasonModelChangeListener() {
+        DirectModelNotifier.get().unregisterForModelChanges(Season.class, seasonModelChangedListener);
     }
 
     public MolvixTextView getSeasonNameView() {
@@ -84,25 +107,21 @@ public class SeasonView extends FrameLayout {
             seasonEpisodesExtractionTask.cancel(true);
             seasonEpisodesExtractionTask = null;
         }
-        seasonEpisodesExtractionTask = new SeasonEpisodesExtractionTask(season.getSeasonLink(), season.getSeasonName(), movie);
+        seasonEpisodesExtractionTask = new SeasonEpisodesExtractionTask(season);
         seasonEpisodesExtractionTask.execute();
     }
 
     static class SeasonEpisodesExtractionTask extends AsyncTask<Void, Void, Void> {
 
-        private String seasonName;
-        private String seasonLink;
-        private Movie movie;
+        private Season season;
 
-        SeasonEpisodesExtractionTask(String seasonLink, String seasonName, Movie movie) {
-            this.movie = movie;
-            this.seasonLink = seasonLink;
-            this.seasonName = seasonName;
+        SeasonEpisodesExtractionTask(Season season) {
+            this.season = season;
         }
 
         @Override
         protected Void doInBackground(Void... voids) {
-            ContentMiner.extractMetaDataFromMovieSeasonLink(seasonLink, seasonName, movie);
+            ContentMiner.extractMetaDataFromMovieSeasonLink(season);
             return null;
         }
     }
@@ -110,7 +129,14 @@ public class SeasonView extends FrameLayout {
     @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
+        registerSeasonModelChangeListener();
         loadSeasonEpisodes();
+    }
+
+    @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        unRegisterSeasonModelChangeListener();
     }
 
 }
