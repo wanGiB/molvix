@@ -207,12 +207,12 @@ public class MovieDetailsActivity extends BaseActivity {
             @Override
             public void onPageStarted(WebView view, String url, Bitmap favicon) {
                 super.onPageStarted(view, url, favicon);
+                tryEpisodeDownloadOptions(episode.getEpisodeLink());
             }
 
         });
         hackWebView.loadUrl(episode.getEpisodeLink());
     }
-
 
     static class MoviePullTask extends AsyncTask<Void, Void, Void> {
         private String movieLink;
@@ -229,6 +229,10 @@ public class MovieDetailsActivity extends BaseActivity {
             return null;
         }
 
+    }
+
+    private void tryEpisodeDownloadOptions(String episodeLink) {
+        new EpisodeDownloadOptionsExtractionTask(episodeLink).execute();
     }
 
     static class EpisodeDownloadOptionsExtractionTask extends AsyncTask<Void, Void, Void> {
@@ -264,7 +268,6 @@ public class MovieDetailsActivity extends BaseActivity {
                         downloadOptionsPageVisited.set(true);
                         //Solve Captcha and download episode based on selected
                         //Quality
-
                     }
                 }
             } catch (IOException e) {
