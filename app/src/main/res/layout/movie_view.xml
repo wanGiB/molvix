@@ -4,69 +4,60 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:id="@+id/parent_card_view"
     android:background="@android:color/transparent"
     android:orientation="vertical">
 
-    <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
-        android:id="@+id/parent_card_view"
+    <LinearLayout
+        android:background="@android:color/white"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:clipChildren="true"
-        android:clipToPadding="true"
-        app:cardBackgroundColor="@color/white"
-        app:cardElevation="0dp">
+        android:orientation="vertical">
 
-        <LinearLayout
+        <ImageView
+            android:id="@+id/movie_art_view"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:background="@color/light_gray"
+            android:scaleType="centerCrop"
+            tools:ignore="ContentDescription" />
+
+        <com.molvix.android.ui.widgets.MolvixTextView
+            android:id="@+id/movie_name_view"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:padding="8dp"
+            android:textColor="@color/black"
+            android:textSize="16sp"
+            app:textStyle="bold" />
 
-            <ImageView
-                android:id="@+id/movie_art_view"
-                android:layout_width="match_parent"
-                android:layout_height="200dp"
-                android:background="@color/light_gray"
-                android:scaleType="centerCrop"
-                tools:ignore="ContentDescription" />
+        <com.molvix.android.ui.widgets.MolvixTextView
+            android:id="@+id/movie_description_view"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="3"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:paddingBottom="8dp"
+            android:textColor="@color/text_light_dark"
+            android:textSize="14sp"
+            app:textStyle="regular" />
 
-            <com.molvix.android.ui.widgets.MolvixTextView
-                android:id="@+id/movie_name_view"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:padding="8dp"
-                android:textColor="@color/black"
-                android:textSize="16sp"
-                app:textStyle="bold" />
+        <com.molvix.android.ui.widgets.MolvixTextView
+            android:id="@+id/movie_seasons_count_view"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:gravity="center_vertical"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:paddingBottom="8dp"
+            android:textColor="@color/ease_gray_dark"
+            android:textSize="14sp"
+            app:textStyle="medium" />
 
-            <com.molvix.android.ui.widgets.MolvixTextView
-                android:id="@+id/movie_description_view"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:ellipsize="end"
-                android:maxLines="3"
-                android:paddingStart="8dp"
-                android:paddingEnd="8dp"
-                android:paddingBottom="8dp"
-                android:textColor="@color/text_light_dark"
-                android:textSize="14sp"
-                app:textStyle="regular" />
-
-            <com.molvix.android.ui.widgets.MolvixTextView
-                android:id="@+id/movie_seasons_count_view"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_vertical"
-                android:gravity="center_vertical"
-                android:paddingStart="8dp"
-                android:paddingEnd="8dp"
-                android:paddingBottom="8dp"
-                android:textColor="@color/ease_gray_dark"
-                android:textSize="14sp"
-                app:textStyle="medium" />
-
-        </LinearLayout>
-
-    </com.google.android.material.card.MaterialCardView>
+    </LinearLayout>
 
     <View
         android:layout_width="match_parent"

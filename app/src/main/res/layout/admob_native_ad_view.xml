@@ -1,13 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:clipChildren="true"
-    android:clipToPadding="false"
-    app:cardBackgroundColor="@color/white"
-    app:cardElevation="0dp">
+    android:background="@android:color/transparent"
+    android:orientation="vertical">
 
     <com.google.android.gms.ads.formats.UnifiedNativeAdView
         android:id="@+id/ad_unified"
@@ -161,4 +158,9 @@
 
     </com.google.android.gms.ads.formats.UnifiedNativeAdView>
 
-</com.google.android.material.card.MaterialCardView>
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="10dp"
+        android:background="@android:color/transparent" />
+
+</LinearLayout>
