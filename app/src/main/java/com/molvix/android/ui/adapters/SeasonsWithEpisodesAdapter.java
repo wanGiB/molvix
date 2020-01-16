@@ -96,6 +96,13 @@ public class SeasonsWithEpisodesAdapter extends MultiTypeExpandableRecyclerViewA
             SeasonHeaderGroupViewHolder seasonHeaderGroupViewHolder = (SeasonHeaderGroupViewHolder) holder;
             MovieContentItem movieContentItem = (MovieContentItem) group;
             seasonHeaderGroupViewHolder.bindSeasonData(movieContentItem.getSeason());
+            View.OnClickListener onClickListener = v -> {
+                UiUtils.blinkView(seasonHeaderGroupViewHolder.itemView);
+                toggleGroup(flatPosition);
+            };
+            seasonHeaderGroupViewHolder.seasonView.getArrow().setOnClickListener(onClickListener);
+            seasonHeaderGroupViewHolder.seasonView.getSeasonNameView().setOnClickListener(onClickListener);
+            seasonHeaderGroupViewHolder.seasonView.getRootView().setOnClickListener(onClickListener);
         } else if (holder instanceof AdHeaderViewHolder) {
             AdHeaderViewHolder adHeaderViewHolder = (AdHeaderViewHolder) holder;
             adHeaderViewHolder.refreshAd(context);
@@ -146,14 +153,6 @@ public class SeasonsWithEpisodesAdapter extends MultiTypeExpandableRecyclerViewA
 
         void bindSeasonData(Season season) {
             seasonView.bindSeason(season);
-            View.OnClickListener onClickListener = v -> {
-                UiUtils.blinkView(itemView);
-                itemView.performClick();
-                UiUtils.showSafeToast((season.getEpisodes() != null && !season.getEpisodes().isEmpty()) ? "Yea,available" : "Sorry none");
-            };
-            seasonView.getArrow().setOnClickListener(onClickListener);
-            seasonView.getSeasonNameView().setOnClickListener(onClickListener);
-            seasonView.getRootView().setOnClickListener(onClickListener);
         }
 
         @Override
