@@ -101,6 +101,7 @@ public class ContentManager {
                     season.setMovieId(movie.getMovieId());
                     season.setSeasonLink(seasonAtI);
                     season.setSeasonId(CryptoUtils.getSha256Digest(seasonAtI));
+                    season.save();
                     if (!seasons.contains(season)) {
                         seasons.add(season);
                     }
@@ -150,6 +151,7 @@ public class ContentManager {
         newEpisode.setDownloadProgress(-1);
         newEpisode.setMovieId(season.getMovieId());
         newEpisode.setSeasonId(season.getSeasonId());
+        newEpisode.save();
         return newEpisode;
     }
 

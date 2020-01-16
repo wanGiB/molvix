@@ -8,6 +8,7 @@ import android.webkit.MimeTypeMap;
 import com.molvix.android.components.ApplicationLoader;
 
 import java.io.File;
+import java.util.Locale;
 
 @SuppressWarnings("ResultOfMethodCallIgnored")
 public class FileUtils {
@@ -38,6 +39,14 @@ public class FileUtils {
     public static String getMimeType(String fileUrl) {
         String extension = MimeTypeMap.getFileExtensionFromUrl(fileUrl);
         return MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
+    }
+
+    public static String getProgressDisplayLine(long currentBytes, long totalBytes) {
+        return getBytesToMBString(currentBytes) + "/" + getBytesToMBString(totalBytes);
+    }
+
+    private static String getBytesToMBString(long bytes) {
+        return String.format(Locale.ENGLISH, "%.2fMb", bytes / (1024.00 * 1024.00));
     }
 
 }

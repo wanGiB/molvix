@@ -179,7 +179,7 @@ public class MovieDetailsActivity extends BaseActivity {
             addMovieHeaderView(movie, movieContentItems);
             List<Season> movieSeasons = movie.getMovieSeasons();
             loadInMovieSeasons(movieContentItems, movieSeasons);
-            checkAndLoadInAd(movieContentItems);
+//            checkAndLoadInAd(movieContentItems);
             seasonsWithEpisodesAdapter = new SeasonsWithEpisodesAdapter(MovieDetailsActivity.this, movieContentItems);
             LinearLayoutManager linearLayoutManager = new LinearLayoutManager(MovieDetailsActivity.this, RecyclerView.VERTICAL, false);
             seasonsAndEpisodesRecyclerView.setLayoutManager(linearLayoutManager);

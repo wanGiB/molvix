@@ -69,9 +69,22 @@ public class Episode extends BaseModel implements Serializable {
     @Expose
     public String episodeCaptchaSolverLink;
 
-    @Column()
+    @Column
     @Expose
     public int downloadProgress = -1;
+
+    @Nullable
+    @Column
+    public String progressDisplayText;
+
+    public void setProgressDisplayText(@Nullable String progressDisplayText) {
+        this.progressDisplayText = progressDisplayText;
+    }
+
+    @Nullable
+    public String getProgressDisplayText() {
+        return progressDisplayText;
+    }
 
     public void setDownloadProgress(int downloadProgress) {
         this.downloadProgress = downloadProgress;

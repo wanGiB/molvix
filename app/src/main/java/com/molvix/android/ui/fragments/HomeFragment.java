@@ -137,7 +137,7 @@ public class HomeFragment extends BaseFragment {
 
     private void addMovie(Movie movie) {
         mUiHandler.post(() -> {
-            checkAndAddAd();
+//            checkAndAddAd();
             if (!movies.contains(movie)) {
                 movies.add(movie);
                 moviesAdapter.notifyItemInserted(movies.size() - 1);
