@@ -46,6 +46,8 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import jp.wasabeef.recyclerview.animators.ScaleInAnimator;
 
+import static com.raizlabs.android.dbflow.structure.BaseModel.Action.CHANGE;
+
 @SuppressWarnings("ConstantConditions")
 public class HomeFragment extends BaseFragment {
 
@@ -98,7 +100,7 @@ public class HomeFragment extends BaseFragment {
             public void onModelChanged(@NonNull Movie model, @NonNull BaseModel.Action action) {
                 if (action == BaseModel.Action.SAVE) {
                     addMovie(model);
-                } else if (action == BaseModel.Action.UPDATE) {
+                } else if (action == BaseModel.Action.UPDATE || action == CHANGE) {
                     updateMovieIndex(model);
                 } else if (action == BaseModel.Action.DELETE) {
                     removeMovie(model);
@@ -210,12 +212,6 @@ public class HomeFragment extends BaseFragment {
 
     private String getActiveSearchString() {
         return activeSearchString;
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        DirectModelNotifier.get().unregisterForModelChanges(Movie.class, movieModelChangedListener);
     }
 
     private void fetchAllAvailableMovies(int skip) {

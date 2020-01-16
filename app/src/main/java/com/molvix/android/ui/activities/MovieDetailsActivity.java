@@ -27,7 +27,6 @@ import com.molvix.android.enums.EpisodeQuality;
 import com.molvix.android.eventbuses.CheckForPendingDownloadableEpisodes;
 import com.molvix.android.eventbuses.EpisodeResolutionEvent;
 import com.molvix.android.eventbuses.LoadEpisodesForSeason;
-import com.molvix.android.eventbuses.UpdateSeason;
 import com.molvix.android.managers.ContentManager;
 import com.molvix.android.managers.EpisodesManager;
 import com.molvix.android.models.DownloadableEpisodes;
@@ -37,6 +36,7 @@ import com.molvix.android.models.Season;
 import com.molvix.android.ui.adapters.EpisodesAdapter;
 import com.molvix.android.ui.adapters.SeasonsWithEpisodesAdapter;
 import com.molvix.android.utils.ConnectivityUtils;
+import com.molvix.android.utils.CryptoUtils;
 import com.molvix.android.utils.FileUtils;
 import com.molvix.android.utils.LocalDbUtils;
 import com.molvix.android.utils.UiUtils;
@@ -80,7 +80,7 @@ public class MovieDetailsActivity extends BaseActivity {
     private static final String TAG = MovieDetailsActivity.class.getSimpleName();
     private SeasonsWithEpisodesAdapter seasonsWithEpisodesAdapter;
     private String movieId;
-    private List<MovieContentItem> movieContentItems;
+    private List<MovieContentItem> movieContentItems = new ArrayList<>();
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -90,6 +90,8 @@ public class MovieDetailsActivity extends BaseActivity {
         initWebView();
         initBackButton();
         movieId = getIntent().getStringExtra(AppConstants.MOVIE_ID);
+        cleanUpMovieContentItems();
+        initMovieAdapter();
         listenToIncomingDownloadableEpisodes();
         if (movieId != null) {
             loadingLayoutProgressMsgView.setText(getString(R.string.please_wait));
@@ -102,6 +104,19 @@ public class MovieDetailsActivity extends BaseActivity {
                 loadMovieDetails(movie);
             }
         }
+    }
+
+    private void cleanUpMovieContentItems() {
+        if (!movieContentItems.isEmpty()) {
+            movieContentItems.clear();
+        }
+    }
+
+    private void initMovieAdapter() {
+        seasonsWithEpisodesAdapter = new SeasonsWithEpisodesAdapter(MovieDetailsActivity.this, movieContentItems);
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(MovieDetailsActivity.this, RecyclerView.VERTICAL, false);
+        seasonsAndEpisodesRecyclerView.setLayoutManager(linearLayoutManager);
+        seasonsAndEpisodesRecyclerView.setAdapter(seasonsWithEpisodesAdapter);
     }
 
     private void initBackButton() {
@@ -175,15 +190,10 @@ public class MovieDetailsActivity extends BaseActivity {
 
     private void loadMovieDetails(Movie movie) {
         runOnUiThread(() -> {
-            movieContentItems = new ArrayList<>();
             addMovieHeaderView(movie, movieContentItems);
             List<Season> movieSeasons = movie.getMovieSeasons();
             loadInMovieSeasons(movieContentItems, movieSeasons);
 //            checkAndLoadInAd(movieContentItems);
-            seasonsWithEpisodesAdapter = new SeasonsWithEpisodesAdapter(MovieDetailsActivity.this, movieContentItems);
-            LinearLayoutManager linearLayoutManager = new LinearLayoutManager(MovieDetailsActivity.this, RecyclerView.VERTICAL, false);
-            seasonsAndEpisodesRecyclerView.setLayoutManager(linearLayoutManager);
-            seasonsAndEpisodesRecyclerView.setAdapter(seasonsWithEpisodesAdapter);
             UiUtils.toggleViewVisibility(loadingLayout, false);
         });
     }
@@ -192,7 +202,14 @@ public class MovieDetailsActivity extends BaseActivity {
         if (ConnectivityUtils.isDeviceConnectedToTheInternet()) {
             MovieContentItem adItem = new MovieContentItem();
             adItem.setContentType(MovieContentItem.ContentType.AD);
-            movieContentItems.add(adItem);
+            adItem.setContentId(CryptoUtils.getSha256Digest("AdFooter"));
+            if (!movieContentItems.contains(adItem)) {
+                movieContentItems.add(adItem);
+            } else {
+                int indexOfItem = movieContentItems.indexOf(adItem);
+                movieContentItems.set(indexOfItem, adItem);
+                seasonsWithEpisodesAdapter.notifyItemChanged(indexOfItem);
+            }
         }
     }
 
@@ -201,8 +218,16 @@ public class MovieDetailsActivity extends BaseActivity {
             for (Season season : movieSeasons) {
                 MovieContentItem movieContentItem = new MovieContentItem();
                 movieContentItem.setSeason(season);
+                movieContentItem.setContentId(CryptoUtils.getSha256Digest(season.getSeasonName()));
                 movieContentItem.setContentType(MovieContentItem.ContentType.GROUP_HEADER);
-                movieContentItems.add(movieContentItem);
+                if (!movieContentItems.contains(movieContentItem)) {
+                    movieContentItems.add(movieContentItem);
+                    seasonsWithEpisodesAdapter.notifyItemInserted(movieContentItems.size() - 1);
+                } else {
+                    int indexOfItem = movieContentItems.indexOf(movieContentItem);
+                    movieContentItems.set(indexOfItem, movieContentItem);
+                    seasonsWithEpisodesAdapter.notifyItemChanged(indexOfItem);
+                }
             }
         }
     }
@@ -210,8 +235,15 @@ public class MovieDetailsActivity extends BaseActivity {
     private void addMovieHeaderView(Movie movie, List<MovieContentItem> movieContentItems) {
         MovieContentItem movieHeaderItem = new MovieContentItem();
         movieHeaderItem.setMovie(movie);
+        movieHeaderItem.setContentId(CryptoUtils.getSha256Digest("MovieHeader"));
         movieHeaderItem.setContentType(MovieContentItem.ContentType.MOVIE_HEADER);
-        movieContentItems.add(movieHeaderItem);
+        if (!movieContentItems.contains(movieHeaderItem)) {
+            movieContentItems.add(movieHeaderItem);
+            seasonsWithEpisodesAdapter.notifyItemInserted(movieContentItems.size() - 1);
+        } else {
+            movieContentItems.set(0, movieHeaderItem);
+            seasonsWithEpisodesAdapter.notifyItemChanged(0);
+        }
     }
 
     @Override
@@ -276,28 +308,14 @@ public class MovieDetailsActivity extends BaseActivity {
             EpisodeResolutionEvent episodeResolutionEvent = (EpisodeResolutionEvent) event;
             runOnUiThread(() -> hackWebView.loadUrl(episodeResolutionEvent.getEpisode().getEpisodeLink()));
         } else if (event instanceof CheckForPendingDownloadableEpisodes) {
-            DownloadableEpisodes downloadableEpisodes = SQLite.select()
-                    .from(DownloadableEpisodes.class)
-                    .querySingle();
-            if (downloadableEpisodes != null) {
-                List<Episode> episodeList = downloadableEpisodes.getDownloadableEpisodes();
-                if (episodeList != null && !episodeList.isEmpty()) {
-                    solveEpisodeCaptchaChallenge(episodeList.get(episodeList.size() - 1));
-                }
-            }
-        } else if (event instanceof UpdateSeason) {
             runOnUiThread(() -> {
-                UpdateSeason updateSeason = (UpdateSeason) event;
-                Season updatedSeason = updateSeason.getSeason();
-                for (MovieContentItem movieContentItem : movieContentItems) {
-                    Season itemSeason = movieContentItem.getSeason();
-                    if (itemSeason != null) {
-                        if (itemSeason.getSeasonId().equals(updatedSeason.getSeasonId())) {
-                            movieContentItem.setSeason(updatedSeason);
-                            int indexOfMovieItem = movieContentItems.indexOf(movieContentItem);
-                            movieContentItems.set(indexOfMovieItem, movieContentItem);
-                            seasonsWithEpisodesAdapter.notifyDataSetChanged();
-                        }
+                DownloadableEpisodes downloadableEpisodes = SQLite.select()
+                        .from(DownloadableEpisodes.class)
+                        .querySingle();
+                if (downloadableEpisodes != null) {
+                    List<Episode> episodeList = downloadableEpisodes.getDownloadableEpisodes();
+                    if (episodeList != null && !episodeList.isEmpty()) {
+                        solveEpisodeCaptchaChallenge(episodeList.get(episodeList.size() - 1));
                     }
                 }
             });

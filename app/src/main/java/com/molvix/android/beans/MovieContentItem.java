@@ -14,6 +14,15 @@ public class MovieContentItem {
     private ContentType contentType;
     private Movie movie;
     private Season season;
+    private String contentId;
+
+    public void setContentId(String contentId) {
+        this.contentId = contentId;
+    }
+
+    public String getContentId() {
+        return contentId;
+    }
 
     public void setContentType(ContentType contentType) {
         this.contentType = contentType;
@@ -37,6 +46,31 @@ public class MovieContentItem {
 
     public Season getSeason() {
         return season;
+    }
+
+
+    @Override
+    public int hashCode() {
+        int result;
+        result = this.contentId.hashCode();
+        final String name = getClass().getName();
+        result = 31 * result + name.hashCode();
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (obj == this) {
+            return true;
+        }
+        if (obj.getClass() != getClass()) {
+            return false;
+        }
+        MovieContentItem another = (MovieContentItem) obj;
+        return this.getContentId().equals(another.getContentId());
     }
 
 }

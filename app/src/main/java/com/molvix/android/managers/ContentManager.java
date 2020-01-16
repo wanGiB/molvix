@@ -96,12 +96,7 @@ public class ContentManager {
                 for (int i = 0; i < totalNumberOfSeasons; i++) {
                     String seasonAtI = generateSeasonFromMovieLink(movieLink, i + 1);
                     String seasonName = generateSeasonValue(i + 1);
-                    Season season = new Season();
-                    season.setSeasonName(seasonName);
-                    season.setMovieId(movie.getMovieId());
-                    season.setSeasonLink(seasonAtI);
-                    season.setSeasonId(CryptoUtils.getSha256Digest(seasonAtI));
-                    season.save();
+                    Season season = generateNewSeason(movie, seasonAtI, seasonName);
                     if (!seasons.contains(season)) {
                         seasons.add(season);
                     }
@@ -113,6 +108,16 @@ public class ContentManager {
             e.printStackTrace();
             EventBus.getDefault().post(e);
         }
+    }
+
+    private static Season generateNewSeason(Movie movie, String seasonAtI, String seasonName) {
+        Season season = new Season();
+        season.setSeasonName(seasonName);
+        season.setMovieId(movie.getMovieId());
+        season.setSeasonLink(seasonAtI);
+        season.setSeasonId(CryptoUtils.getSha256Digest(seasonAtI));
+        season.save();
+        return season;
     }
 
     @SuppressWarnings("ConstantConditions")

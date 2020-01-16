@@ -10,6 +10,7 @@ import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
+import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.molvix.android.R;
@@ -39,7 +40,7 @@ public class SeasonsWithEpisodesAdapter extends RecyclerView.Adapter<RecyclerVie
     private Context context;
     private List<MovieContentItem> contentItems;
 
-    public SeasonsWithEpisodesAdapter(Context context, List<MovieContentItem> contentItems) {
+    public SeasonsWithEpisodesAdapter(FragmentActivity context, List<MovieContentItem> contentItems) {
         this.context = context;
         this.contentItems = contentItems;
     }
@@ -102,7 +103,6 @@ public class SeasonsWithEpisodesAdapter extends RecyclerView.Adapter<RecyclerVie
         void bindSeasonData(Season season) {
             seasonView.bindSeason(season);
         }
-
     }
 
     static class MovieHeaderViewHolder extends RecyclerView.ViewHolder {

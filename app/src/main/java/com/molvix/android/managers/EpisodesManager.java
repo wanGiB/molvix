@@ -67,4 +67,7 @@ public class EpisodesManager {
         return AppPrefs.isCaptchaSolvable();
     }
 
+    public static void fireEpisodeUpdate(String episodeId, boolean value) {
+        AppPrefs.fireEpisodeUpdated(episodeId, value);
+    }
 }

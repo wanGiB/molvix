@@ -7,6 +7,7 @@ import com.google.gson.annotations.Expose;
 import com.molvix.android.converters.EpisodeQualityTypeConverter;
 import com.molvix.android.database.MolvixDB;
 import com.molvix.android.enums.EpisodeQuality;
+import com.molvix.android.managers.EpisodesManager;
 import com.raizlabs.android.dbflow.annotation.Column;
 import com.raizlabs.android.dbflow.annotation.ConflictAction;
 import com.raizlabs.android.dbflow.annotation.PrimaryKey;
@@ -200,6 +201,13 @@ public class Episode extends BaseModel implements Serializable {
         }
         Episode another = (Episode) obj;
         return this.getEpisodeId().equals(another.getEpisodeId());
+    }
+
+    @Override
+    public boolean update() {
+        boolean result = super.update();
+        EpisodesManager.fireEpisodeUpdate(episodeId,true);
+        return result;
     }
 
 }

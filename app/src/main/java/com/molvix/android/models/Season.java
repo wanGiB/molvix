@@ -6,6 +6,7 @@ import androidx.annotation.Nullable;
 import com.google.gson.annotations.Expose;
 import com.molvix.android.converters.EpisodesTypeConverter;
 import com.molvix.android.database.MolvixDB;
+import com.molvix.android.managers.SeasonsManager;
 import com.raizlabs.android.dbflow.annotation.Column;
 import com.raizlabs.android.dbflow.annotation.ConflictAction;
 import com.raizlabs.android.dbflow.annotation.PrimaryKey;
@@ -108,6 +109,13 @@ public class Season extends BaseModel {
         }
         Season another = (Season) obj;
         return this.getSeasonId().equals(another.getSeasonId());
+    }
+
+    @Override
+    public boolean update() {
+        boolean result = super.update();
+        SeasonsManager.fireSeasonUpdated(seasonId, true);
+        return result;
     }
 
 }

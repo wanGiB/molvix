@@ -66,7 +66,6 @@ public class EpisodeView extends FrameLayout {
     private Movie movie;
 
     private Animation mFadeInFadeIn;
-    private DirectModelNotifier.ModelChangedListener<Episode> episodeModelChangedListener;
 
     public EpisodeView(@NonNull Context context) {
         super(context);
@@ -104,24 +103,6 @@ public class EpisodeView extends FrameLayout {
         checkToSeeIfEpisodeAlreadyDownloaded(episode, episodeName);
         initDownloadEventListener(episode, episodeName);
         checkEpisodeActiveDownloadStatus(episode);
-        registerEpisodeChangeListener(episode);
-    }
-
-    private void registerEpisodeChangeListener(Episode targetEpisode) {
-        episodeModelChangedListener = new DirectModelNotifier.ModelChangedListener<Episode>() {
-            @Override
-            public void onModelChanged(@NonNull Episode model, @NonNull BaseModel.Action action) {
-                if (action == BaseModel.Action.UPDATE && model.getEpisodeId().equals(targetEpisode.getEpisodeId())) {
-                    bindEpisode(model);
-                }
-            }
-
-            @Override
-            public void onTableChanged(@Nullable Class<?> tableChanged, @NonNull BaseModel.Action action) {
-
-            }
-        };
-        DirectModelNotifier.get().registerForModelChanges(Episode.class, episodeModelChangedListener);
     }
 
     private void initDownloadEventListener(Episode episode, String episodeName) {
@@ -265,22 +246,6 @@ public class EpisodeView extends FrameLayout {
 
     private void extractEpisodeDownloadOptions(Episode episode) {
         new EpisodeDownloadOptionsExtractionTask(episode).execute();
-    }
-
-    @Override
-    protected void onAttachedToWindow() {
-        super.onAttachedToWindow();
-        registerEpisodeChangeListener(episode);
-    }
-
-    @Override
-    protected void onDetachedFromWindow() {
-        super.onDetachedFromWindow();
-        unRegisterEpisodeChangeListener();
-    }
-
-    private void unRegisterEpisodeChangeListener() {
-        DirectModelNotifier.get().unregisterForModelChanges(Episode.class, episodeModelChangedListener);
     }
 
     static class EpisodeDownloadOptionsExtractionTask extends AsyncTask<Void, Void, Void> {

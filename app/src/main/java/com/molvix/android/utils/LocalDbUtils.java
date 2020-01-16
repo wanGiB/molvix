@@ -44,6 +44,10 @@ public class LocalDbUtils {
         ProcessModelTransaction<Movie> processModelTransaction =
                 new ProcessModelTransaction.Builder<>((ProcessModelTransaction.ProcessModel<Movie>) (movie, wrapper) -> {
                     try {
+                        Movie existingMovie = getMovie(movie.getMovieId());
+                        if (existingMovie != null) {
+                            return;
+                        }
                         movie.save();
                     } catch (IllegalStateException ignored) {
 
