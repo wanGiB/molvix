@@ -19,12 +19,14 @@ import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.molvix.android.R;
 import com.molvix.android.beans.MovieContentItem;
 import com.molvix.android.companions.AppConstants;
 import com.molvix.android.enums.EpisodeQuality;
 import com.molvix.android.eventbuses.CheckForPendingDownloadableEpisodes;
 import com.molvix.android.eventbuses.EpisodeResolutionEvent;
+import com.molvix.android.eventbuses.LoadEpisodesForSeason;
 import com.molvix.android.eventbuses.UpdateSeason;
 import com.molvix.android.jobs.ContentMiner;
 import com.molvix.android.jobs.EpisodesResolutionManager;
@@ -32,6 +34,7 @@ import com.molvix.android.models.DownloadableEpisodes;
 import com.molvix.android.models.Episode;
 import com.molvix.android.models.Movie;
 import com.molvix.android.models.Season;
+import com.molvix.android.ui.adapters.EpisodesAdapter;
 import com.molvix.android.ui.adapters.SeasonsWithEpisodesAdapter;
 import com.molvix.android.utils.ConnectivityUtils;
 import com.molvix.android.utils.FileUtils;
@@ -40,6 +43,8 @@ import com.molvix.android.utils.UiUtils;
 import com.raizlabs.android.dbflow.runtime.DirectModelNotifier;
 import com.raizlabs.android.dbflow.sql.language.SQLite;
 import com.raizlabs.android.dbflow.structure.BaseModel;
+
+import org.apache.commons.lang3.text.WordUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -96,22 +101,6 @@ public class MovieDetailsActivity extends BaseActivity {
             } else {
                 loadMovieDetails(movie);
             }
-        }
-    }
-
-    @Override
-    protected void onSaveInstanceState(@NonNull Bundle outState) {
-        super.onSaveInstanceState(outState);
-        if (seasonsWithEpisodesAdapter != null) {
-            seasonsWithEpisodesAdapter.onSaveInstanceState(outState);
-        }
-    }
-
-    @Override
-    protected void onRestoreInstanceState(@NonNull Bundle savedInstanceState) {
-        super.onRestoreInstanceState(savedInstanceState);
-        if (seasonsWithEpisodesAdapter != null) {
-            seasonsWithEpisodesAdapter.onRestoreInstanceState(savedInstanceState);
         }
     }
 
@@ -312,7 +301,29 @@ public class MovieDetailsActivity extends BaseActivity {
                     }
                 }
             });
+        } else if (event instanceof LoadEpisodesForSeason) {
+            LoadEpisodesForSeason value = (LoadEpisodesForSeason) event;
+            loadEpisodesForSeason(value.getSeason());
         }
+    }
+
+    private void loadEpisodesForSeason(Season season) {
+        @SuppressLint("InflateParams") View bottomSheetRootView = getLayoutInflater().inflate(R.layout.bottom_sheet_content_view, null);
+        BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(this);
+        bottomSheetDialog.setContentView(bottomSheetRootView);
+        fillInEpisodes(bottomSheetRootView, season);
+        bottomSheetDialog.show();
+    }
+
+    private void fillInEpisodes(View rootView, Season season) {
+        EpisodesAdapter bottomSheetRecyclerViewAdapter;
+        TextView bottomSheetTitleView = rootView.findViewById(R.id.bottom_sheet_title_view);
+        RecyclerView bottomSheetRecyclerView = rootView.findViewById(R.id.bottom_sheet_recycler_view);
+        bottomSheetTitleView.setText(WordUtils.capitalize(season.getSeasonName()));
+        bottomSheetRecyclerViewAdapter = new EpisodesAdapter(this, season.getEpisodes());
+        LinearLayoutManager bottomSheetLinearLayoutManager = new LinearLayoutManager(this, RecyclerView.VERTICAL, false);
+        bottomSheetRecyclerView.setLayoutManager(bottomSheetLinearLayoutManager);
+        bottomSheetRecyclerView.setAdapter(bottomSheetRecyclerViewAdapter);
     }
 
     private void injectMagicScript() {

@@ -13,13 +13,17 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.molvix.android.R;
+import com.molvix.android.eventbuses.LoadEpisodesForSeason;
 import com.molvix.android.eventbuses.UpdateSeason;
 import com.molvix.android.jobs.ContentMiner;
 import com.molvix.android.models.Season;
+import com.molvix.android.utils.UiUtils;
 import com.raizlabs.android.dbflow.runtime.DirectModelNotifier;
 import com.raizlabs.android.dbflow.structure.BaseModel;
 
 import org.greenrobot.eventbus.EventBus;
+
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -38,6 +42,8 @@ public class SeasonView extends FrameLayout {
     private Season season;
     private SeasonEpisodesExtractionTask seasonEpisodesExtractionTask;
     private DirectModelNotifier.ModelChangedListener<Season> seasonModelChangedListener;
+
+    private AtomicBoolean episodesLoadRequested = new AtomicBoolean();
 
     public SeasonView(@NonNull Context context) {
         super(context);
@@ -67,6 +73,19 @@ public class SeasonView extends FrameLayout {
         seasonNameView.setText(season.getSeasonName());
         loadSeasonEpisodes();
         registerSeasonModelChangeListener();
+        View.OnClickListener onClickListener = v -> {
+            UiUtils.blinkView(rootView);
+            if (season.getEpisodes() != null && !season.getEpisodes().isEmpty()) {
+                EventBus.getDefault().post(new LoadEpisodesForSeason(season));
+            } else {
+                UiUtils.showSafeToast("Please wait...");
+                episodesLoadRequested.set(true);
+                loadSeasonEpisodes();
+            }
+        };
+        rootView.setOnClickListener(onClickListener);
+        seasonNameView.setOnClickListener(onClickListener);
+        arrow.setOnClickListener(onClickListener);
     }
 
     private void registerSeasonModelChangeListener() {
@@ -77,6 +96,10 @@ public class SeasonView extends FrameLayout {
                     if (season.getSeasonId().equals(model.getSeasonId())) {
                         season.setEpisodes(model.getEpisodes());
                         EventBus.getDefault().post(new UpdateSeason(season));
+                        if (episodesLoadRequested.get() && season.getEpisodes() != null && !season.getEpisodes().isEmpty()) {
+                            EventBus.getDefault().post(new LoadEpisodesForSeason(season));
+                            episodesLoadRequested.set(false);
+                        }
                     }
                 }
             }
@@ -91,19 +114,6 @@ public class SeasonView extends FrameLayout {
 
     private void unRegisterSeasonModelChangeListener() {
         DirectModelNotifier.get().unregisterForModelChanges(Season.class, seasonModelChangedListener);
-    }
-
-    public MolvixTextView getSeasonNameView() {
-        return seasonNameView;
-    }
-
-    @Override
-    public View getRootView() {
-        return rootView;
-    }
-
-    public ImageView getArrow() {
-        return arrow;
     }
 
     private void loadSeasonEpisodes() {

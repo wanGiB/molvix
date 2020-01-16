@@ -6,25 +6,20 @@ import android.graphics.drawable.ColorDrawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.RotateAnimation;
 import android.widget.ImageView;
 
+import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.molvix.android.R;
 import com.molvix.android.beans.MovieContentItem;
-import com.molvix.android.models.Episode;
 import com.molvix.android.models.Movie;
 import com.molvix.android.models.Season;
 import com.molvix.android.ui.widgets.AdMobNativeAdView;
-import com.molvix.android.ui.widgets.EpisodeView;
 import com.molvix.android.ui.widgets.MolvixTextView;
 import com.molvix.android.ui.widgets.SeasonView;
 import com.molvix.android.utils.UiUtils;
-import com.thoughtbot.expandablerecyclerview.MultiTypeExpandableRecyclerViewAdapter;
-import com.thoughtbot.expandablerecyclerview.models.ExpandableGroup;
-import com.thoughtbot.expandablerecyclerview.viewholders.ChildViewHolder;
-import com.thoughtbot.expandablerecyclerview.viewholders.GroupViewHolder;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.text.WordUtils;
@@ -34,31 +29,27 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
-import static android.view.animation.Animation.RELATIVE_TO_SELF;
-
-public class SeasonsWithEpisodesAdapter extends MultiTypeExpandableRecyclerViewAdapter<GroupViewHolder, ChildViewHolder> {
+public class SeasonsWithEpisodesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     //Group Types
-    private static final int MOVIE_HEADER = 10;
-    private static final int SEASON_HEADER = 11;
-    private static final int AD_HEADER = 12;
-
-    //Child Types
-    private static final int EMPTY_CHILD_VIEW = 13;
-    private static final int NON_EMPTY_CHILD_VIEW = 14;
+    private static final int MOVIE_HEADER_ITEM = 1;
+    private static final int SEASON_ITEM = 2;
+    private static final int AD_ITEM = 3;
 
     private Context context;
+    private List<MovieContentItem> contentItems;
 
     public SeasonsWithEpisodesAdapter(Context context, List<MovieContentItem> contentItems) {
-        super(contentItems);
         this.context = context;
+        this.contentItems = contentItems;
     }
 
+    @NonNull
     @Override
-    public GroupViewHolder onCreateGroupViewHolder(ViewGroup parent, int viewType) {
-        if (viewType == MOVIE_HEADER) {
+    public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        if (viewType == MOVIE_HEADER_ITEM) {
             return new MovieHeaderViewHolder(LayoutInflater.from(context).inflate(R.layout.movie_details_header_view, parent, false));
-        } else if (viewType == AD_HEADER) {
+        } else if (viewType == AD_ITEM) {
             return new AdHeaderViewHolder(LayoutInflater.from(context).inflate(R.layout.recycler_item_admob_ad, parent, false));
         } else {
             return new SeasonHeaderGroupViewHolder(LayoutInflater.from(context).inflate(R.layout.recycler_view_item_season_header, parent, false));
@@ -66,43 +57,15 @@ public class SeasonsWithEpisodesAdapter extends MultiTypeExpandableRecyclerViewA
     }
 
     @Override
-    public ChildViewHolder onCreateChildViewHolder(ViewGroup parent, int viewType) {
-        if (viewType == EMPTY_CHILD_VIEW) {
-            return new EmptyChildViewHolder(LayoutInflater.from(context).inflate(R.layout.empty_recycler_view_item, parent, false));
-        } else {
-            return new SeasonChildViewHolder(LayoutInflater.from(context).inflate(R.layout.recycler_view_item_episode_view, parent, false));
-        }
-    }
-
-    @Override
-    public void onBindChildViewHolder(ChildViewHolder holder, int flatPosition, ExpandableGroup group, int childIndex) {
-        if (holder instanceof SeasonChildViewHolder) {
-            SeasonChildViewHolder seasonChildViewHolder = (SeasonChildViewHolder) holder;
-            MovieContentItem movieContentItem = (MovieContentItem) group;
-            seasonChildViewHolder.bindEpisodeData(movieContentItem.getEpisodes().get(childIndex));
-        } else if (holder instanceof EmptyChildViewHolder) {
-            EmptyChildViewHolder emptyChildViewHolder = (EmptyChildViewHolder) holder;
-            emptyChildViewHolder.bindEmptyData();
-        }
-    }
-
-    @Override
-    public void onBindGroupViewHolder(GroupViewHolder holder, int flatPosition, ExpandableGroup group) {
+    public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         if (holder instanceof MovieHeaderViewHolder) {
             MovieHeaderViewHolder movieHeaderViewHolder = (MovieHeaderViewHolder) holder;
-            MovieContentItem movieContentItem = (MovieContentItem) group;
+            MovieContentItem movieContentItem = contentItems.get(position);
             movieHeaderViewHolder.bindData(context, movieContentItem);
         } else if (holder instanceof SeasonHeaderGroupViewHolder) {
             SeasonHeaderGroupViewHolder seasonHeaderGroupViewHolder = (SeasonHeaderGroupViewHolder) holder;
-            MovieContentItem movieContentItem = (MovieContentItem) group;
+            MovieContentItem movieContentItem = contentItems.get(position);
             seasonHeaderGroupViewHolder.bindSeasonData(movieContentItem.getSeason());
-            View.OnClickListener onClickListener = v -> {
-                UiUtils.blinkView(seasonHeaderGroupViewHolder.itemView);
-                toggleGroup(flatPosition);
-            };
-            seasonHeaderGroupViewHolder.seasonView.getArrow().setOnClickListener(onClickListener);
-            seasonHeaderGroupViewHolder.seasonView.getSeasonNameView().setOnClickListener(onClickListener);
-            seasonHeaderGroupViewHolder.seasonView.getRootView().setOnClickListener(onClickListener);
         } else if (holder instanceof AdHeaderViewHolder) {
             AdHeaderViewHolder adHeaderViewHolder = (AdHeaderViewHolder) holder;
             adHeaderViewHolder.refreshAd(context);
@@ -110,38 +73,23 @@ public class SeasonsWithEpisodesAdapter extends MultiTypeExpandableRecyclerViewA
     }
 
     @Override
-    public int getGroupViewType(int position, ExpandableGroup group) {
-        MovieContentItem movieContentItem = (MovieContentItem) group;
+    public int getItemViewType(int position) {
+        MovieContentItem movieContentItem = contentItems.get(position);
         if (movieContentItem.getContentType() == MovieContentItem.ContentType.MOVIE_HEADER) {
-            return MOVIE_HEADER;
+            return MOVIE_HEADER_ITEM;
         } else if (movieContentItem.getContentType() == MovieContentItem.ContentType.AD) {
-            return AD_HEADER;
+            return AD_ITEM;
         } else {
-            return SEASON_HEADER;
+            return SEASON_ITEM;
         }
     }
 
     @Override
-    public boolean isGroup(int viewType) {
-        return viewType == MOVIE_HEADER || viewType == AD_HEADER || viewType == SEASON_HEADER;
+    public int getItemCount() {
+        return contentItems.size();
     }
 
-    @Override
-    public boolean isChild(int viewType) {
-        return viewType == EMPTY_CHILD_VIEW || viewType == NON_EMPTY_CHILD_VIEW;
-    }
-
-    @Override
-    public int getChildViewType(int position, ExpandableGroup group, int childIndex) {
-        MovieContentItem movieContentItem = (MovieContentItem) group;
-        if (movieContentItem.getEpisodes().isEmpty()) {
-            return EMPTY_CHILD_VIEW;
-        } else {
-            return NON_EMPTY_CHILD_VIEW;
-        }
-    }
-
-    static class SeasonHeaderGroupViewHolder extends GroupViewHolder {
+    static class SeasonHeaderGroupViewHolder extends RecyclerView.ViewHolder {
 
         @BindView(R.id.season_view)
         SeasonView seasonView;
@@ -155,67 +103,9 @@ public class SeasonsWithEpisodesAdapter extends MultiTypeExpandableRecyclerViewA
             seasonView.bindSeason(season);
         }
 
-        @Override
-        public void expand() {
-            animateExpand();
-        }
-
-        @Override
-        public void collapse() {
-            animateCollapse();
-        }
-
-        private void animateExpand() {
-            RotateAnimation rotate =
-                    new RotateAnimation(360, 180, RELATIVE_TO_SELF, 0.5f, RELATIVE_TO_SELF, 0.5f);
-            rotate.setDuration(300);
-            rotate.setFillAfter(true);
-            seasonView.getArrow().setAnimation(rotate);
-        }
-
-        private void animateCollapse() {
-            RotateAnimation rotate =
-                    new RotateAnimation(180, 360, RELATIVE_TO_SELF, 0.5f, RELATIVE_TO_SELF, 0.5f);
-            rotate.setDuration(300);
-            rotate.setFillAfter(true);
-            seasonView.getArrow().setAnimation(rotate);
-        }
-
     }
 
-    static class SeasonChildViewHolder extends ChildViewHolder {
-
-        @BindView(R.id.episode_view)
-        EpisodeView episodeView;
-
-        SeasonChildViewHolder(View itemView) {
-            super(itemView);
-            ButterKnife.bind(this, itemView);
-        }
-
-        void bindEpisodeData(Episode episode) {
-            episodeView.bindEpisode(episode);
-        }
-
-    }
-
-    static class EmptyChildViewHolder extends ChildViewHolder {
-
-        @BindView(R.id.empty_container)
-        View emptyContainer;
-
-        EmptyChildViewHolder(View itemView) {
-            super(itemView);
-            ButterKnife.bind(this, itemView);
-        }
-
-        void bindEmptyData() {
-            emptyContainer.setVisibility(View.GONE);
-        }
-
-    }
-
-    static class MovieHeaderViewHolder extends GroupViewHolder {
+    static class MovieHeaderViewHolder extends RecyclerView.ViewHolder {
 
         @BindView(R.id.movie_art_view)
         ImageView movieArtView;
@@ -260,7 +150,7 @@ public class SeasonsWithEpisodesAdapter extends MultiTypeExpandableRecyclerViewA
 
     }
 
-    static class AdHeaderViewHolder extends GroupViewHolder {
+    static class AdHeaderViewHolder extends RecyclerView.ViewHolder {
 
         @BindView(R.id.admob_ad_view)
         AdMobNativeAdView adMobNativeAdView;
