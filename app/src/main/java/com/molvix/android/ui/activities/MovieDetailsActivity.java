@@ -302,8 +302,10 @@ public class MovieDetailsActivity extends BaseActivity {
                 }
             });
         } else if (event instanceof LoadEpisodesForSeason) {
-            LoadEpisodesForSeason value = (LoadEpisodesForSeason) event;
-            loadEpisodesForSeason(value.getSeason());
+            runOnUiThread(() -> {
+                LoadEpisodesForSeason value = (LoadEpisodesForSeason) event;
+                loadEpisodesForSeason(value.getSeason());
+            });
         }
     }
 
