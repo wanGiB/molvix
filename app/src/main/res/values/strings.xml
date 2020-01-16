@@ -1,4 +1,4 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">Molvix</string>
     <string name="title_home">Movies</string>
     <string name="title_notifications">Notifications</string>
@@ -8,9 +8,11 @@
     <string name="admob_app_id">ca-app-pub-2997746677651129~9657919826</string>
     <string name="native_ad_unit_id">ca-app-pub-2997746677651129/3877859979</string>
     <string name="sorry_no_result_found">Sorry, no result found</string>
-    <string name="cancel">CANCEL</string>
+    <string name="cancel" tools:ignore="ButtonCase">CANCEL</string>
     <string name="play">PLAY</string>
-    <string name="please_wait">Please wait...</string>
+    <string name="please_wait">Please wait…</string>
+    <string name="preparing">PREPARING</string>
+    <string name="downloading">DOWNLOADING…</string>
     <array name="episode_download_options">
         <item>Highest Quality</item>
         <item>Standard Quality</item>

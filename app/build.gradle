@@ -1,5 +1,4 @@
 apply plugin: 'com.android.application'
-apply plugin: 'com.google.gms.google-services'
 def dbflow_version = "4.2.4"
 
 android {
@@ -67,8 +66,8 @@ dependencies {
     implementation 'jp.wasabeef:recyclerview-animators:3.0.0'
     implementation 'com.karumi:dexter:6.0.1'
     implementation 'com.github.delight-im:Android-AdvancedWebView:v3.0.0'
-    implementation 'com.thoughtbot:expandablerecyclerview:1.3'
     implementation 'com.github.mehrdadsafari:ZadakNotification:0.0.2'
     implementation 'com.mindorks.android:prdownloader:0.6.0'
     implementation 'com.liucanwen.app:headerfooterrecyclerview:1.0.0'
 }
+apply plugin: 'com.google.gms.google-services'

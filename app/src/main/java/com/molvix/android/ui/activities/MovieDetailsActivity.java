@@ -28,8 +28,8 @@ import com.molvix.android.eventbuses.CheckForPendingDownloadableEpisodes;
 import com.molvix.android.eventbuses.EpisodeResolutionEvent;
 import com.molvix.android.eventbuses.LoadEpisodesForSeason;
 import com.molvix.android.eventbuses.UpdateSeason;
-import com.molvix.android.jobs.ContentMiner;
-import com.molvix.android.jobs.EpisodesResolutionManager;
+import com.molvix.android.managers.ContentManager;
+import com.molvix.android.managers.EpisodesManager;
 import com.molvix.android.models.DownloadableEpisodes;
 import com.molvix.android.models.Episode;
 import com.molvix.android.models.Movie;
@@ -114,7 +114,7 @@ public class MovieDetailsActivity extends BaseActivity {
             public void onModelChanged(@NonNull DownloadableEpisodes model, @NonNull BaseModel.Action action) {
                 List<Episode> episodes = model.getDownloadableEpisodes();
                 if (episodes != null && !episodes.isEmpty()) {
-                    if (EpisodesResolutionManager.isCaptchaSolvable()) {
+                    if (EpisodesManager.isCaptchaSolvable()) {
                         solveEpisodeCaptchaChallenge(episodes.get(episodes.size() - 1));
                     }
                 }
@@ -137,7 +137,7 @@ public class MovieDetailsActivity extends BaseActivity {
     }
 
     private void solveEpisodeCaptchaChallenge(Episode episode) {
-        EpisodesResolutionManager.lockCaptureSolver(episode.getEpisodeId());
+        EpisodesManager.lockCaptureSolver(episode.getEpisodeId());
         hackWebView.setWebViewClient(new WebViewClient() {
             @Override
             public void onPageFinished(WebView view, String url) {
@@ -160,7 +160,7 @@ public class MovieDetailsActivity extends BaseActivity {
                         episode.setLowQualityDownloadLink(url);
                     }
                     episode.update();
-                    EpisodesResolutionManager.popEpisode(episode);
+                    EpisodesManager.popEpisode(episode);
                 }
             }
 
@@ -190,7 +190,7 @@ public class MovieDetailsActivity extends BaseActivity {
 
     private void checkAndLoadInAd(List<MovieContentItem> movieContentItems) {
         if (ConnectivityUtils.isDeviceConnectedToTheInternet()) {
-            MovieContentItem adItem = new MovieContentItem("", new ArrayList<>());
+            MovieContentItem adItem = new MovieContentItem();
             adItem.setContentType(MovieContentItem.ContentType.AD);
             movieContentItems.add(adItem);
         }
@@ -199,7 +199,7 @@ public class MovieDetailsActivity extends BaseActivity {
     private void loadInMovieSeasons(List<MovieContentItem> movieContentItems, List<Season> movieSeasons) {
         if (movieSeasons != null && !movieSeasons.isEmpty()) {
             for (Season season : movieSeasons) {
-                MovieContentItem movieContentItem = new MovieContentItem(season.getSeasonName(), season.getEpisodes());
+                MovieContentItem movieContentItem = new MovieContentItem();
                 movieContentItem.setSeason(season);
                 movieContentItem.setContentType(MovieContentItem.ContentType.GROUP_HEADER);
                 movieContentItems.add(movieContentItem);
@@ -208,7 +208,7 @@ public class MovieDetailsActivity extends BaseActivity {
     }
 
     private void addMovieHeaderView(Movie movie, List<MovieContentItem> movieContentItems) {
-        MovieContentItem movieHeaderItem = new MovieContentItem("", new ArrayList<>());
+        MovieContentItem movieHeaderItem = new MovieContentItem();
         movieHeaderItem.setMovie(movie);
         movieHeaderItem.setContentType(MovieContentItem.ContentType.MOVIE_HEADER);
         movieContentItems.add(movieHeaderItem);
@@ -348,7 +348,7 @@ public class MovieDetailsActivity extends BaseActivity {
 
         @Override
         protected Void doInBackground(Void... voids) {
-            ContentMiner.extractMetaDataFromMovieLink(movieLink, movie);
+            ContentManager.extractMetaDataFromMovieLink(movieLink, movie);
             return null;
         }
 

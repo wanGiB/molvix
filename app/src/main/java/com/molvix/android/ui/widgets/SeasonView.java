@@ -15,15 +15,15 @@ import androidx.annotation.Nullable;
 import com.molvix.android.R;
 import com.molvix.android.eventbuses.LoadEpisodesForSeason;
 import com.molvix.android.eventbuses.UpdateSeason;
-import com.molvix.android.jobs.ContentMiner;
+import com.molvix.android.managers.ContentManager;
+import com.molvix.android.managers.SeasonsManager;
 import com.molvix.android.models.Season;
+import com.molvix.android.utils.ConnectivityUtils;
 import com.molvix.android.utils.UiUtils;
 import com.raizlabs.android.dbflow.runtime.DirectModelNotifier;
 import com.raizlabs.android.dbflow.structure.BaseModel;
 
 import org.greenrobot.eventbus.EventBus;
-
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -42,8 +42,6 @@ public class SeasonView extends FrameLayout {
     private Season season;
     private SeasonEpisodesExtractionTask seasonEpisodesExtractionTask;
     private DirectModelNotifier.ModelChangedListener<Season> seasonModelChangedListener;
-
-    private AtomicBoolean episodesLoadRequested = new AtomicBoolean();
 
     public SeasonView(@NonNull Context context) {
         super(context);
@@ -78,9 +76,13 @@ public class SeasonView extends FrameLayout {
             if (season.getEpisodes() != null && !season.getEpisodes().isEmpty()) {
                 EventBus.getDefault().post(new LoadEpisodesForSeason(season));
             } else {
-                UiUtils.showSafeToast("Please wait...");
-                episodesLoadRequested.set(true);
-                loadSeasonEpisodes();
+                if (ConnectivityUtils.isDeviceConnectedToTheInternet()) {
+                    UiUtils.showSafeToast("Please wait...");
+                    SeasonsManager.prepareSeason(season.getSeasonId(), true);
+                    loadSeasonEpisodes();
+                } else {
+                    UiUtils.showSafeToast("Please connect to the internet and try again.");
+                }
             }
         };
         rootView.setOnClickListener(onClickListener);
@@ -96,9 +98,9 @@ public class SeasonView extends FrameLayout {
                     if (season.getSeasonId().equals(model.getSeasonId())) {
                         season.setEpisodes(model.getEpisodes());
                         EventBus.getDefault().post(new UpdateSeason(season));
-                        if (episodesLoadRequested.get() && season.getEpisodes() != null && !season.getEpisodes().isEmpty()) {
+                        if (SeasonsManager.wasSeasonUnderPreparation(season.getSeasonId())) {
+                            SeasonsManager.prepareSeason(season.getSeasonId(), false);
                             EventBus.getDefault().post(new LoadEpisodesForSeason(season));
-                            episodesLoadRequested.set(false);
                         }
                     }
                 }
@@ -135,7 +137,7 @@ public class SeasonView extends FrameLayout {
 
         @Override
         protected Void doInBackground(Void... voids) {
-            ContentMiner.extractMetaDataFromMovieSeasonLink(season);
+            ContentManager.extractMetaDataFromMovieSeasonLink(season);
             return null;
         }
     }

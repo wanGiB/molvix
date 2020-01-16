@@ -1,4 +1,4 @@
-package com.molvix.android.jobs;
+package com.molvix.android.managers;
 
 import com.molvix.android.eventbuses.CheckForPendingDownloadableEpisodes;
 import com.molvix.android.models.DownloadableEpisodes;
@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-public class EpisodesResolutionManager {
+public class EpisodesManager {
 
     public static void enqueEpisodeForDownload(Episode episode) {
         DownloadableEpisodes downloadableEpisodes = SQLite.select()

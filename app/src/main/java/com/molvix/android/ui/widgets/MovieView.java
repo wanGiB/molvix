@@ -17,7 +17,7 @@ import androidx.core.content.ContextCompat;
 
 import com.molvix.android.R;
 import com.molvix.android.companions.AppConstants;
-import com.molvix.android.jobs.ContentMiner;
+import com.molvix.android.managers.ContentManager;
 import com.molvix.android.models.Movie;
 import com.molvix.android.models.Season;
 import com.molvix.android.ui.activities.MovieDetailsActivity;
@@ -161,7 +161,7 @@ public class MovieView extends FrameLayout {
 
         @Override
         protected Void doInBackground(Void... voids) {
-            ContentMiner.extractMetaDataFromMovieLink(movie.getMovieLink(), movie);
+            ContentManager.extractMetaDataFromMovieLink(movie.getMovieLink(), movie);
             return null;
         }
 

@@ -84,7 +84,6 @@
                 android:layout_height="wrap_content"
                 android:layout_margin="4dp"
                 android:layout_weight="1"
-                android:enabled="false"
                 android:text="@string/cancel" />
 
         </LinearLayout>
@@ -94,6 +93,7 @@
     <View
         android:layout_width="match_parent"
         android:layout_height="0.5dp"
-        android:background="@color/ease_gray" />
+        android:background="@color/ease_gray"
+        android:paddingTop="5dp" />
 
 </LinearLayout>

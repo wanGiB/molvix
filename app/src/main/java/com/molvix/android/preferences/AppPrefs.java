@@ -35,4 +35,13 @@ public class AppPrefs {
         getAppPreferences().edit().putString(AppConstants.CAPTCHA_SOLVING, null).commit();
     }
 
+    @SuppressLint("ApplySharedPref")
+    public static void prepareSeason(String seasonId, boolean prepare) {
+        getAppPreferences().edit().putBoolean(seasonId, prepare).commit();
+    }
+
+    public static boolean wasSeasonUnderPreparation(String seasonId) {
+        return getAppPreferences().getBoolean(seasonId, false);
+    }
+
 }

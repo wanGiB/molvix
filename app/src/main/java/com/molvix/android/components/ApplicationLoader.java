@@ -7,6 +7,7 @@ import androidx.multidex.MultiDex;
 import androidx.multidex.MultiDexApplication;
 
 import com.google.android.gms.ads.MobileAds;
+import com.google.firebase.analytics.FirebaseAnalytics;
 import com.molvix.android.R;
 import com.molvix.android.database.MolvixDB;
 import com.raizlabs.android.dbflow.config.DatabaseConfig;

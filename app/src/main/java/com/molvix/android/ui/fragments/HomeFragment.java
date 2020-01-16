@@ -22,7 +22,7 @@ import com.liucanwen.app.headerfooterrecyclerview.HeaderAndFooterRecyclerViewAda
 import com.liucanwen.app.headerfooterrecyclerview.RecyclerViewUtils;
 import com.molvix.android.R;
 import com.molvix.android.eventbuses.SearchEvent;
-import com.molvix.android.jobs.ContentMiner;
+import com.molvix.android.managers.ContentManager;
 import com.molvix.android.models.Movie;
 import com.molvix.android.models.Movie_Table;
 import com.molvix.android.ui.adapters.MoviesAdapter;
@@ -248,7 +248,7 @@ public class HomeFragment extends BaseFragment {
             if (!movies.isEmpty()) {
                 int totalNumberOfMovies = movies.size();
                 DecimalFormat moviesNoFormatter = new DecimalFormat("#,###");
-                headerTextView.setText("About " + moviesNoFormatter.format(totalNumberOfMovies) + " movies available");
+                headerTextView.setText("Over " + moviesNoFormatter.format(totalNumberOfMovies) + " movies available");
             }
         });
     }
@@ -292,7 +292,7 @@ public class HomeFragment extends BaseFragment {
                             addMovie(movie);
                         }
                     }
-                    displayFoundResults(queriedMovies);
+                    displayFoundResults(movies);
                 }))
                 .execute();
     }
@@ -344,7 +344,7 @@ public class HomeFragment extends BaseFragment {
         @Override
         protected Void doInBackground(Void... voids) {
             try {
-                ContentMiner.mineData();
+                ContentManager.mineData();
             } catch (IOException e) {
                 e.printStackTrace();
                 EventBus.getDefault().post(e);

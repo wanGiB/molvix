@@ -9,6 +9,7 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.animation.Animation;
 import android.widget.AdapterView;
 import android.widget.FrameLayout;
 import android.widget.Spinner;
@@ -21,13 +22,16 @@ import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat;
 import com.molvix.android.R;
 import com.molvix.android.companions.AppConstants;
 import com.molvix.android.enums.EpisodeQuality;
-import com.molvix.android.jobs.EpisodesResolutionManager;
+import com.molvix.android.managers.EpisodesManager;
 import com.molvix.android.models.Episode;
 import com.molvix.android.models.Movie;
 import com.molvix.android.models.Season;
+import com.molvix.android.utils.ConnectivityUtils;
 import com.molvix.android.utils.FileUtils;
 import com.molvix.android.utils.LocalDbUtils;
 import com.molvix.android.utils.UiUtils;
+import com.raizlabs.android.dbflow.runtime.DirectModelNotifier;
+import com.raizlabs.android.dbflow.structure.BaseModel;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.text.WordUtils;
@@ -57,8 +61,12 @@ public class EpisodeView extends FrameLayout {
     @BindView(R.id.episode_download_button_view)
     TextView downloadButton;
 
+    private Episode episode;
     private Season season;
     private Movie movie;
+
+    private Animation mFadeInFadeIn;
+    private DirectModelNotifier.ModelChangedListener<Episode> episodeModelChangedListener;
 
     public EpisodeView(@NonNull Context context) {
         super(context);
@@ -76,6 +84,7 @@ public class EpisodeView extends FrameLayout {
     }
 
     private void init(Context context) {
+        mFadeInFadeIn = UiUtils.getAnimation(getContext(), android.R.anim.fade_in);
         @SuppressLint("InflateParams") View rootView = LayoutInflater.from(context).inflate(R.layout.episode_view, null);
         ButterKnife.bind(this, rootView);
         removeAllViews();
@@ -84,6 +93,7 @@ public class EpisodeView extends FrameLayout {
     }
 
     public void bindEpisode(Episode episode) {
+        this.episode = episode;
         season = LocalDbUtils.getSeason(episode.getSeasonId());
         movie = LocalDbUtils.getMovie(episode.getMovieId());
         String episodeName = episode.getEpisodeName();
@@ -92,6 +102,29 @@ public class EpisodeView extends FrameLayout {
         }
         initSpinner(episode);
         checkToSeeIfEpisodeAlreadyDownloaded(episode, episodeName);
+        initDownloadEventListener(episode, episodeName);
+        checkEpisodeActiveDownloadStatus(episode);
+        registerEpisodeChangeListener(episode);
+    }
+
+    private void registerEpisodeChangeListener(Episode targetEpisode) {
+        episodeModelChangedListener = new DirectModelNotifier.ModelChangedListener<Episode>() {
+            @Override
+            public void onModelChanged(@NonNull Episode model, @NonNull BaseModel.Action action) {
+                if (action == BaseModel.Action.UPDATE && model.getEpisodeId().equals(targetEpisode.getEpisodeId())) {
+                    bindEpisode(model);
+                }
+            }
+
+            @Override
+            public void onTableChanged(@Nullable Class<?> tableChanged, @NonNull BaseModel.Action action) {
+
+            }
+        };
+        DirectModelNotifier.get().registerForModelChanges(Episode.class, episodeModelChangedListener);
+    }
+
+    private void initDownloadEventListener(Episode episode, String episodeName) {
         downloadButton.setOnClickListener(v -> {
             UiUtils.blinkView(v);
             String text = downloadButton.getText().toString().trim();
@@ -107,18 +140,47 @@ public class EpisodeView extends FrameLayout {
                 }
                 String fileExtension = StringUtils.substringAfter(downloadUrl, ".");
                 String fileName = episodeName + "." + fileExtension;
-                File existingFile = FileUtils.getFilePath(fileName, WordUtils.capitalize(movie.getMovieName()), season.getSeasonName());
-                if (existingFile.exists()) {
+                File downloadedFile = FileUtils.getFilePath(fileName, WordUtils.capitalize(movie.getMovieName()), season.getSeasonName());
+                if (downloadedFile.exists()) {
                     Intent videoIntent = new Intent(Intent.ACTION_VIEW);
-                    videoIntent.setDataAndType(Uri.fromFile(existingFile), "video/*");
+                    videoIntent.setDataAndType(Uri.fromFile(downloadedFile), "video/*");
                     getContext().startActivity(videoIntent);
                 } else {
                     UiUtils.showSafeToast("Oops! Sorry, an error occurred while attempting to play video.");
                 }
             } else {
-                extractEpisodeDownloadOptions(episode);
+                if (ConnectivityUtils.isDeviceConnectedToTheInternet()) {
+                    episode.setDownloadProgress(0);
+                    episode.update();
+                    extractEpisodeDownloadOptions(episode);
+                } else {
+                    UiUtils.showSafeToast("Please connect to the internet and try again.");
+                }
             }
         });
+    }
+
+    private void checkEpisodeActiveDownloadStatus(Episode episode) {
+        int episodeActiveDownloadProgress = episode.getDownloadProgress();
+        if (episodeActiveDownloadProgress != -1) {
+            if (episodeActiveDownloadProgress == 0) {
+                downloadButton.setText(getContext().getString(R.string.preparing));
+                downloadButton.setCompoundDrawablesWithIntrinsicBounds(null, null, null, null);
+                animateDownloadButton();
+            } else {
+                setToDownloadable();
+                downloadButton.setText(getContext().getString(R.string.downloading));
+                animateDownloadButton();
+            }
+        }
+    }
+
+    private void animateDownloadButton() {
+        mFadeInFadeIn.setDuration(3000);
+        mFadeInFadeIn.setRepeatMode(Animation.REVERSE);
+        mFadeInFadeIn.setRepeatCount(Animation.INFINITE);
+        downloadButton.clearAnimation();
+        UiUtils.animateView(downloadButton, mFadeInFadeIn);
     }
 
     private void checkToSeeIfEpisodeAlreadyDownloaded(Episode episode, String episodeName) {
@@ -132,11 +194,17 @@ public class EpisodeView extends FrameLayout {
             } else {
                 downloadUrl = episode.getLowQualityDownloadLink();
             }
-            String fileExtension = StringUtils.substringAfter(downloadUrl, ".");
-            String fileName = episodeName + "." + fileExtension;
-            File existingFile = FileUtils.getFilePath(fileName, WordUtils.capitalize(movie.getMovieName()), season.getSeasonName());
-            if (existingFile.exists()) {
-                downloadButton.setText(getContext().getString(R.string.play));
+            if (downloadUrl != null) {
+                String fileExtension = StringUtils.substringAfter(downloadUrl, ".");
+                String fileName = episodeName + "." + fileExtension;
+                UiUtils.showSafeToast("FileName=" + fileName);
+                File existingFile = FileUtils.getFilePath(fileName, WordUtils.capitalize(movie.getMovieName()), season.getSeasonName());
+                if (existingFile.exists()) {
+                    downloadButton.setText(getContext().getString(R.string.play));
+                    setToPlayable();
+                } else {
+                    setToDownloadable();
+                }
             } else {
                 setToDownloadable();
             }
@@ -146,7 +214,7 @@ public class EpisodeView extends FrameLayout {
     }
 
     private void initSpinner(Episode episode) {
-        episodeDownloadOptionsSpinner.setSelection(1);
+        checkAndSelectEpisodeQuality(episode);
         episodeDownloadOptionsSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -164,7 +232,24 @@ public class EpisodeView extends FrameLayout {
             public void onNothingSelected(AdapterView<?> parent) {
 
             }
+
         });
+
+    }
+
+    private void checkAndSelectEpisodeQuality(Episode episode) {
+        EpisodeQuality existingEpisodeQuality = episode.getEpisodeQuality();
+        if (existingEpisodeQuality != null) {
+            if (existingEpisodeQuality == EpisodeQuality.STANDARD_QUALITY) {
+                episodeDownloadOptionsSpinner.setSelection(1);
+            } else if (existingEpisodeQuality == EpisodeQuality.HIGH_QUALITY) {
+                episodeDownloadOptionsSpinner.setSelection(0);
+            } else {
+                episodeDownloadOptionsSpinner.setSelection(2);
+            }
+        } else {
+            episodeDownloadOptionsSpinner.setSelection(1);
+        }
     }
 
     private void setToDownloadable() {
@@ -173,8 +258,29 @@ public class EpisodeView extends FrameLayout {
         downloadButton.setCompoundDrawablesWithIntrinsicBounds(downloadIcon, null, null, null);
     }
 
+    private void setToPlayable() {
+        VectorDrawableCompat playIcon = VectorDrawableCompat.create(getResources(), R.drawable.ic_play_arrow_blue_24dp, null);
+        downloadButton.setCompoundDrawablesWithIntrinsicBounds(playIcon, null, null, null);
+    }
+
     private void extractEpisodeDownloadOptions(Episode episode) {
         new EpisodeDownloadOptionsExtractionTask(episode).execute();
+    }
+
+    @Override
+    protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        registerEpisodeChangeListener(episode);
+    }
+
+    @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        unRegisterEpisodeChangeListener();
+    }
+
+    private void unRegisterEpisodeChangeListener() {
+        DirectModelNotifier.get().unregisterForModelChanges(Episode.class, episodeModelChangedListener);
     }
 
     static class EpisodeDownloadOptionsExtractionTask extends AsyncTask<Void, Void, Void> {
@@ -239,7 +345,11 @@ public class EpisodeView extends FrameLayout {
                         if (episodeCaptchaSolverLink != null) {
                             episode.setEpisodeCaptchaSolverLink(episodeCaptchaSolverLink);
                             episode.update();
-                            EpisodesResolutionManager.enqueEpisodeForDownload(episode);
+                            EpisodesManager.enqueEpisodeForDownload(episode);
+                        } else {
+                            UiUtils.showSafeToast("Sorry, failed to download " + episode.getEpisodeName() + ".Please try again.");
+                            episode.setDownloadProgress(-1);
+                            episode.update();
                         }
                     }
                 }

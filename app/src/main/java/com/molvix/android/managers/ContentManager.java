@@ -1,4 +1,4 @@
-package com.molvix.android.jobs;
+package com.molvix.android.managers;
 
 import android.util.Pair;
 
@@ -20,7 +20,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ContentMiner {
+public class ContentManager {
 
     public static void mineData() throws IOException {
         loadMoviesTitlesAndLinks();
@@ -147,6 +147,7 @@ public class ContentMiner {
         newEpisode.setEpisodeId(episodeId);
         newEpisode.setEpisodeLink(episodeLink);
         newEpisode.setEpisodeName(episodeName);
+        newEpisode.setDownloadProgress(-1);
         newEpisode.setMovieId(season.getMovieId());
         newEpisode.setSeasonId(season.getSeasonId());
         return newEpisode;
