@@ -1,82 +1,24 @@
 package com.molvix.android.models;
 
-
 import androidx.annotation.Nullable;
 
-import com.google.gson.annotations.Expose;
-import com.molvix.android.converters.EpisodeQualityTypeConverter;
-import com.molvix.android.database.MolvixDB;
-import com.molvix.android.enums.EpisodeQuality;
-import com.molvix.android.managers.EpisodesManager;
-import com.raizlabs.android.dbflow.annotation.Column;
-import com.raizlabs.android.dbflow.annotation.ConflictAction;
-import com.raizlabs.android.dbflow.annotation.PrimaryKey;
-import com.raizlabs.android.dbflow.annotation.Table;
-import com.raizlabs.android.dbflow.structure.BaseModel;
+import io.realm.RealmObject;
+import io.realm.annotations.PrimaryKey;
 
-import java.io.Serializable;
-
-@SuppressWarnings({"WeakerAccess", "NullableProblems"})
-@Table(database = MolvixDB.class,
-        primaryKeyConflict = ConflictAction.REPLACE,
-        insertConflict = ConflictAction.REPLACE,
-        updateConflict = ConflictAction.REPLACE)
-public class Episode extends BaseModel implements Serializable {
+public class Episode extends RealmObject {
     @PrimaryKey
-    @Column
-    @Expose
-    public String episodeId;
-
-    @Column
-    @Expose
-    public String movieId;
-
-    @Column
-    @Expose
-    public String seasonId;
-
-    @Nullable
-    @Column
-    @Expose
-    public String episodeName;
-
-    @Nullable
-    @Column
-    @Expose
-    public String episodeLink;
-
-    @Nullable
-    @Column(typeConverter = EpisodeQualityTypeConverter.class)
-    @Expose
-    public EpisodeQuality episodeQuality;
-
-    @Nullable
-    @Column
-    @Expose
-    public String highQualityDownloadLink;
-
-    @Nullable
-    @Column
-    @Expose
-    public String standardQualityDownloadLink;
-
-    @Nullable
-    @Column
-    @Expose
-    public String lowQualityDownloadLink;
-
-    @Nullable
-    @Column
-    @Expose
-    public String episodeCaptchaSolverLink;
-
-    @Column
-    @Expose
-    public int downloadProgress = -1;
-
-    @Nullable
-    @Column
-    public String progressDisplayText;
+    private String episodeId;
+    private String movieId;
+    private String seasonId;
+    private String episodeName;
+    private String episodeLink;
+    private int episodeQuality;
+    private String highQualityDownloadLink;
+    private String standardQualityDownloadLink;
+    private String lowQualityDownloadLink;
+    private String episodeCaptchaSolverLink;
+    private int downloadProgress = -1;
+    private String progressDisplayText;
 
     public void setProgressDisplayText(@Nullable String progressDisplayText) {
         this.progressDisplayText = progressDisplayText;
@@ -171,11 +113,11 @@ public class Episode extends BaseModel implements Serializable {
         return seasonId;
     }
 
-    public EpisodeQuality getEpisodeQuality() {
+    public int getEpisodeQuality() {
         return episodeQuality;
     }
 
-    public void setEpisodeQuality(EpisodeQuality episodeQuality) {
+    public void setEpisodeQuality(int episodeQuality) {
         this.episodeQuality = episodeQuality;
     }
 
@@ -201,13 +143,6 @@ public class Episode extends BaseModel implements Serializable {
         }
         Episode another = (Episode) obj;
         return this.getEpisodeId().equals(another.getEpisodeId());
-    }
-
-    @Override
-    public boolean update() {
-        boolean result = super.update();
-        EpisodesManager.fireEpisodeUpdate(episodeId,true);
-        return result;
     }
 
 }

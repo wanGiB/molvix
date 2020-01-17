@@ -7,7 +7,6 @@ import com.molvix.android.models.Episode;
 import com.molvix.android.models.Movie;
 import com.molvix.android.models.Season;
 import com.molvix.android.utils.CryptoUtils;
-import com.molvix.android.utils.LocalDbUtils;
 
 import org.apache.commons.lang3.StringUtils;
 import org.greenrobot.eventbus.EventBus;
@@ -20,9 +19,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.realm.ImportFlag;
+import io.realm.Realm;
+
 public class ContentManager {
 
-    public static void mineData() throws IOException {
+    public static void grabMovies() throws IOException {
         loadMoviesTitlesAndLinks();
     }
 
@@ -32,23 +34,39 @@ public class ContentManager {
         Element moviesTitlesAndLinks = document.selectFirst("div.data_list");
         if (moviesTitlesAndLinks != null) {
             Elements dataListElements = moviesTitlesAndLinks.children();
-            List<Movie> movies = new ArrayList<>();
+            List<Pair<String, String>> movies = new ArrayList<>();
             for (Element element : dataListElements) {
                 Pair<String, String> movieTitleAndLink = getMovieTitleAndLink(element);
                 String movieTitle = movieTitleAndLink.first;
                 String movieLink = movieTitleAndLink.second;
                 if (StringUtils.isNotEmpty(movieTitle) && StringUtils.isNotEmpty(movieLink)) {
-                    String movieId = CryptoUtils.getSha256Digest(movieLink);
-                    Movie newMovie = new Movie();
-                    newMovie.setMovieId(movieId);
-                    newMovie.setMovieName(movieTitle.toLowerCase());
-                    newMovie.setMovieLink(movieLink);
-                    movies.add(newMovie);
+                    movies.add(movieTitleAndLink);
                 }
             }
             if (!movies.isEmpty()) {
-                LocalDbUtils.performBulkInsertionOfMovies(movies);
+                performBulkInsertionOfMovies(movies);
             }
+        }
+    }
+
+    private static void performBulkInsertionOfMovies(List<Pair<String, String>> movies) {
+        try (Realm realm = Realm.getDefaultInstance()) {
+            realm.executeTransactionAsync(r -> {
+                for (Pair<String, String> movieItem : movies) {
+                    String movieTitle = movieItem.first;
+                    String movieLink = movieItem.second;
+                    String movieId = CryptoUtils.getSha256Digest(movieLink);
+                    //Create Movie Objects only once
+                    Movie newMovie = r.where(Movie.class).equalTo(AppConstants.MOVIE_ID, movieId).findFirst();
+                    if (newMovie != null) {
+                        return;
+                    }
+                    newMovie = r.createObject(Movie.class, movieId);
+                    newMovie.setMovieName(movieTitle.toLowerCase());
+                    newMovie.setMovieLink(movieLink);
+                    r.copyToRealm(newMovie);
+                }
+            });
         }
     }
 
@@ -58,106 +76,115 @@ public class ContentManager {
         return new Pair<>(movieTitle, movieLink);
     }
 
-    public static void extractMetaDataFromMovieLink(String movieLink, Movie movie) {
-        try {
+    public static void extractMetaDataFromMovieLink(String movieLink, String movieId) {
+        try (Realm realm = Realm.getDefaultInstance()) {
             Document movieDoc = Jsoup.connect(movieLink).get();
             Element movieInfoElement = movieDoc.select("div.tv_series_info").first();
             String movieArtUrl = movieInfoElement.select("div.img>img").attr("src");
             String movieDescription = movieInfoElement.select("div.serial_desc").text();
-            if (StringUtils.isNotEmpty(movieArtUrl)) {
-                movie.setMovieArtUrl(movieArtUrl);
-            }
-            if (StringUtils.isNotEmpty(movieDescription)) {
-                movie.setMovieDescription(movieDescription);
-            }
-            //Update immediately, I nor get strength to shout
-            movie.update();
-            //Do more here
-            Element otherInfoDocument = movieDoc.selectFirst("div.other_info");
-            Elements otherInfoElements = otherInfoDocument.getAllElements();
-            int totalNumberOfSeasons = 0;
-            if (otherInfoElements != null) {
-                for (Element infoElement : otherInfoElements) {
-                    Elements rowElementChildren = infoElement.children();
-                    for (Element rowChild : rowElementChildren) {
-                        String field = rowChild.select(".field").html();
-                        String value = rowChild.select(".value").html();
-                        if (field.trim().toLowerCase().equals("seasons:") && StringUtils.isNotEmpty(value)) {
-                            totalNumberOfSeasons = Integer.parseInt(value.trim());
-                        }
+            realm.executeTransaction(r -> {
+                Movie updatableMovie = r.where(Movie.class).equalTo(AppConstants.MOVIE_ID, movieId).findFirst();
+                if (updatableMovie != null) {
+                    if (StringUtils.isNotEmpty(movieArtUrl)) {
+                        updatableMovie.setMovieArtUrl(movieArtUrl);
                     }
-                }
-            }
-            if (totalNumberOfSeasons != 0) {
-                List<Season> seasons = new ArrayList<>();
-                if (movie.getMovieSeasons() != null) {
-                    seasons = movie.getMovieSeasons();
-                }
-                for (int i = 0; i < totalNumberOfSeasons; i++) {
-                    String seasonAtI = generateSeasonFromMovieLink(movieLink, i + 1);
-                    String seasonName = generateSeasonValue(i + 1);
-                    Season season = generateNewSeason(movie, seasonAtI, seasonName);
-                    if (!seasons.contains(season)) {
-                        seasons.add(season);
+                    if (StringUtils.isNotEmpty(movieDescription)) {
+                        updatableMovie.setMovieDescription(movieDescription);
                     }
+                    r.copyToRealmOrUpdate(updatableMovie, ImportFlag.CHECK_SAME_VALUES_BEFORE_SET);
+                    extractOtherMovieDataParts(movieLink, movieDoc, r, updatableMovie);
                 }
-                movie.setMovieSeasons(seasons);
-                movie.update();
-            }
+            });
         } catch (IOException e) {
             e.printStackTrace();
             EventBus.getDefault().post(e);
         }
     }
 
-    private static Season generateNewSeason(Movie movie, String seasonAtI, String seasonName) {
-        Season season = new Season();
-        season.setSeasonName(seasonName);
-        season.setMovieId(movie.getMovieId());
-        season.setSeasonLink(seasonAtI);
-        season.setSeasonId(CryptoUtils.getSha256Digest(seasonAtI));
-        season.save();
+    private static void extractOtherMovieDataParts(String movieLink, Document movieDoc, Realm r, Movie updatableMovie) {
+        Element otherInfoDocument = movieDoc.selectFirst("div.other_info");
+        Elements otherInfoElements = otherInfoDocument.getAllElements();
+        int totalNumberOfSeasons = 0;
+        if (otherInfoElements != null) {
+            for (Element infoElement : otherInfoElements) {
+                Elements rowElementChildren = infoElement.children();
+                for (Element rowChild : rowElementChildren) {
+                    String field = rowChild.select(".field").html();
+                    String value = rowChild.select(".value").html();
+                    if (field.trim().toLowerCase().equals("seasons:") && StringUtils.isNotEmpty(value)) {
+                        totalNumberOfSeasons = Integer.parseInt(value.trim());
+                    }
+                }
+            }
+        }
+        if (totalNumberOfSeasons != 0) {
+            for (int i = 0; i < totalNumberOfSeasons; i++) {
+                String seasonAtI = generateSeasonFromMovieLink(movieLink, i + 1);
+                String seasonName = generateSeasonValue(i + 1);
+                Season season = generateNewSeason(r, updatableMovie, seasonAtI, seasonName);
+                if (!updatableMovie.getMovieSeasons().contains(season)) {
+                    updatableMovie.getMovieSeasons().add(season);
+                }
+            }
+            r.copyToRealmOrUpdate(updatableMovie, ImportFlag.CHECK_SAME_VALUES_BEFORE_SET);
+        }
+    }
+
+    private static Season generateNewSeason(Realm realm, Movie movie, String seasonAtI, String seasonName) {
+        String seasonId = CryptoUtils.getSha256Digest(seasonAtI);
+        Season season = realm.where(Season.class).equalTo(AppConstants.SEASON_ID, seasonId).findFirst();
+        if (season == null) {
+            season = realm.createObject(Season.class, seasonId);
+            season.setSeasonName(seasonName);
+            season.setMovieId(movie.getMovieId());
+            season.setSeasonLink(seasonAtI);
+            realm.copyToRealm(season);
+        }
         return season;
     }
 
-    @SuppressWarnings("ConstantConditions")
+    private static Episode generateNewEpisode(Realm realm, Season season, String episodeLink, String episodeName) {
+        String episodeId = CryptoUtils.getSha256Digest(episodeLink);
+        Episode episode = realm.where(Episode.class).equalTo(AppConstants.EPISODE_ID, episodeId).findFirst();
+        if (episode == null) {
+            episode = realm.createObject(Episode.class, episodeId);
+            episode.setEpisodeLink(episodeLink);
+            episode.setEpisodeName(episodeName);
+            episode.setDownloadProgress(-1);
+            episode.setMovieId(season.getMovieId());
+            episode.setSeasonId(season.getSeasonId());
+            realm.copyToRealm(episode);
+        }
+        return episode;
+    }
+
     public static void extractMetaDataFromMovieSeasonLink(Season season) {
-        try {
+        try (Realm realm = Realm.getDefaultInstance()) {
             int totalNumberOfEpisodes = getTotalNumberOfEpisodes(season.getSeasonLink());
-            if (totalNumberOfEpisodes != 0) {
-                List<Episode> episodesList = new ArrayList<>();
-                for (int i = 0; i < totalNumberOfEpisodes; i++) {
-                    String episodeLink = generateEpisodeFromSeasonLink(season.getSeasonLink(), i + 1);
-                    if (i == totalNumberOfEpisodes - 1) {
-                        episodeLink = checkForSeasonFinale(episodeLink);
+            realm.executeTransaction(r -> {
+                Season updatableSeason = r.where(Season.class).equalTo(AppConstants.SEASON_ID, season.getSeasonId()).findFirst();
+                if (updatableSeason != null && totalNumberOfEpisodes != 0) {
+                    for (int i = 0; i < totalNumberOfEpisodes; i++) {
+                        String episodeLink = generateEpisodeFromSeasonLink(updatableSeason.getSeasonLink(), i + 1);
+                        if (i == totalNumberOfEpisodes - 1) {
+                            episodeLink = checkForSeasonFinale(episodeLink);
+                        }
+                        String episodeName = generateEpisodeValue(i + 1);
+                        if (StringUtils.containsIgnoreCase(episodeLink, getSeasonFinaleSuffix())) {
+                            episodeName = generateEpisodeValue(i + 1) + getSeasonFinaleSuffix();
+                        }
+                        Episode newEpisode = generateNewEpisode(r, updatableSeason, episodeLink, episodeName);
+                        if (!updatableSeason.getEpisodes().contains(newEpisode)) {
+                            updatableSeason.getEpisodes().add(newEpisode);
+                        }
                     }
-                    String episodeName = generateEpisodeValue(i + 1);
-                    if (StringUtils.containsIgnoreCase(episodeLink, getSeasonFinaleSuffix())) {
-                        episodeName = generateEpisodeValue(i + 1) + getSeasonFinaleSuffix();
-                    }
-                    Episode newEpisode = generateNewEpisode(season, episodeLink, episodeName);
-                    episodesList.add(newEpisode);
+                    r.copyToRealmOrUpdate(updatableSeason, ImportFlag.CHECK_SAME_VALUES_BEFORE_SET);
                 }
-                season.setEpisodes(episodesList);
-                season.update();
-            }
+            });
         } catch (IOException e) {
             e.printStackTrace();
             EventBus.getDefault().post(e);
         }
-    }
-
-    private static Episode generateNewEpisode(Season season, String episodeLink, String episodeName) {
-        String episodeId = CryptoUtils.getSha256Digest(episodeLink);
-        Episode newEpisode = new Episode();
-        newEpisode.setEpisodeId(episodeId);
-        newEpisode.setEpisodeLink(episodeLink);
-        newEpisode.setEpisodeName(episodeName);
-        newEpisode.setDownloadProgress(-1);
-        newEpisode.setMovieId(season.getMovieId());
-        newEpisode.setSeasonId(season.getSeasonId());
-        newEpisode.save();
-        return newEpisode;
     }
 
     private static int getTotalNumberOfEpisodes(String seasonLink) throws IOException {

@@ -1,61 +1,36 @@
 package com.molvix.android.managers;
 
-import com.molvix.android.eventbuses.CheckForPendingDownloadableEpisodes;
-import com.molvix.android.models.DownloadableEpisodes;
+import com.molvix.android.models.DownloadableEpisode;
 import com.molvix.android.models.Episode;
 import com.molvix.android.preferences.AppPrefs;
-import com.molvix.android.utils.CryptoUtils;
-import com.raizlabs.android.dbflow.sql.language.SQLite;
 
-import org.greenrobot.eventbus.EventBus;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import io.realm.ImportFlag;
+import io.realm.Realm;
 
 public class EpisodesManager {
 
     public static void enqueEpisodeForDownload(Episode episode) {
-        DownloadableEpisodes downloadableEpisodes = SQLite.select()
-                .from(DownloadableEpisodes.class)
-                .querySingle();
-        if (downloadableEpisodes != null) {
-            List<Episode> episodeList = downloadableEpisodes.getDownloadableEpisodes();
-            if (episodeList == null) {
-                episodeList = new ArrayList<>();
-            }
-            if (!episodeList.contains(episode)) {
-                episodeList.add(episode);
-            }
-            downloadableEpisodes.setDownloadableEpisodes(episodeList);
-            downloadableEpisodes.update();
-        } else {
-            DownloadableEpisodes newDownloadableEpisodes = new DownloadableEpisodes();
-            newDownloadableEpisodes.setEpisodesId(CryptoUtils.getSha256Digest(String.valueOf(System.currentTimeMillis() + new Random().nextInt(256))));
-            List<Episode> newEpisodeList = new ArrayList<>();
-            newEpisodeList.add(episode);
-            newDownloadableEpisodes.setDownloadableEpisodes(newEpisodeList);
-            newDownloadableEpisodes.save();
+        try (Realm realm = Realm.getDefaultInstance()) {
+            realm.executeTransaction(r -> {
+                DownloadableEpisode newDownloadableEpisode = r.createObject(DownloadableEpisode.class, episode.getEpisodeId());
+                newDownloadableEpisode.setDownloadableEpisode(episode);
+                r.copyToRealmOrUpdate(newDownloadableEpisode, ImportFlag.CHECK_SAME_VALUES_BEFORE_SET);
+            });
         }
     }
 
     public static void popEpisode(Episode episode) {
-        DownloadableEpisodes downloadableEpisodes = SQLite.select()
-                .from(DownloadableEpisodes.class)
-                .querySingle();
-        if (downloadableEpisodes != null) {
-            List<Episode> episodeList = downloadableEpisodes.getDownloadableEpisodes();
-            if (episodeList != null && !episodeList.isEmpty()) {
-                episodeList.remove(episode);
-                downloadableEpisodes.setDownloadableEpisodes(episodeList);
-                downloadableEpisodes.update();
+        Realm realm = Realm.getDefaultInstance();
+        DownloadableEpisode downloadableEpisode = realm.where(DownloadableEpisode.class).equalTo("episodeId", episode.getEpisodeId()).findFirst();
+        if (downloadableEpisode != null) {
+            realm.executeTransaction(r -> {
+                downloadableEpisode.deleteFromRealm();
                 unLockCaptureSolver(episode.getEpisodeId());
-                EventBus.getDefault().post(new CheckForPendingDownloadableEpisodes());
-            }
+            });
         }
     }
 
-    public static void lockCaptureSolver(String episodeId) {
+    public static void lockCaptchaSolver(String episodeId) {
         AppPrefs.lockCaptchaSolver(episodeId);
     }
 
@@ -67,7 +42,4 @@ public class EpisodesManager {
         return AppPrefs.isCaptchaSolvable();
     }
 
-    public static void fireEpisodeUpdate(String episodeId, boolean value) {
-        AppPrefs.fireEpisodeUpdated(episodeId, value);
-    }
 }

@@ -1,73 +1,40 @@
 package com.molvix.android.models;
 
 
-import androidx.annotation.Nullable;
+import io.realm.RealmList;
+import io.realm.RealmObject;
+import io.realm.annotations.PrimaryKey;
 
-import com.google.gson.annotations.Expose;
-import com.molvix.android.converters.EpisodesTypeConverter;
-import com.molvix.android.database.MolvixDB;
-import com.molvix.android.managers.SeasonsManager;
-import com.raizlabs.android.dbflow.annotation.Column;
-import com.raizlabs.android.dbflow.annotation.ConflictAction;
-import com.raizlabs.android.dbflow.annotation.PrimaryKey;
-import com.raizlabs.android.dbflow.annotation.Table;
-import com.raizlabs.android.dbflow.structure.BaseModel;
-
-import java.util.List;
-
-@SuppressWarnings({"WeakerAccess"})
-@Table(database = MolvixDB.class,
-        primaryKeyConflict = ConflictAction.REPLACE,
-        insertConflict = ConflictAction.REPLACE,
-        updateConflict = ConflictAction.REPLACE)
-public class Season extends BaseModel {
+public class Season extends RealmObject {
 
     @PrimaryKey
-    @Column
-    @Expose
-    public String seasonId;
-
-    @Nullable
-    @Column
-    @Expose
-    public String seasonName;
-
-    @Nullable
-    @Column
-    @Expose
-    public String seasonLink;
-
-    @Column
-    @Expose
-    public String movieId;
-
-    @Column(typeConverter = EpisodesTypeConverter.class)
-    @Expose
-    public List<Episode> episodes;
+    private String seasonId;
+    private String seasonName;
+    private String seasonLink;
+    private String movieId;
+    private RealmList<Episode> episodes;
 
     public String getSeasonId() {
         return seasonId;
-    }
-
-    @Nullable
-    public String getSeasonName() {
-        return seasonName;
-    }
-
-    public void setSeasonName(@Nullable String seasonName) {
-        this.seasonName = seasonName;
     }
 
     public void setSeasonId(String seasonId) {
         this.seasonId = seasonId;
     }
 
-    @Nullable
+    public String getSeasonName() {
+        return seasonName;
+    }
+
+    public void setSeasonName(String seasonName) {
+        this.seasonName = seasonName;
+    }
+
     public String getSeasonLink() {
         return seasonLink;
     }
 
-    public void setSeasonLink(@Nullable String seasonLink) {
+    public void setSeasonLink(String seasonLink) {
         this.seasonLink = seasonLink;
     }
 
@@ -79,11 +46,11 @@ public class Season extends BaseModel {
         this.movieId = movieId;
     }
 
-    public List<Episode> getEpisodes() {
+    public RealmList<Episode> getEpisodes() {
         return episodes;
     }
 
-    public void setEpisodes(List<Episode> episodes) {
+    public void setEpisodes(RealmList<Episode> episodes) {
         this.episodes = episodes;
     }
 
@@ -109,13 +76,6 @@ public class Season extends BaseModel {
         }
         Season another = (Season) obj;
         return this.getSeasonId().equals(another.getSeasonId());
-    }
-
-    @Override
-    public boolean update() {
-        boolean result = super.update();
-        SeasonsManager.fireSeasonUpdated(seasonId, true);
-        return result;
     }
 
 }

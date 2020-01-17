@@ -1,5 +1,5 @@
 apply plugin: 'com.android.application'
-def dbflow_version = "4.2.4"
+apply plugin: 'realm-android'
 
 android {
     compileSdkVersion 29
@@ -50,9 +50,6 @@ dependencies {
     androidTestImplementation 'androidx.test:runner:1.2.0'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
     implementation "androidx.multidex:multidex:2.0.1"
-    annotationProcessor "com.github.Raizlabs.DBFlow:dbflow-processor:${dbflow_version}"
-    implementation "com.github.Raizlabs.DBFlow:dbflow-core:${dbflow_version}"
-    implementation "com.github.Raizlabs.DBFlow:dbflow:${dbflow_version}"
     implementation 'androidx.cardview:cardview:1.0.0'
     implementation 'androidx.recyclerview:recyclerview:1.1.0'
     implementation 'org.jsoup:jsoup:1.12.1'

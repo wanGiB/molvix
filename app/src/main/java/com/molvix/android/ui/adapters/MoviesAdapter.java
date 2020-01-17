@@ -13,6 +13,7 @@ import com.molvix.android.models.Movie;
 import com.molvix.android.ui.widgets.AdMobNativeAdView;
 import com.molvix.android.ui.widgets.MovieView;
 
+import java.util.Collections;
 import java.util.List;
 
 import butterknife.BindView;
@@ -21,7 +22,7 @@ import butterknife.ButterKnife;
 @SuppressWarnings("FieldCanBeLocal")
 public class MoviesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
-    private List<Movie> movies;
+    private List<Movie> movies= Collections.emptyList();
     private LayoutInflater layoutInflater;
 
     private final int ITEM_TYPE_MOVIE = 0;
@@ -29,10 +30,14 @@ public class MoviesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
     private String searchString;
     private Context context;
 
-    public MoviesAdapter(Context context, List<Movie> movies) {
+    public MoviesAdapter(Context context) {
         this.context = context;
         layoutInflater = LayoutInflater.from(context);
+    }
+
+    public void setData(List<Movie>movies){
         this.movies = movies;
+        notifyDataSetChanged();
     }
 
     @NonNull
@@ -62,7 +67,7 @@ public class MoviesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
 
     @Override
     public int getItemCount() {
-        return movies.size();
+        return movies != null ? movies.size() : 0;
     }
 
     @Override

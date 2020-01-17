@@ -9,14 +9,10 @@ import androidx.multidex.MultiDexApplication;
 import com.downloader.PRDownloader;
 import com.downloader.PRDownloaderConfig;
 import com.google.android.gms.ads.MobileAds;
-import com.google.firebase.analytics.FirebaseAnalytics;
 import com.molvix.android.R;
-import com.molvix.android.database.MolvixDB;
-import com.raizlabs.android.dbflow.config.DatabaseConfig;
-import com.raizlabs.android.dbflow.config.FlowConfig;
-import com.raizlabs.android.dbflow.config.FlowLog;
-import com.raizlabs.android.dbflow.config.FlowManager;
-import com.raizlabs.android.dbflow.runtime.DirectModelNotifier;
+
+import io.realm.Realm;
+import io.realm.RealmConfiguration;
 
 public class ApplicationLoader extends MultiDexApplication {
 
@@ -45,14 +41,12 @@ public class ApplicationLoader extends MultiDexApplication {
     }
 
     /***
-     * Sets up the Local Database. DBFlow is used here
+     * Sets up the Local Database. Realm is used here
      * ***/
     private void setupDatabase() {
-        FlowManager.init(new FlowConfig.Builder(this)
-                .addDatabaseConfig(new DatabaseConfig.Builder(MolvixDB.class)
-                        .modelNotifier(DirectModelNotifier.get())
-                        .build()).build());
-        FlowLog.setMinimumLoggingLevel(FlowLog.Level.V); // set to verbose logging
+        Realm.init(this);
+        RealmConfiguration config = new RealmConfiguration.Builder().name("molvix.realm").build();
+        Realm.setDefaultConfiguration(config);
     }
 
     private void initContext() {

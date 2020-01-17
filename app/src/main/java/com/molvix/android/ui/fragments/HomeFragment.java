@@ -17,36 +17,28 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
-import com.liucanwen.app.headerfooterrecyclerview.EndlessRecyclerOnScrollListener;
 import com.liucanwen.app.headerfooterrecyclerview.HeaderAndFooterRecyclerViewAdapter;
 import com.liucanwen.app.headerfooterrecyclerview.RecyclerViewUtils;
 import com.molvix.android.R;
 import com.molvix.android.eventbuses.SearchEvent;
 import com.molvix.android.managers.ContentManager;
 import com.molvix.android.models.Movie;
-import com.molvix.android.models.Movie_Table;
 import com.molvix.android.ui.adapters.MoviesAdapter;
-import com.molvix.android.utils.ConnectivityUtils;
 import com.molvix.android.utils.UiUtils;
-import com.raizlabs.android.dbflow.runtime.DirectModelNotifier;
-import com.raizlabs.android.dbflow.sql.language.SQLite;
-import com.raizlabs.android.dbflow.structure.BaseModel;
 
 import org.apache.commons.lang3.StringUtils;
 import org.greenrobot.eventbus.EventBus;
 
 import java.io.IOException;
-import java.security.SecureRandom;
 import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import io.realm.OrderedRealmCollectionChangeListener;
+import io.realm.Realm;
+import io.realm.RealmResults;
 import jp.wasabeef.recyclerview.animators.ScaleInAnimator;
-
-import static com.raizlabs.android.dbflow.structure.BaseModel.Action.CHANGE;
 
 @SuppressWarnings("ConstantConditions")
 public class HomeFragment extends BaseFragment {
@@ -66,15 +58,35 @@ public class HomeFragment extends BaseFragment {
     @BindView(R.id.movies_recycler_view)
     RecyclerView moviesRecyclerView;
 
-    private List<Movie> movies = new ArrayList<>();
+    private Realm realm;
+    private RealmResults<Movie> movies;
     private MoviesAdapter moviesAdapter;
 
     private Handler mUiHandler;
-    private DirectModelNotifier.ModelChangedListener<Movie> movieModelChangedListener;
     private ContentPullOverTask contentPullOverTask;
-
     private TextView headerTextView;
-    private String activeSearchString;
+    private String searchString;
+
+    private void setSearchString(String searchString) {
+        this.searchString = searchString;
+    }
+
+    private String getSearchString() {
+        return searchString;
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        realm = Realm.getDefaultInstance();
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        movies.removeAllChangeListeners();
+        realm.close();
+    }
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -91,74 +103,23 @@ public class HomeFragment extends BaseFragment {
             UiUtils.blinkView(v);
             spinMoviesDownloadJob();
         });
-        listenToChangesInLocalMoviesDatabase();
     }
 
     private void listenToChangesInLocalMoviesDatabase() {
-        movieModelChangedListener = new DirectModelNotifier.ModelChangedListener<Movie>() {
-            @Override
-            public void onModelChanged(@NonNull Movie model, @NonNull BaseModel.Action action) {
-                if (action == BaseModel.Action.SAVE) {
-                    addMovie(model);
-                } else if (action == BaseModel.Action.UPDATE || action == CHANGE) {
-                    updateMovieIndex(model);
-                } else if (action == BaseModel.Action.DELETE) {
-                    removeMovie(model);
-                }
+        OrderedRealmCollectionChangeListener<RealmResults<Movie>> realmChangeListener = (results, changeSet) -> {
+            if (changeSet == null) {
+                return;
             }
-
-            @Override
-            public void onTableChanged(@Nullable Class<?> tableChanged, @NonNull BaseModel.Action action) {
-
-            }
-        };
-        DirectModelNotifier.get().registerForModelChanges(Movie.class, movieModelChangedListener);
-    }
-
-    private void removeMovie(Movie movie) {
-        mUiHandler.post(() -> {
-            int indexOfMovie = movies.indexOf(movie);
-            movies.remove(movie);
-            if (indexOfMovie != -1) {
-                movies.remove(movie);
-                moviesAdapter.notifyItemRemoved(indexOfMovie);
-            }
-            checkAndInvalidateUI();
-        });
-    }
-
-    private void updateMovieIndex(Movie movie) {
-        mUiHandler.post(() -> {
-            if (movies.contains(movie)) {
-                int indexOfMovie = movies.indexOf(movie);
-                movies.set(indexOfMovie, movie);
-                moviesAdapter.notifyDataSetChanged();
-            }
-        });
-    }
-
-    private void addMovie(Movie movie) {
-        mUiHandler.post(() -> {
-//            checkAndAddAd();
-            if (!movies.contains(movie)) {
-                movies.add(movie);
-                moviesAdapter.notifyItemInserted(movies.size() - 1);
-            }
+            moviesAdapter.setData(results);
             checkAndInvalidateUI();
             swipeRefreshLayout.setRefreshing(false);
-        });
-    }
-
-    private void checkAndAddAd() {
-        if (ConnectivityUtils.isDeviceConnectedToTheInternet()) {
-            int nextMovieCollectionSize = movies.size() + 1;
-            if (nextMovieCollectionSize % 5 == 0) {
-                Movie adMovie = new Movie();
-                adMovie.setAd(true);
-                movies.add(adMovie);
-                moviesAdapter.notifyItemInserted(movies.size() - 1);
+            if (getSearchString() == null) {
+                displayTotalNumberOfMoviesLoadedInHeader();
+            } else {
+                displayFoundResults(results);
             }
-        }
+        };
+        movies.addChangeListener(realmChangeListener);
     }
 
     private void checkAndInvalidateUI() {
@@ -170,7 +131,8 @@ public class HomeFragment extends BaseFragment {
         super.onActivityCreated(savedInstanceState);
         setupSwipeRefreshLayoutColorScheme();
         initMoviesAdapter();
-        fetchAllAvailableMovies(0);
+        fetchAllAvailableMovies();
+        listenToChangesInLocalMoviesDatabase();
     }
 
     @SuppressWarnings("ConstantConditions")
@@ -179,63 +141,33 @@ public class HomeFragment extends BaseFragment {
                 ContextCompat.getColor(getActivity(), R.color.gplus_color_2),
                 ContextCompat.getColor(getActivity(), R.color.gplus_color_3),
                 ContextCompat.getColor(getActivity(), R.color.gplus_color_4));
-        swipeRefreshLayout.setOnRefreshListener(() -> {
-            movies.clear();
-            moviesAdapter.notifyDataSetChanged();
-            fetchAllAvailableMovies(0);
-        });
+        swipeRefreshLayout.setOnRefreshListener(this::fetchAllAvailableMovies);
     }
 
     @SuppressLint("InflateParams")
     private void initMoviesAdapter() {
         View headerView = LayoutInflater.from(getActivity()).inflate(R.layout.home_recycler_view_header, null);
         headerTextView = headerView.findViewById(R.id.header_text_view);
-        moviesAdapter = new MoviesAdapter(getActivity(), movies);
+        moviesAdapter = new MoviesAdapter(getActivity());
         HeaderAndFooterRecyclerViewAdapter headerAndFooterRecyclerViewAdapter = new HeaderAndFooterRecyclerViewAdapter(moviesAdapter);
         moviesRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity(), RecyclerView.VERTICAL, false));
         moviesRecyclerView.setItemAnimator(new ScaleInAnimator());
         moviesRecyclerView.setAdapter(headerAndFooterRecyclerViewAdapter);
         RecyclerViewUtils.setHeaderView(moviesRecyclerView, headerView);
-        moviesRecyclerView.addOnScrollListener(new EndlessRecyclerOnScrollListener() {
-            @Override
-            public void onLoadNextPage(View view) {
-                if (!movies.isEmpty()) {
-                    if (StringUtils.isNotEmpty(getActiveSearchString())) {
-                        searchMovies(getActiveSearchString(), movies.size());
-                    } else {
-                        fetchAllAvailableMovies(movies.size());
-                    }
-                }
-            }
-        });
     }
 
-    private String getActiveSearchString() {
-        return activeSearchString;
-    }
-
-    private void fetchAllAvailableMovies(int skip) {
+    private void fetchAllAvailableMovies() {
         nullifySearch();
-        SQLite.select()
-                .from(Movie.class)
-                .offset(skip)
-                .limit(2000)
-                .async()
-                .queryListResultCallback((transaction, tResult) -> {
-                    if (!tResult.isEmpty()) {
-                        if (skip == 0) {
-                            movies.clear();
-                            moviesAdapter.notifyDataSetChanged();
-                        }
-                        Collections.shuffle(tResult, new SecureRandom());
-                        for (Movie movie : tResult) {
-                            addMovie(movie);
-                        }
-                        displayTotalNumberOfMoviesLoadedInHeader();
-                    }
-                })
-                .execute();
+        movies = realm.where(Movie.class).findAllAsync();
         spinMoviesDownloadJob();
+    }
+
+    private void searchMovies(String searchString) {
+        movies = realm.where(Movie.class)
+                .like("movieName", "%" + searchString.toLowerCase() + "%")
+                .or().like("movieDescription", "%" + searchString.toLowerCase() + "%")
+                .findAllAsync();
+        moviesAdapter.setSearchString(searchString);
     }
 
     @SuppressLint("SetTextI18n")
@@ -269,29 +201,6 @@ public class HomeFragment extends BaseFragment {
         contentPullOverTask.execute();
     }
 
-    private void searchMovies(String searchString, int skip) {
-        SQLite.select()
-                .from(Movie.class)
-                .where(Movie_Table.movieName.like("%" + searchString.toLowerCase() + "%"))
-                .or(Movie_Table.movieDescription.like("%" + searchString.toLowerCase() + "%"))
-                .offset(skip)
-                .limit(2000)
-                .async()
-                .queryListResultCallback((transaction, queriedMovies) -> mUiHandler.post(() -> {
-                    if (skip == 0) {
-                        movies.clear();
-                    }
-                    moviesAdapter.setSearchString(searchString);
-                    moviesAdapter.notifyDataSetChanged();
-                    if (!queriedMovies.isEmpty()) {
-                        for (Movie movie : queriedMovies) {
-                            addMovie(movie);
-                        }
-                    }
-                    displayFoundResults(movies);
-                }))
-                .execute();
-    }
 
     @SuppressLint("SetTextI18n")
     private void displayFoundResults(List<Movie> queriedMovies) {
@@ -310,11 +219,12 @@ public class HomeFragment extends BaseFragment {
         if (event instanceof SearchEvent) {
             SearchEvent searchEvent = (SearchEvent) event;
             String searchString = searchEvent.getSearchString();
-            setActiveSearchString(searchString);
             if (StringUtils.isNotEmpty(searchString)) {
-                mUiHandler.post(() -> searchMovies(searchEvent.getSearchString().toLowerCase(), 0));
+                setSearchString(searchString);
+                mUiHandler.post(() -> searchMovies(searchEvent.getSearchString().toLowerCase()));
             } else {
-                fetchAllAvailableMovies(0);
+                setSearchString(null);
+                fetchAllAvailableMovies();
             }
         } else if (event instanceof Exception) {
             mUiHandler.post(() -> {
@@ -322,13 +232,10 @@ public class HomeFragment extends BaseFragment {
                 if (movies.isEmpty()) {
                     UiUtils.toggleViewVisibility(contentLoadingProgressBar, false);
                     contentLoadingProgressMessageView.setText("Network error.Please review your data connection and tap here to try again.");
+                    swipeRefreshLayout.setRefreshing(false);
                 }
             });
         }
-    }
-
-    private void setActiveSearchString(String searchString) {
-        this.activeSearchString = searchString;
     }
 
     private void nullifySearch() {
@@ -340,7 +247,7 @@ public class HomeFragment extends BaseFragment {
         @Override
         protected Void doInBackground(Void... voids) {
             try {
-                ContentManager.mineData();
+                ContentManager.grabMovies();
             } catch (IOException e) {
                 e.printStackTrace();
                 EventBus.getDefault().post(e);

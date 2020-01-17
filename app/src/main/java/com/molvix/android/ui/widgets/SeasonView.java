@@ -2,7 +2,6 @@ package com.molvix.android.ui.widgets;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
@@ -16,17 +15,17 @@ import androidx.annotation.Nullable;
 import com.molvix.android.R;
 import com.molvix.android.eventbuses.LoadEpisodesForSeason;
 import com.molvix.android.managers.ContentManager;
-import com.molvix.android.managers.SeasonsManager;
 import com.molvix.android.models.Season;
-import com.molvix.android.preferences.AppPrefs;
 import com.molvix.android.utils.ConnectivityUtils;
-import com.molvix.android.utils.LocalDbUtils;
 import com.molvix.android.utils.UiUtils;
 
 import org.greenrobot.eventbus.EventBus;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import io.realm.RealmChangeListener;
 
 public class SeasonView extends FrameLayout {
 
@@ -41,8 +40,7 @@ public class SeasonView extends FrameLayout {
 
     private Season season;
     private SeasonEpisodesExtractionTask seasonEpisodesExtractionTask;
-
-    private SharedPreferences.OnSharedPreferenceChangeListener onSharedPreferenceChangeListener;
+    private AtomicBoolean pendingEpisodesLoadOperation = new AtomicBoolean();
 
     public SeasonView(@NonNull Context context) {
         super(context);
@@ -72,35 +70,24 @@ public class SeasonView extends FrameLayout {
         seasonNameView.setText(season.getSeasonName());
         loadSeasonEpisodes();
         initEventHandlers(season);
-        registerSharedPreferenceChangeListener(season);
+        registerModelChangeListener(season);
     }
 
-    private void registerSharedPreferenceChangeListener(Season season) {
-        unRegisterSharedPreferenceChangeListener();
-        onSharedPreferenceChangeListener = (sharedPreferences, key) -> {
-            if (key.equals(season.getSeasonId())) {
-                Season newSeason = LocalDbUtils.getSeason(key);
-                if (newSeason != null && newSeason.getEpisodes() != null && !newSeason.getEpisodes().isEmpty()) {
-                    invalidateSeason(newSeason);
+    private void registerModelChangeListener(Season season) {
+        season.addChangeListener((RealmChangeListener<Season>) newSeason -> {
+            if (newSeason.getEpisodes() != null && !newSeason.getEpisodes().isEmpty()) {
+                this.season = newSeason;
+                seasonNameView.setText(newSeason.getSeasonName());
+                if (pendingEpisodesLoadOperation.get()) {
+                    EventBus.getDefault().post(new LoadEpisodesForSeason(newSeason));
+                    pendingEpisodesLoadOperation.set(false);
                 }
             }
-        };
-        AppPrefs.getAppPreferences().registerOnSharedPreferenceChangeListener(onSharedPreferenceChangeListener);
+        });
     }
 
-    private void unRegisterSharedPreferenceChangeListener() {
-        if (onSharedPreferenceChangeListener != null) {
-            AppPrefs.getAppPreferences().unregisterOnSharedPreferenceChangeListener(onSharedPreferenceChangeListener);
-            onSharedPreferenceChangeListener = null;
-        }
-    }
-
-    private void invalidateSeason(Season changedSeason) {
-        bindSeason(changedSeason);
-        if (SeasonsManager.wasSeasonEpisodesUnderPreparation(changedSeason.getSeasonId())) {
-            SeasonsManager.prepareSeasonEpisodes(changedSeason.getSeasonId(),false);
-            EventBus.getDefault().post(new LoadEpisodesForSeason(changedSeason));
-        }
+    private void unRegisterModelChangeListener() {
+        season.removeAllChangeListeners();
     }
 
     private void initEventHandlers(Season season) {
@@ -111,7 +98,7 @@ public class SeasonView extends FrameLayout {
             } else {
                 if (ConnectivityUtils.isDeviceConnectedToTheInternet()) {
                     UiUtils.showSafeToast("Please wait...");
-                    SeasonsManager.prepareSeasonEpisodes(season.getSeasonId(), true);
+                    pendingEpisodesLoadOperation.set(true);
                     loadSeasonEpisodes();
                 } else {
                     UiUtils.showSafeToast("Please connect to the internet and try again.");
@@ -152,13 +139,13 @@ public class SeasonView extends FrameLayout {
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
         loadSeasonEpisodes();
-        registerSharedPreferenceChangeListener(season);
+        registerModelChangeListener(season);
     }
 
     @Override
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
-        unRegisterSharedPreferenceChangeListener();
+        unRegisterModelChangeListener();
     }
 
 }

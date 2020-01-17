@@ -88,6 +88,26 @@ public class MovieView extends FrameLayout {
     @SuppressLint("SetTextI18n")
     public void setupMovie(Movie movie) {
         this.movie = movie;
+        setupMovieCoreData(movie);
+        initEventHandlers(movie);
+        refreshMovieDetails(movie);
+    }
+
+    private void initEventHandlers(Movie movie) {
+        OnClickListener onClickListener = v -> {
+            UiUtils.blinkView(parentCardView);
+            openMovieDetails(movie);
+        };
+        setOnClickListener(onClickListener);
+        movieArtView.setOnClickListener(onClickListener);
+        movieNameView.setOnClickListener(onClickListener);
+        movieDescriptionView.setOnClickListener(onClickListener);
+        movieSeasonsCountView.setOnClickListener(onClickListener);
+        parentCardView.setOnClickListener(onClickListener);
+    }
+
+    @SuppressLint("SetTextI18n")
+    private void setupMovieCoreData(Movie movie) {
         String movieName = movie.getMovieName();
         String movieDescription = movie.getMovieDescription();
         String movieArtUrl = movie.getMovieArtUrl();
@@ -118,17 +138,6 @@ public class MovieView extends FrameLayout {
         } else {
             movieArtView.setImageDrawable(new ColorDrawable(ContextCompat.getColor(getContext(), R.color.light_grey)));
         }
-        View.OnClickListener onClickListener = v -> {
-            UiUtils.blinkView(parentCardView);
-            openMovieDetails(movie);
-        };
-        setOnClickListener(onClickListener);
-        movieArtView.setOnClickListener(onClickListener);
-        movieNameView.setOnClickListener(onClickListener);
-        movieDescriptionView.setOnClickListener(onClickListener);
-        movieSeasonsCountView.setOnClickListener(onClickListener);
-        parentCardView.setOnClickListener(onClickListener);
-        refreshMovieDetails(movie);
     }
 
     private void openMovieDetails(Movie movie) {
@@ -141,7 +150,7 @@ public class MovieView extends FrameLayout {
         if (movieMetadataExtractionTask != null) {
             movieMetadataExtractionTask.cancel(true);
         }
-        movieMetadataExtractionTask = new MovieMetadataExtractionTask(movie);
+        movieMetadataExtractionTask = new MovieMetadataExtractionTask(movie.getMovieLink(), movie.getMovieId());
         movieMetadataExtractionTask.execute();
     }
 
@@ -153,15 +162,17 @@ public class MovieView extends FrameLayout {
 
     static class MovieMetadataExtractionTask extends AsyncTask<Void, Void, Void> {
 
-        private Movie movie;
+        private String movieLink;
+        private String movieId;
 
-        MovieMetadataExtractionTask(Movie movie) {
-            this.movie = movie;
+        MovieMetadataExtractionTask(String movieLink, String movieId) {
+            this.movieLink = movieLink;
+            this.movieId = movieId;
         }
 
         @Override
         protected Void doInBackground(Void... voids) {
-            ContentManager.extractMetaDataFromMovieLink(movie.getMovieLink(), movie);
+            ContentManager.extractMetaDataFromMovieLink(movieLink, movieId);
             return null;
         }
 
