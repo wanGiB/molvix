@@ -1,12 +1,12 @@
 package com.molvix.android.ui.activities;
 
 import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.view.MotionEvent;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -19,7 +19,9 @@ import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.molvix.android.R;
+import com.molvix.android.companions.AppConstants;
 import com.molvix.android.eventbuses.SearchEvent;
+import com.molvix.android.managers.MolvixNotificationManager;
 import com.molvix.android.utils.UiUtils;
 
 import org.apache.commons.lang3.StringUtils;
@@ -41,6 +43,7 @@ public class MainActivity extends BaseActivity {
 
     @BindView(R.id.bottom_navigation_view)
     BottomNavigationView bottomNavView;
+    private NavController navController;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,9 +52,26 @@ public class MainActivity extends BaseActivity {
         ButterKnife.bind(this);
         initSearchBox();
         initNavBarTints();
-        NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
+        navController = Navigation.findNavController(this, R.id.nav_host_fragment);
         NavigationUI.setupWithNavController(bottomNavView, navController);
         initEventHandlers();
+        checkForNewIntent();
+    }
+
+    private void checkForNewIntent() {
+        String invocationType = getIntent().getStringExtra(AppConstants.INVOCATION_TYPE);
+        if (invocationType != null && invocationType.equals(AppConstants.NAVIGATE_TO_SECOND_FRAGMENT)) {
+            navController.navigate(R.id.navigation_notification);
+        }
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        String invocationType = intent.getStringExtra(AppConstants.INVOCATION_TYPE);
+        if (invocationType != null && invocationType.equals(AppConstants.NAVIGATE_TO_SECOND_FRAGMENT)) {
+            navController.navigate(R.id.navigation_notification);
+        }
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -78,7 +98,10 @@ public class MainActivity extends BaseActivity {
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                String searchedString = StringUtils.strip(s.toString().trim());
+                if (navController.getCurrentDestination() != null && navController.getCurrentDestination().getId() != R.id.navigation_home) {
+                    navController.navigate(R.id.navigation_home);
+                }
+                String searchedString = s.toString();
                 EventBus.getDefault().post(new SearchEvent(searchedString));
                 UiUtils.toggleViewVisibility(closeSearchView, StringUtils.isNotEmpty(searchedString));
             }

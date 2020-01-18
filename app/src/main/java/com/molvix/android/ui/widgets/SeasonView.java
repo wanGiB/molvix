@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.FrameLayout;
@@ -25,6 +26,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import io.realm.Realm;
 import io.realm.RealmChangeListener;
 
 public class SeasonView extends FrameLayout {
@@ -129,7 +131,11 @@ public class SeasonView extends FrameLayout {
 
         @Override
         protected Void doInBackground(Void... voids) {
-            ContentManager.extractMetaDataFromMovieSeasonLink(season);
+            try (Realm realm = Realm.getDefaultInstance()) {
+                String currentThreadName = Thread.currentThread().getName();
+                Log.e("CurrentThread=", currentThreadName);
+                ContentManager.extractMetaDataFromMovieSeasonLink(realm, season);
+            }
             return null;
         }
 

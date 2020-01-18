@@ -30,6 +30,7 @@ import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import io.realm.Realm;
 
 @SuppressWarnings("unused")
 public class MovieView extends FrameLayout {
@@ -172,7 +173,9 @@ public class MovieView extends FrameLayout {
 
         @Override
         protected Void doInBackground(Void... voids) {
-            ContentManager.extractMetaDataFromMovieLink(movieLink, movieId);
+            try (Realm realm = Realm.getDefaultInstance()) {
+                ContentManager.extractMetaDataFromMovieLink(realm, movieLink, movieId);
+            }
             return null;
         }
 

@@ -20,6 +20,7 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.liucanwen.app.headerfooterrecyclerview.HeaderAndFooterRecyclerViewAdapter;
 import com.liucanwen.app.headerfooterrecyclerview.RecyclerViewUtils;
 import com.molvix.android.R;
+import com.molvix.android.companions.AppConstants;
 import com.molvix.android.eventbuses.SearchEvent;
 import com.molvix.android.managers.ContentManager;
 import com.molvix.android.models.Movie;
@@ -35,6 +36,7 @@ import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import io.realm.Case;
 import io.realm.OrderedRealmCollectionChangeListener;
 import io.realm.Realm;
 import io.realm.RealmResults;
@@ -60,6 +62,7 @@ public class HomeFragment extends BaseFragment {
 
     private Realm realm;
     private RealmResults<Movie> movies;
+    private RealmResults<Movie> searchResults;
     private MoviesAdapter moviesAdapter;
 
     private Handler mUiHandler;
@@ -113,11 +116,7 @@ public class HomeFragment extends BaseFragment {
             moviesAdapter.setData(results);
             checkAndInvalidateUI();
             swipeRefreshLayout.setRefreshing(false);
-            if (getSearchString() == null) {
-                displayTotalNumberOfMoviesLoadedInHeader();
-            } else {
-                displayFoundResults(results);
-            }
+            displayTotalNumberOfMoviesLoadedInHeader();
         };
         movies.addChangeListener(realmChangeListener);
     }
@@ -132,7 +131,6 @@ public class HomeFragment extends BaseFragment {
         setupSwipeRefreshLayoutColorScheme();
         initMoviesAdapter();
         fetchAllAvailableMovies();
-        listenToChangesInLocalMoviesDatabase();
     }
 
     @SuppressWarnings("ConstantConditions")
@@ -160,14 +158,31 @@ public class HomeFragment extends BaseFragment {
         nullifySearch();
         movies = realm.where(Movie.class).findAllAsync();
         spinMoviesDownloadJob();
+        listenToChangesInLocalMoviesDatabase();
     }
 
     private void searchMovies(String searchString) {
-        movies = realm.where(Movie.class)
-                .like("movieName", "%" + searchString.toLowerCase() + "%")
-                .or().like("movieDescription", "%" + searchString.toLowerCase() + "%")
+        searchResults = realm.where(Movie.class)
+                .contains(AppConstants.MOVIE_NAME, searchString.toLowerCase(), Case.INSENSITIVE)
+                .or()
+                .contains(AppConstants.MOVIE_DESCRIPTION, searchString.toLowerCase(), Case.INSENSITIVE)
                 .findAllAsync();
         moviesAdapter.setSearchString(searchString);
+        listenToSearchChangeResults();
+    }
+
+    private void listenToSearchChangeResults() {
+        OrderedRealmCollectionChangeListener<RealmResults<Movie>> realmChangeListener = (results, changeSet) -> {
+            if (changeSet == null) {
+                return;
+            }
+            moviesAdapter.setSearchString(getSearchString());
+            moviesAdapter.setData(results);
+            checkAndInvalidateUI();
+            swipeRefreshLayout.setRefreshing(false);
+            displayFoundResults(results);
+        };
+        searchResults.addChangeListener(realmChangeListener);
     }
 
     @SuppressLint("SetTextI18n")
@@ -201,14 +216,15 @@ public class HomeFragment extends BaseFragment {
         contentPullOverTask.execute();
     }
 
-
     @SuppressLint("SetTextI18n")
     private void displayFoundResults(List<Movie> queriedMovies) {
         mUiHandler.post(() -> {
-            int totalNumberOfMovies = queriedMovies.size();
-            DecimalFormat moviesNoFormatter = new DecimalFormat("#,###");
-            String resultMsg = totalNumberOfMovies == 1 ? "result" : "results";
-            headerTextView.setText(moviesNoFormatter.format(totalNumberOfMovies) + " " + resultMsg + " found");
+            if (getSearchString() != null) {
+                int totalNumberOfMovies = queriedMovies.size();
+                DecimalFormat moviesNoFormatter = new DecimalFormat("#,###");
+                String resultMsg = totalNumberOfMovies == 1 ? "result" : "results";
+                headerTextView.setText(moviesNoFormatter.format(totalNumberOfMovies) + " " + resultMsg + " found");
+            }
         });
     }
 
@@ -219,12 +235,18 @@ public class HomeFragment extends BaseFragment {
         if (event instanceof SearchEvent) {
             SearchEvent searchEvent = (SearchEvent) event;
             String searchString = searchEvent.getSearchString();
-            if (StringUtils.isNotEmpty(searchString)) {
+            if (StringUtils.isNotEmpty(searchString) && searchString != null) {
                 setSearchString(searchString);
                 mUiHandler.post(() -> searchMovies(searchEvent.getSearchString().toLowerCase()));
             } else {
                 setSearchString(null);
-                fetchAllAvailableMovies();
+                moviesAdapter.setSearchString(null);
+                moviesAdapter.setData(movies);
+                checkAndInvalidateUI();
+                displayTotalNumberOfMoviesLoadedInHeader();
+                swipeRefreshLayout.setRefreshing(false);
+                searchResults.removeAllChangeListeners();
+                UiUtils.showSafeToast("We got to the other side");
             }
         } else if (event instanceof Exception) {
             mUiHandler.post(() -> {

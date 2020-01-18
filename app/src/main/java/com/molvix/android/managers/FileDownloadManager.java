@@ -1,10 +1,15 @@
 package com.molvix.android.managers;
 
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.os.Build;
+
 import com.downloader.Error;
 import com.downloader.OnDownloadListener;
 import com.downloader.PRDownloader;
 import com.downloader.Status;
 import com.molvix.android.companions.AppConstants;
+import com.molvix.android.components.ApplicationLoader;
 import com.molvix.android.models.Episode;
 import com.molvix.android.models.Movie;
 import com.molvix.android.models.Season;
@@ -98,9 +103,4 @@ public class FileDownloadManager {
             PRDownloader.cancel(downloadId);
         }
     }
-
-    private void showProgressNotification() {
-
-    }
-
 }

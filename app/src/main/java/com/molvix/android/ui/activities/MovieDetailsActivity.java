@@ -316,7 +316,7 @@ public class MovieDetailsActivity extends BaseActivity {
             try (Realm realm = Realm.getDefaultInstance()) {
                 Movie movie = realm.where(Movie.class).equalTo(AppConstants.MOVIE_ID, movieId).findFirst();
                 if (movie != null) {
-                    ContentManager.extractMetaDataFromMovieLink(movie.getMovieLink(), movie.getMovieId());
+                    ContentManager.extractMetaDataFromMovieLink(realm, movie.getMovieLink(), movie.getMovieId());
                 }
             }
             return null;

@@ -1,5 +1,6 @@
 package com.molvix.android.managers;
 
+import android.util.Log;
 import android.util.Pair;
 
 import com.molvix.android.companions.AppConstants;
@@ -76,8 +77,8 @@ public class ContentManager {
         return new Pair<>(movieTitle, movieLink);
     }
 
-    public static void extractMetaDataFromMovieLink(String movieLink, String movieId) {
-        try (Realm realm = Realm.getDefaultInstance()) {
+    public static void extractMetaDataFromMovieLink(Realm realm, String movieLink, String movieId) {
+        try {
             Document movieDoc = Jsoup.connect(movieLink).get();
             Element movieInfoElement = movieDoc.select("div.tv_series_info").first();
             String movieArtUrl = movieInfoElement.select("div.img>img").attr("src");
@@ -158,29 +159,32 @@ public class ContentManager {
         return episode;
     }
 
-    public static void extractMetaDataFromMovieSeasonLink(Season season) {
-        try (Realm realm = Realm.getDefaultInstance()) {
+    public static void extractMetaDataFromMovieSeasonLink(Realm realm, Season season) {
+        try {
+            Log.e("CurrentThread=", Thread.currentThread().getName());
             int totalNumberOfEpisodes = getTotalNumberOfEpisodes(season.getSeasonLink());
-            realm.executeTransaction(r -> {
-                Season updatableSeason = r.where(Season.class).equalTo(AppConstants.SEASON_ID, season.getSeasonId()).findFirst();
-                if (updatableSeason != null && totalNumberOfEpisodes != 0) {
-                    for (int i = 0; i < totalNumberOfEpisodes; i++) {
-                        String episodeLink = generateEpisodeFromSeasonLink(updatableSeason.getSeasonLink(), i + 1);
-                        if (i == totalNumberOfEpisodes - 1) {
-                            episodeLink = checkForSeasonFinale(episodeLink);
+            if (totalNumberOfEpisodes != 0) {
+                realm.executeTransaction(r -> {
+                    Season updatableSeason = r.where(Season.class).equalTo(AppConstants.SEASON_ID, season.getSeasonId()).findFirst();
+                    if (updatableSeason != null) {
+                        for (int i = 0; i < totalNumberOfEpisodes; i++) {
+                            String episodeLink = generateEpisodeFromSeasonLink(updatableSeason.getSeasonLink(), i + 1);
+                            if (i == totalNumberOfEpisodes - 1) {
+                                episodeLink = checkForSeasonFinale(episodeLink);
+                            }
+                            String episodeName = generateEpisodeValue(i + 1);
+                            if (StringUtils.containsIgnoreCase(episodeLink, getSeasonFinaleSuffix())) {
+                                episodeName = generateEpisodeValue(i + 1) + getSeasonFinaleSuffix();
+                            }
+                            Episode newEpisode = generateNewEpisode(r, updatableSeason, episodeLink, episodeName);
+                            if (!updatableSeason.getEpisodes().contains(newEpisode)) {
+                                updatableSeason.getEpisodes().add(newEpisode);
+                            }
                         }
-                        String episodeName = generateEpisodeValue(i + 1);
-                        if (StringUtils.containsIgnoreCase(episodeLink, getSeasonFinaleSuffix())) {
-                            episodeName = generateEpisodeValue(i + 1) + getSeasonFinaleSuffix();
-                        }
-                        Episode newEpisode = generateNewEpisode(r, updatableSeason, episodeLink, episodeName);
-                        if (!updatableSeason.getEpisodes().contains(newEpisode)) {
-                            updatableSeason.getEpisodes().add(newEpisode);
-                        }
+                        r.copyToRealmOrUpdate(updatableSeason, ImportFlag.CHECK_SAME_VALUES_BEFORE_SET);
                     }
-                    r.copyToRealmOrUpdate(updatableSeason, ImportFlag.CHECK_SAME_VALUES_BEFORE_SET);
-                }
-            });
+                });
+            }
         } catch (IOException e) {
             e.printStackTrace();
             EventBus.getDefault().post(e);
