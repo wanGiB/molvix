@@ -131,9 +131,7 @@ public class SeasonView extends FrameLayout {
 
         @Override
         protected Void doInBackground(Void... voids) {
-            try (Realm realm = Realm.getDefaultInstance()) {
-                ContentManager.extractMetaDataFromMovieSeasonLink(realm, season);
-            }
+            ContentManager.extractMetaDataFromMovieSeasonLink(season);
             return null;
         }
 

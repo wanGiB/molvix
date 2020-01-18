@@ -77,8 +77,8 @@ public class ContentManager {
         return new Pair<>(movieTitle, movieLink);
     }
 
-    public static void extractMetaDataFromMovieLink(Realm realm, String movieLink, String movieId) {
-        try {
+    public static void extractMetaDataFromMovieLink(String movieLink, String movieId) {
+        try(Realm realm=Realm.getDefaultInstance()) {
             Document movieDoc = Jsoup.connect(movieLink).get();
             Element movieInfoElement = movieDoc.select("div.tv_series_info").first();
             String movieArtUrl = movieInfoElement.select("div.img>img").attr("src");
@@ -159,9 +159,8 @@ public class ContentManager {
         return episode;
     }
 
-    public static void extractMetaDataFromMovieSeasonLink(Realm realm, Season season) {
-        Log.e("CurrentThread=", Thread.currentThread().getName());
-        try {
+    public static void extractMetaDataFromMovieSeasonLink(Season season) {
+        try (Realm realm = Realm.getDefaultInstance()) {
             int totalNumberOfEpisodes = getTotalNumberOfEpisodes(season.getSeasonLink());
             if (totalNumberOfEpisodes != 0) {
                 realm.executeTransaction(r -> {
@@ -192,7 +191,6 @@ public class ContentManager {
     }
 
     private static int getTotalNumberOfEpisodes(String seasonLink) throws IOException {
-        Log.e("CurrentThread=", Thread.currentThread().getName());
         Document movieSeasonDoc = Jsoup.connect(seasonLink).get();
         Element otherInfoDocument = movieSeasonDoc.selectFirst("div.other_info");
         Elements otherInfoElements = otherInfoDocument.getAllElements();

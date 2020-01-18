@@ -173,9 +173,7 @@ public class MovieView extends FrameLayout {
 
         @Override
         protected Void doInBackground(Void... voids) {
-            try (Realm realm = Realm.getDefaultInstance()) {
-                ContentManager.extractMetaDataFromMovieLink(realm, movieLink, movieId);
-            }
+            ContentManager.extractMetaDataFromMovieLink(movieLink, movieId);
             return null;
         }
 
