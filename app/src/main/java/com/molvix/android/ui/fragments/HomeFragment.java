@@ -239,14 +239,15 @@ public class HomeFragment extends BaseFragment {
                 setSearchString(searchString);
                 mUiHandler.post(() -> searchMovies(searchEvent.getSearchString().toLowerCase()));
             } else {
-                setSearchString(null);
-                moviesAdapter.setSearchString(null);
-                moviesAdapter.setData(movies);
-                checkAndInvalidateUI();
-                displayTotalNumberOfMoviesLoadedInHeader();
-                swipeRefreshLayout.setRefreshing(false);
-                searchResults.removeAllChangeListeners();
-                UiUtils.showSafeToast("We got to the other side");
+                mUiHandler.post(() -> {
+                    setSearchString(null);
+                    moviesAdapter.setSearchString(null);
+                    moviesAdapter.setData(movies);
+                    checkAndInvalidateUI();
+                    displayTotalNumberOfMoviesLoadedInHeader();
+                    swipeRefreshLayout.setRefreshing(false);
+                    searchResults.removeAllChangeListeners();
+                });
             }
         } else if (event instanceof Exception) {
             mUiHandler.post(() -> {
