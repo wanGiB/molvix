@@ -160,8 +160,8 @@ public class ContentManager {
     }
 
     public static void extractMetaDataFromMovieSeasonLink(Realm realm, Season season) {
+        Log.e("CurrentThread=", Thread.currentThread().getName());
         try {
-            Log.e("CurrentThread=", Thread.currentThread().getName());
             int totalNumberOfEpisodes = getTotalNumberOfEpisodes(season.getSeasonLink());
             if (totalNumberOfEpisodes != 0) {
                 realm.executeTransaction(r -> {
@@ -192,6 +192,7 @@ public class ContentManager {
     }
 
     private static int getTotalNumberOfEpisodes(String seasonLink) throws IOException {
+        Log.e("CurrentThread=", Thread.currentThread().getName());
         Document movieSeasonDoc = Jsoup.connect(seasonLink).get();
         Element otherInfoDocument = movieSeasonDoc.selectFirst("div.other_info");
         Elements otherInfoElements = otherInfoDocument.getAllElements();

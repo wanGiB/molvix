@@ -132,8 +132,6 @@ public class SeasonView extends FrameLayout {
         @Override
         protected Void doInBackground(Void... voids) {
             try (Realm realm = Realm.getDefaultInstance()) {
-                String currentThreadName = Thread.currentThread().getName();
-                Log.e("CurrentThread=", currentThreadName);
                 ContentManager.extractMetaDataFromMovieSeasonLink(realm, season);
             }
             return null;
