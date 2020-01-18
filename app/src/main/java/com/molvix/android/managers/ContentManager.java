@@ -1,6 +1,5 @@
 package com.molvix.android.managers;
 
-import android.util.Log;
 import android.util.Pair;
 
 import com.molvix.android.companions.AppConstants;
@@ -78,7 +77,7 @@ public class ContentManager {
     }
 
     public static void extractMetaDataFromMovieLink(String movieLink, String movieId) {
-        try(Realm realm=Realm.getDefaultInstance()) {
+        try (Realm realm = Realm.getDefaultInstance()) {
             Document movieDoc = Jsoup.connect(movieLink).get();
             Element movieInfoElement = movieDoc.select("div.tv_series_info").first();
             String movieArtUrl = movieInfoElement.select("div.img>img").attr("src");
@@ -159,12 +158,12 @@ public class ContentManager {
         return episode;
     }
 
-    public static void extractMetaDataFromMovieSeasonLink(Season season) {
+    public static void extractMetaDataFromMovieSeasonLink(String seasonLink, String seasonId) {
         try (Realm realm = Realm.getDefaultInstance()) {
-            int totalNumberOfEpisodes = getTotalNumberOfEpisodes(season.getSeasonLink());
+            int totalNumberOfEpisodes = getTotalNumberOfEpisodes(seasonLink);
             if (totalNumberOfEpisodes != 0) {
                 realm.executeTransaction(r -> {
-                    Season updatableSeason = r.where(Season.class).equalTo(AppConstants.SEASON_ID, season.getSeasonId()).findFirst();
+                    Season updatableSeason = r.where(Season.class).equalTo(AppConstants.SEASON_ID, seasonId).findFirst();
                     if (updatableSeason != null) {
                         for (int i = 0; i < totalNumberOfEpisodes; i++) {
                             String episodeLink = generateEpisodeFromSeasonLink(updatableSeason.getSeasonLink(), i + 1);

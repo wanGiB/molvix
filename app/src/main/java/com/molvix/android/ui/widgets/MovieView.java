@@ -30,7 +30,6 @@ import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import io.realm.Realm;
 
 @SuppressWarnings("unused")
 public class MovieView extends FrameLayout {

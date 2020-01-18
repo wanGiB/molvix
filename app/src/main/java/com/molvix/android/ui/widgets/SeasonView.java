@@ -4,7 +4,6 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.FrameLayout;
@@ -26,7 +25,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import io.realm.Realm;
 import io.realm.RealmChangeListener;
 
 public class SeasonView extends FrameLayout {
@@ -117,21 +115,22 @@ public class SeasonView extends FrameLayout {
             seasonEpisodesExtractionTask.cancel(true);
             seasonEpisodesExtractionTask = null;
         }
-        seasonEpisodesExtractionTask = new SeasonEpisodesExtractionTask(season);
+        seasonEpisodesExtractionTask = new SeasonEpisodesExtractionTask(season.getSeasonLink(), season.getSeasonId());
         seasonEpisodesExtractionTask.execute();
     }
 
     static class SeasonEpisodesExtractionTask extends AsyncTask<Void, Void, Void> {
 
-        private Season season;
+        private String seasonId, seasonLink;
 
-        SeasonEpisodesExtractionTask(Season season) {
-            this.season = season;
+        SeasonEpisodesExtractionTask(String seasonId, String seasonLink) {
+            this.seasonId = seasonId;
+            this.seasonLink = seasonLink;
         }
 
         @Override
         protected Void doInBackground(Void... voids) {
-            ContentManager.extractMetaDataFromMovieSeasonLink(season);
+            ContentManager.extractMetaDataFromMovieSeasonLink(seasonLink, seasonId);
             return null;
         }
 
