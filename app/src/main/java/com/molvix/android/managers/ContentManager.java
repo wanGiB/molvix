@@ -160,11 +160,11 @@ public class ContentManager {
 
     public static void extractMetaDataFromMovieSeasonLink(String seasonLink, String seasonId) {
         try (Realm realm = Realm.getDefaultInstance()) {
-            int totalNumberOfEpisodes = getTotalNumberOfEpisodes(seasonLink);
-            if (totalNumberOfEpisodes != 0) {
-                realm.executeTransaction(r -> {
-                    Season updatableSeason = r.where(Season.class).equalTo(AppConstants.SEASON_ID, seasonId).findFirst();
-                    if (updatableSeason != null) {
+            Season updatableSeason = realm.where(Season.class).equalTo(AppConstants.SEASON_ID, seasonId).findFirst();
+            if (updatableSeason != null) {
+                int totalNumberOfEpisodes = getTotalNumberOfEpisodes(seasonLink);
+                if (totalNumberOfEpisodes != 0) {
+                    realm.executeTransaction(r -> {
                         for (int i = 0; i < totalNumberOfEpisodes; i++) {
                             String episodeLink = generateEpisodeFromSeasonLink(updatableSeason.getSeasonLink(), i + 1);
                             if (i == totalNumberOfEpisodes - 1) {
@@ -180,8 +180,8 @@ public class ContentManager {
                             }
                         }
                         r.copyToRealmOrUpdate(updatableSeason, ImportFlag.CHECK_SAME_VALUES_BEFORE_SET);
-                    }
-                });
+                    });
+                }
             }
         } catch (IOException e) {
             e.printStackTrace();

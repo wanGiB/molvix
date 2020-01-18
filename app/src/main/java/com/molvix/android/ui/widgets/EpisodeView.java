@@ -329,83 +329,83 @@ public class EpisodeView extends FrameLayout {
     }
 
     private void extractEpisodeDownloadOptions(Episode episode) {
-        new EpisodeDownloadOptionsExtractionTask(episode).execute();
+        new EpisodeDownloadOptionsExtractionTask(episode.getEpisodeId()).execute();
     }
 
     static class EpisodeDownloadOptionsExtractionTask extends AsyncTask<Void, Void, Void> {
 
-        private Episode episode;
+        private String episodeId;
 
-        EpisodeDownloadOptionsExtractionTask(Episode episode) {
-            this.episode = episode;
+        EpisodeDownloadOptionsExtractionTask(String episodeId) {
+            this.episodeId = episodeId;
         }
 
         @Override
         protected Void doInBackground(Void... voids) {
-            fetchDownloadOptionsForEpisode(episode);
+            fetchDownloadOptionsForEpisode(episodeId);
             return null;
         }
 
-        private void fetchDownloadOptionsForEpisode(Episode episode) {
+        private void fetchDownloadOptionsForEpisode(String episodeId) {
             try (Realm realm = Realm.getDefaultInstance()) {
-                Document episodeDocument = Jsoup.connect(episode.getEpisodeLink()).get();
-                //Bring out all href elements containing
-                Elements links = episodeDocument.select("a[href]");
-                if (links != null && !links.isEmpty()) {
-                    List<String> downloadOptions = new ArrayList<>();
-                    for (Element link : links) {
-                        String episodeFileName = link.text();
-                        String episodeDownloadLink = link.attr("href");
-                        if (episodeDownloadLink.contains(AppConstants.DOWNLOADABLE)) {
-                            Log.d(TAG, episodeFileName + ", " + episodeDownloadLink);
-                            downloadOptions.add(episodeDownloadLink);
-                        }
-                    }
-                    if (!downloadOptions.isEmpty()) {
-                        String episodeCaptchaSolverLink = null;
-                        if (downloadOptions.size() == 2) {
-                            try {
-                                String standard = downloadOptions.get(0);
-                                String lowest = downloadOptions.get(1);
-                                if (episode.getEpisodeQuality() == AppConstants.HIGH_QUALITY || episode.getEpisodeQuality() == AppConstants.STANDARD_QUALITY) {
-                                    episodeCaptchaSolverLink = standard;
-                                } else {
-                                    episodeCaptchaSolverLink = lowest;
-                                }
-                            } catch (Exception ignored) {
-
-                            }
-                        } else if (downloadOptions.size() == 3) {
-                            try {
-                                String standard = downloadOptions.get(0);
-                                String highest = downloadOptions.get(1);
-                                String lowest = downloadOptions.get(2);
-                                if (episode.getEpisodeQuality() == AppConstants.HIGH_QUALITY) {
-                                    episodeCaptchaSolverLink = highest;
-                                } else if (episode.getEpisodeQuality() == AppConstants.STANDARD_QUALITY) {
-                                    episodeCaptchaSolverLink = standard;
-                                } else {
-                                    episodeCaptchaSolverLink = lowest;
-                                }
-                            } catch (Exception ignored) {
-
+                Episode episode = realm.where(Episode.class).equalTo(AppConstants.EPISODE_ID, episodeId).findFirst();
+                if (episode != null) {
+                    Document episodeDocument = Jsoup.connect(episode.getEpisodeLink()).get();
+                    //Bring out all href elements containing
+                    Elements links = episodeDocument.select("a[href]");
+                    if (links != null && !links.isEmpty()) {
+                        List<String> downloadOptions = new ArrayList<>();
+                        for (Element link : links) {
+                            String episodeFileName = link.text();
+                            String episodeDownloadLink = link.attr("href");
+                            if (episodeDownloadLink.contains(AppConstants.DOWNLOADABLE)) {
+                                Log.d(TAG, episodeFileName + ", " + episodeDownloadLink);
+                                downloadOptions.add(episodeDownloadLink);
                             }
                         }
-                        String finalEpisodeCaptchaSolverLink = episodeCaptchaSolverLink;
-                        realm.executeTransaction(r -> {
-                            Episode updatableEpisode = r.where(Episode.class).equalTo(AppConstants.EPISODE_ID, episode.getEpisodeId()).findFirst();
-                            if (updatableEpisode != null) {
+                        if (!downloadOptions.isEmpty()) {
+                            String episodeCaptchaSolverLink = null;
+                            if (downloadOptions.size() == 2) {
+                                try {
+                                    String standard = downloadOptions.get(0);
+                                    String lowest = downloadOptions.get(1);
+                                    if (episode.getEpisodeQuality() == AppConstants.HIGH_QUALITY || episode.getEpisodeQuality() == AppConstants.STANDARD_QUALITY) {
+                                        episodeCaptchaSolverLink = standard;
+                                    } else {
+                                        episodeCaptchaSolverLink = lowest;
+                                    }
+                                } catch (Exception ignored) {
+
+                                }
+                            } else if (downloadOptions.size() == 3) {
+                                try {
+                                    String standard = downloadOptions.get(0);
+                                    String highest = downloadOptions.get(1);
+                                    String lowest = downloadOptions.get(2);
+                                    if (episode.getEpisodeQuality() == AppConstants.HIGH_QUALITY) {
+                                        episodeCaptchaSolverLink = highest;
+                                    } else if (episode.getEpisodeQuality() == AppConstants.STANDARD_QUALITY) {
+                                        episodeCaptchaSolverLink = standard;
+                                    } else {
+                                        episodeCaptchaSolverLink = lowest;
+                                    }
+                                } catch (Exception ignored) {
+
+                                }
+                            }
+                            String finalEpisodeCaptchaSolverLink = episodeCaptchaSolverLink;
+                            realm.executeTransaction(r -> {
                                 if (finalEpisodeCaptchaSolverLink != null) {
-                                    updatableEpisode.setEpisodeCaptchaSolverLink(finalEpisodeCaptchaSolverLink);
-                                    r.copyToRealmOrUpdate(updatableEpisode, ImportFlag.CHECK_SAME_VALUES_BEFORE_SET);
-                                    EpisodesManager.enqueEpisodeForDownload(updatableEpisode);
+                                    episode.setEpisodeCaptchaSolverLink(finalEpisodeCaptchaSolverLink);
+                                    r.copyToRealmOrUpdate(episode, ImportFlag.CHECK_SAME_VALUES_BEFORE_SET);
+                                    EpisodesManager.enqueEpisodeForDownload(episode);
                                 } else {
-                                    UiUtils.showSafeToast("Sorry, failed to download " + updatableEpisode.getEpisodeName() + ".Please try again.");
-                                    updatableEpisode.setDownloadProgress(-1);
-                                    r.copyToRealmOrUpdate(updatableEpisode, ImportFlag.CHECK_SAME_VALUES_BEFORE_SET);
+                                    UiUtils.showSafeToast("Sorry, failed to download " + episode.getEpisodeName() + ".Please try again.");
+                                    episode.setDownloadProgress(-1);
+                                    r.copyToRealmOrUpdate(episode, ImportFlag.CHECK_SAME_VALUES_BEFORE_SET);
                                 }
-                            }
-                        });
+                            });
+                        }
                     }
                 }
             } catch (IOException e) {
