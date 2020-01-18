@@ -24,6 +24,7 @@ import io.realm.Realm;
 public class FileDownloadManager {
 
     public static int startNewEpisodeDownload(Episode episode) {
+        String episodeId = episode.getEpisodeId();
         try (Realm realm = Realm.getDefaultInstance()) {
             Movie movie = realm.where(Movie.class).equalTo(AppConstants.MOVIE_ID, episode.getMovieId()).findFirst();
             Season season = realm.where(Season.class).equalTo(AppConstants.SEASON_ID, episode.getSeasonId()).findFirst();
@@ -51,7 +52,7 @@ public class FileDownloadManager {
                             .setOnStartOrResumeListener(() -> {
                             }).setOnPauseListener(() -> {
                             }).setOnCancelListener(() -> realm.executeTransaction(r -> {
-                                Episode updatableEpisode = r.where(Episode.class).equalTo(AppConstants.EPISODE_ID, episode.getEpisodeId()).findFirst();
+                                Episode updatableEpisode = r.where(Episode.class).equalTo(AppConstants.EPISODE_ID, episodeId).findFirst();
                                 if (updatableEpisode != null) {
                                     updatableEpisode.setDownloadProgress(-1);
                                     r.copyToRealmOrUpdate(updatableEpisode, ImportFlag.CHECK_SAME_VALUES_BEFORE_SET);
@@ -60,7 +61,7 @@ public class FileDownloadManager {
                                 long progressPercent = progress.currentBytes * 100 / progress.totalBytes;
                                 String progressMessage = FileUtils.getProgressDisplayLine(progress.currentBytes, progress.totalBytes);
                                 realm.executeTransaction(r -> {
-                                    Episode updatableEpisode = r.where(Episode.class).equalTo(AppConstants.EPISODE_ID, episode.getEpisodeId()).findFirst();
+                                    Episode updatableEpisode = r.where(Episode.class).equalTo(AppConstants.EPISODE_ID, episodeId).findFirst();
                                     if (updatableEpisode != null) {
                                         updatableEpisode.setDownloadProgress((int) progressPercent);
                                         updatableEpisode.setProgressDisplayText(progressMessage);
@@ -71,7 +72,7 @@ public class FileDownloadManager {
                                 @Override
                                 public void onDownloadComplete() {
                                     realm.executeTransaction(r -> {
-                                        Episode updatableEpisode = r.where(Episode.class).equalTo(AppConstants.EPISODE_ID, episode.getEpisodeId()).findFirst();
+                                        Episode updatableEpisode = r.where(Episode.class).equalTo(AppConstants.EPISODE_ID, episodeId).findFirst();
                                         if (updatableEpisode != null) {
                                             updatableEpisode.setDownloadProgress(-1);
                                             r.copyToRealmOrUpdate(updatableEpisode, ImportFlag.CHECK_SAME_VALUES_BEFORE_SET);
@@ -103,4 +104,6 @@ public class FileDownloadManager {
             PRDownloader.cancel(downloadId);
         }
     }
+
+
 }
