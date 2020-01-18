@@ -148,7 +148,10 @@ public class MovieDetailsActivity extends BaseActivity {
             @Override
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
-                injectMagicScript();
+                String mimeTypeOfUrl = FileUtils.getMimeType(url);
+                if (!mimeTypeOfUrl.toLowerCase().contains("video")) {
+                    injectMagicScript();
+                }
             }
 
             @Override
@@ -157,6 +160,7 @@ public class MovieDetailsActivity extends BaseActivity {
                 String mimeTypeOfUrl = FileUtils.getMimeType(url);
                 if (mimeTypeOfUrl.toLowerCase().contains("video")) {
                     UiUtils.showSafeToast("DownloadUrl Of Video=" + url);
+                    hackWebView.stopLoading();
                     realm.executeTransaction(r -> {
                         Episode updatableEpisode = r.where(Episode.class).equalTo(AppConstants.EPISODE_ID, episode.getEpisodeId()).findFirst();
                         if (updatableEpisode != null) {
@@ -240,7 +244,7 @@ public class MovieDetailsActivity extends BaseActivity {
 
     private void initModelChangeListener() {
         RealmChangeListener<Movie> movieModelChangedListener = this::loadMovieDetails;
-        movie = realm.where(Movie.class).equalTo("movieId", movieId).findFirst();
+        movie = realm.where(Movie.class).equalTo(AppConstants.MOVIE_ID, movieId).findFirst();
         if (movie != null) {
             movie.addChangeListener(movieModelChangedListener);
         }

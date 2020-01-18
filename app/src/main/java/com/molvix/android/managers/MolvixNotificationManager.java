@@ -20,12 +20,12 @@ import ir.zadak.zadaknotify.notification.Load;
 import ir.zadak.zadaknotify.notification.ZadakNotification;
 
 public class MolvixNotificationManager {
-    private static String createNotificationChannel(String channelId) {
+    private static String createNotificationChannel(String channelName, String channelDescription, String channelId) {
         // Create the NotificationChannel, but only on API 26+ because
         // the NotificationChannel class is new and not in the support library
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            CharSequence name = "My app notification channel";
-            String description = "Description for this channel";
+            CharSequence name = channelName;
+            String description = channelDescription;
             int importance = NotificationManager.IMPORTANCE_DEFAULT;
             NotificationChannel channel = new NotificationChannel(channelId, name, importance);
             channel.setDescription(description);
@@ -39,9 +39,11 @@ public class MolvixNotificationManager {
         return channelId;
     }
 
-    public static void showProgressNotification(String channelId, String episodeId, String title, int progress, String progressMessage) {
-        createNotificationChannel(channelId);
+    public static void showEpisodeDownloadProgressNotification(String movieName, String movieDescription, String seasonId, String episodeId, String title, int progress, String progressMessage) {
+        createNotificationChannel(movieName, movieDescription, seasonId);
+
         int identifier = episodeId.hashCode();
+
         Intent cancelIntent = new Intent(ApplicationLoader.getInstance(), EmptyContentActivity.class);
         cancelIntent.putExtra(AppConstants.EPISODE_ID, episodeId);
         PendingIntent cancelPendingIntent = PendingIntent.getActivity(ApplicationLoader.getInstance(), 0, cancelIntent, PendingIntent.FLAG_UPDATE_CURRENT);
@@ -52,7 +54,7 @@ public class MolvixNotificationManager {
         PendingIntent mainPendingIntent = PendingIntent.getActivity(ApplicationLoader.getInstance(), identifier, mainIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
         Load mLoad = ZadakNotification.with(ApplicationLoader.getInstance()).load();
-        mLoad.notificationChannelId(channelId)
+        mLoad.notificationChannelId(seasonId)
                 .title(title)
                 .autoCancel(true)
                 .largeIcon(R.drawable.ic_launcher);
