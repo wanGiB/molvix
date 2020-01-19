@@ -233,6 +233,7 @@ public class EpisodeView extends FrameLayout {
                 downloadProgressTextView.setText(episode.getProgressDisplayText());
             }
         } else {
+            downloadButtonOrPlayButton.clearAnimation();
             UiUtils.toggleViewVisibility(downloadProgressContainer, false);
             checkToSeeIfEpisodeAlreadyDownloaded(episode, episode.getEpisodeName());
         }

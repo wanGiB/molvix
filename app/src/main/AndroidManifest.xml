@@ -39,6 +39,7 @@
         <activity android:name=".ui.activities.MovieDetailsActivity" />
         <activity android:name=".ui.activities.EmptyContentActivity" />
 
+        <receiver android:name=".receivers.MovieRecommendationReceiver" />
     </application>
 
 </manifest>

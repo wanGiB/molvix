@@ -38,4 +38,9 @@ public class AppConstants {
 
     public static final String INVOCATION_TYPE = "invocation_type";
     public static final String NAVIGATE_TO_SECOND_FRAGMENT = "navigate_to_second_fragment";
+
+    public static final String NOTIFICATION_OBJECT_ID = "notificationObjectId";
+    public static final String NOTIFICATION_RESOLUTION_KEY = "resolutionKey";
+    public static final String NOTIFICATION_DESTINATION = "destination";
+    public static final int DESTINATION_EPISODE =0;
 }

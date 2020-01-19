@@ -19,13 +19,15 @@ import io.realm.Realm;
 
 public class FileDownloadManager {
 
+    @SuppressWarnings("ConstantConditions")
     public static int startNewEpisodeDownload(Episode episode) {
         String episodeId = episode.getEpisodeId();
         String episodeName = episode.getEpisodeName();
         try (Realm realm = Realm.getDefaultInstance()) {
             Movie movie = realm.where(Movie.class).equalTo(AppConstants.MOVIE_ID, episode.getMovieId()).findFirst();
+            String movieId = movie.getMovieId();
             Season season = realm.where(Season.class).equalTo(AppConstants.SEASON_ID, episode.getSeasonId()).findFirst();
-            if (movie != null && season != null) {
+            if (season != null) {
                 String movieName = WordUtils.capitalize(movie.getMovieName());
                 String movieDescription = movie.getMovieDescription();
                 String seasonName = WordUtils.capitalize(season.getSeasonName());
@@ -81,10 +83,16 @@ public class FileDownloadManager {
                                             updatableEpisode.setDownloadProgress(-1);
                                             r.copyToRealmOrUpdate(updatableEpisode, ImportFlag.CHECK_SAME_VALUES_BEFORE_SET);
                                         }
+                                        Movie watchedMovie = r.where(Movie.class).equalTo(AppConstants.MOVIE_ID, movieId).findFirst();
+                                        if (watchedMovie != null) {
+                                            watchedMovie.setSeenByUser(true);
+                                            watchedMovie.setRecommendedToUser(true);
+                                            r.copyToRealmOrUpdate(watchedMovie, ImportFlag.CHECK_SAME_VALUES_BEFORE_SET);
+                                        }
                                         DownloadableEpisode downloadableEpisode = r.where(DownloadableEpisode.class).equalTo(AppConstants.EPISODE_ID, episodeId).findFirst();
                                         if (downloadableEpisode != null) {
                                             downloadableEpisode.deleteFromRealm();
-                                            WatchedMovieTracker.observe(episodeId);
+                                            MovieTracker.recordEpisodeAsDownloaded(episodeId);
                                         }
                                     });
                                 }

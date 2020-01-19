@@ -59,7 +59,9 @@ public class UiUtils {
         RequestOptions imageLoadRequestOptions = new RequestOptions()
                 .diskCacheStrategy(DiskCacheStrategy.ALL);
         Glide.with(ApplicationLoader.getInstance())
-                .load(photoUrl).apply(imageLoadRequestOptions).listener(new RequestListener<Drawable>() {
+                .load(photoUrl)
+                .apply(imageLoadRequestOptions)
+                .listener(new RequestListener<Drawable>() {
             @Override
             public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
                 return false;

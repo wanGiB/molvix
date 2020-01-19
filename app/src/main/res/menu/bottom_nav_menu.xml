@@ -13,7 +13,7 @@
 
     <item
         android:id="@+id/navigation_settings"
-        android:icon="@drawable/ic_settings_fair_white_24dp"
-        android:title="@string/title_settings" />
+        android:icon="@drawable/ic_more_vert_black_24dp"
+        android:title="@string/title_more" />
 
 </menu>
