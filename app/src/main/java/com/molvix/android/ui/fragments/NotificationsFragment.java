@@ -4,33 +4,72 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
 
-import androidx.annotation.Nullable;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.Observer;
-import androidx.lifecycle.ViewModelProviders;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.molvix.android.R;
-import com.molvix.android.ui.viewmodels.NotificationsViewModel;
+import com.molvix.android.models.Notification;
+import com.molvix.android.ui.adapters.NotificationsAdapter;
+
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import io.realm.OrderedCollectionChangeSet;
+import io.realm.OrderedRealmCollectionChangeListener;
+import io.realm.Realm;
+import io.realm.RealmChangeListener;
+import io.realm.RealmResults;
 
 public class NotificationsFragment extends Fragment {
 
-    private NotificationsViewModel notificationsViewModel;
+    @BindView(R.id.notifications_recycler_view)
+    RecyclerView notificationsRecyclerView;
+
+    @BindView(R.id.swipe_refresh_layout)
+    SwipeRefreshLayout swipeRefreshLayout;
+
+    @BindView(R.id.content_loading_layout)
+    View contentLoadingLayout;
+
+    private RealmResults<Notification> notifications;
+    private NotificationsAdapter notificationsAdapter;
+    private Realm realm;
+    private OrderedRealmCollectionChangeListener<RealmResults<Notification>> notificationRealmChangeListener;
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        realm = Realm.getDefaultInstance();
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        realm.close();
+    }
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-        notificationsViewModel =
-                ViewModelProviders.of(this).get(NotificationsViewModel.class);
         View root = inflater.inflate(R.layout.fragment_notifications, container, false);
-        final TextView textView = root.findViewById(R.id.text_dashboard);
-        notificationsViewModel.getText().observe(this, new Observer<String>() {
-            @Override
-            public void onChanged(@Nullable String s) {
-                textView.setText(s);
-            }
-        });
+        ButterKnife.bind(this, root);
         return root;
     }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+    }
+
+    private void fetchNotifications() {
+        notifications = realm.where(Notification.class).findAllAsync();
+        notificationRealmChangeListener = (notifications, changeSet) -> {
+            notificationsAdapter.setNotifications(notifications);
+//            invalidateUI();
+        };
+        notifications.addChangeListener(notificationRealmChangeListener);
+    }
+
 }

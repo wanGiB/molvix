@@ -1,11 +1,18 @@
 package com.molvix.android.companions;
 
+import android.annotation.SuppressLint;
+
 import java.text.SimpleDateFormat;
 import java.util.Locale;
 
 public class AppConstants {
 
+    @SuppressLint("ConstantLocale")
     public static final SimpleDateFormat DATE_FORMATTER_IN_12HRS = new SimpleDateFormat("h:mm a", Locale.getDefault());
+    @SuppressLint("ConstantLocale")
+    public static final SimpleDateFormat DATE_FORMATTER_IN_BIRTHDAY_FORMAT = new SimpleDateFormat("EEE, d MMM yyyy", Locale.getDefault());
+    @SuppressLint("ConstantLocale")
+    public static final SimpleDateFormat DATE_FORMATTER_IN_YEARS = new SimpleDateFormat("yyyy", Locale.getDefault());
 
     public static final String TEST_DEVICE_ID = "53D46815EE1FBEED38704D3C418F4402";
     public static final String DOWNLOADABLE = "o2tvseries.com/download/";

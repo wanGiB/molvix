@@ -13,6 +13,7 @@
     <string name="please_wait">Please wait…</string>
     <string name="preparing">PREPARING</string>
     <string name="downloading">DOWNLOADING…</string>
+    <string name="Today">Today</string>
     <array name="episode_download_options">
         <item>Highest Quality</item>
         <item>Standard Quality</item>
