@@ -5,15 +5,16 @@
     android:id="@+id/bitcoin_donations_root_page"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@color/lighter_blue"
+    android:background="@color/white"
     android:descendantFocusability="beforeDescendants"
     android:orientation="vertical">
 
     <ImageView
-        android:layout_width="50dp"
-        android:layout_height="50dp"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
         android:layout_gravity="center_horizontal"
-        android:layout_margin="10dp"
+        android:scaleType="centerCrop"
+        android:src="@drawable/bitcoin"
         tools:ignore="ContentDescription" />
 
     <com.molvix.android.ui.widgets.MolvixTextView
@@ -21,13 +22,27 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
-        android:layout_marginBottom="30dp"
+        android:layout_marginTop="5dp"
+        android:layout_marginBottom="5dp"
         android:background="@drawable/bitcoin_address_background"
         android:clickable="true"
         android:focusable="true"
         android:gravity="center_horizontal"
         android:padding="10dp"
         android:text="@string/bitcoin_address"
+        android:textColor="@color/black"
+        android:textSize="18sp"
         app:textStyle="bold" />
+
+    <com.molvix.android.ui.widgets.MolvixTextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:gravity="center_horizontal"
+        android:padding="6dp"
+        android:text="@string/wallet_reception_disclaimer"
+        android:textColor="@color/ease_gray"
+        android:textSize="12sp"
+        app:textStyle="medium" />
 
 </LinearLayout>

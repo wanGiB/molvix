@@ -20,6 +20,7 @@
     <string name="donation_key">donation_key</string>
     <string name="third_party_software_attr">third_party_software_attr</string>
     <string name="feedback_key">feedback_key</string>
+    <string name="wallet_reception_disclaimer">This wallet address accepts only Bitcoins and not Bitcoin-Cash.\nThanks for your support</string>
     <array name="episode_download_options">
         <item>Highest Quality</item>
         <item>Standard Quality</item>

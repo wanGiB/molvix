@@ -1,15 +1,23 @@
 package com.molvix.android.ui.fragments;
 
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.SwitchPreferenceCompat;
 
+import com.google.android.gms.oss.licenses.OssLicensesActivity;
 import com.molvix.android.R;
 import com.molvix.android.preferences.AppPrefs;
 import com.molvix.android.utils.UiUtils;
 import com.morsebyte.shailesh.twostagerating.TwoStageRate;
+
+import java.util.Objects;
+
+import static android.content.Context.CLIPBOARD_SERVICE;
 
 public class MoreContentsFragment extends PreferenceFragmentCompat implements Preference.OnPreferenceChangeListener {
 
@@ -22,7 +30,7 @@ public class MoreContentsFragment extends PreferenceFragmentCompat implements Pr
             bitcoinDonationsPref.setWidgetLayoutResource(R.layout.bitcoin_donation_page);
             bitcoinDonationsPref.setOnPreferenceClickListener(preference -> {
                 copyBitcoinAddress();
-                UiUtils.showSafeToast("Bitcoin address copied to clip board");
+                UiUtils.showSafeToast("Bitcoin address copied!");
                 return true;
             });
         }
@@ -48,7 +56,7 @@ public class MoreContentsFragment extends PreferenceFragmentCompat implements Pr
     }
 
     private void displayThirdPartySoftwareUsed() {
-
+        startActivity(new Intent(getActivity(), OssLicensesActivity.class));
     }
 
     private void initAppRater() {
@@ -60,7 +68,13 @@ public class MoreContentsFragment extends PreferenceFragmentCompat implements Pr
     }
 
     private void copyBitcoinAddress() {
-
+        ClipboardManager myClipboard= (ClipboardManager) Objects.requireNonNull(getActivity()).getSystemService(CLIPBOARD_SERVICE);
+        ClipData myClip;
+        String text = getString(R.string.bitcoin_address);
+        myClip = ClipData.newPlainText("text", text);
+        if (myClipboard != null) {
+            myClipboard.setPrimaryClip(myClip);
+        }
     }
 
     @Override
