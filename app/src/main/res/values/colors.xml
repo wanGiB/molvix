@@ -16,6 +16,8 @@
     <color name="import_export_item_background_shadow_dark">#ff222222</color>
     <color name="import_export_touch_highlight_light">#400099cc</color>
     <color name="import_export_touch_highlight_dark">#40ffffff</color>
+    <color name="episode_notification_background_color">#fff9f9f9</color>
+    <color name="other_notification_background_color">#ffffffea</color>
 
     <color name="light_button">#33ffffff</color>
     <color name="light_button_highlight">#66ffffff</color>

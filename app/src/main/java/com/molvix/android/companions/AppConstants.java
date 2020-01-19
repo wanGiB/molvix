@@ -1,6 +1,12 @@
 package com.molvix.android.companions;
 
+import java.text.SimpleDateFormat;
+import java.util.Locale;
+
 public class AppConstants {
+
+    public static final SimpleDateFormat DATE_FORMATTER_IN_12HRS = new SimpleDateFormat("h:mm a", Locale.getDefault());
+
     public static final String TEST_DEVICE_ID = "53D46815EE1FBEED38704D3C418F4402";
     public static final String DOWNLOADABLE = "o2tvseries.com/download/";
 
@@ -42,5 +48,7 @@ public class AppConstants {
     public static final String NOTIFICATION_OBJECT_ID = "notificationObjectId";
     public static final String NOTIFICATION_RESOLUTION_KEY = "resolutionKey";
     public static final String NOTIFICATION_DESTINATION = "destination";
-    public static final int DESTINATION_EPISODE =0;
+    public static final int DESTINATION_EPISODE = 0;
+    public static final int DESTINATION_NEW_EPISODE_AVAILABLE = 1;
+    public static final int DESTINATION_NEW_SEASON_AVAILABLE = 2;
 }
