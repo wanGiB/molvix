@@ -1,29 +1,31 @@
 package com.molvix.android.managers;
 
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
+import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
-import android.util.Pair;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.request.RequestOptions;
+import com.bumptech.glide.request.target.CustomTarget;
+import com.bumptech.glide.request.transition.Transition;
+import com.molvix.android.R;
 import com.molvix.android.companions.AppConstants;
+import com.molvix.android.components.ApplicationLoader;
 import com.molvix.android.models.Episode;
 import com.molvix.android.models.Movie;
 import com.molvix.android.models.Notification;
 import com.molvix.android.models.Season;
+import com.molvix.android.preferences.AppPrefs;
 import com.molvix.android.utils.CryptoUtils;
+import com.molvix.android.utils.DateUtils;
 import com.molvix.android.utils.UiUtils;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.util.Collections;
+import java.util.Locale;
 import java.util.Random;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.FutureTask;
 
 import io.realm.ImportFlag;
 import io.realm.Realm;
@@ -32,8 +34,6 @@ import io.realm.RealmList;
 import io.realm.RealmResults;
 
 public class MovieTracker {
-
-    private static BitmapLoadTask bitmapLoadTask;
 
     @SuppressWarnings("ConstantConditions")
     static void recordEpisodeAsDownloaded(String episodeId) {
@@ -61,6 +61,13 @@ public class MovieTracker {
     }
 
     public static void recommendUnWatchedMoviesToUser() {
+        long lastRecommendationTimeStamp = AppPrefs.getLastMovieRecommendationTime();
+        if (lastRecommendationTimeStamp != -1) {
+            String lastTime = DateUtils.getRelativeDate(ApplicationLoader.getInstance(), Locale.getDefault(), lastRecommendationTimeStamp);
+            if (lastTime.equals(ApplicationLoader.getInstance().getString(R.string.DateUtils_today))) {
+                return;
+            }
+        }
         try (Realm realm = Realm.getDefaultInstance()) {
             RealmResults<Movie> recommendableMovies = realm.where(Movie.class).equalTo(AppConstants.MOVIE_RECOMMENDED_TO_USER, false).findAll();
             if (recommendableMovies != null && recommendableMovies.isLoaded() && !recommendableMovies.isEmpty()) {
@@ -96,56 +103,23 @@ public class MovieTracker {
     }
 
     private static void loadBitmapAndRecommendVideo(String videoId, String artUrl) {
-        if (bitmapLoadTask != null) {
-            bitmapLoadTask.cancel(true);
-            bitmapLoadTask = null;
-        }
-        bitmapLoadTask = new BitmapLoadTask();
-        bitmapLoadTask.execute(videoId, artUrl);
-    }
+        RequestOptions imageLoadRequestOptions = new RequestOptions()
+                .diskCacheStrategy(DiskCacheStrategy.ALL);
+        Glide.with(ApplicationLoader.getInstance())
+                .asBitmap()
+                .load(artUrl)
+                .apply(imageLoadRequestOptions)
+                .into(new CustomTarget<Bitmap>() {
+                    @Override
+                    public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
+                        UiUtils.runOnMain(() -> MolvixNotificationManager.recommendMovieToUser(videoId, resource));
+                    }
 
-    static class BitmapLoadTask extends AsyncTask<String, Void, Pair<String, Bitmap>> {
+                    @Override
+                    public void onLoadCleared(@Nullable Drawable placeholder) {
 
-        @Override
-        protected Pair<String, Bitmap> doInBackground(String... strings) {
-            String videoId = strings[0];
-            String artUrl = strings[1];
-            Bitmap artBitmap = getBitmapFromURL(artUrl);
-            return new Pair<>(videoId, artBitmap);
-        }
-
-        @Override
-        protected void onPostExecute(Pair<String, Bitmap> stringBitmapPair) {
-            super.onPostExecute(stringBitmapPair);
-            if (stringBitmapPair.first != null && stringBitmapPair.second != null) {
-                UiUtils.runOnMain(() -> MolvixNotificationManager.recommendMovieToUser(stringBitmapPair.first, stringBitmapPair.second));
-            }
-        }
-    }
-
-    private static Bitmap getBitmapFromURL(final String strURL) {
-        Callable<Bitmap> bitmapCallable = () -> {
-            try {
-                URL url = new URL(strURL);
-                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-                connection.setDoInput(true);
-                connection.connect();
-                InputStream input = connection.getInputStream();
-                return BitmapFactory.decodeStream(input);
-            } catch (IOException e) {
-                e.printStackTrace();
-                return null;
-            }
-        };
-        FutureTask<Bitmap> bitmapFutureTask = new FutureTask<>(bitmapCallable);
-        ExecutorService executorService = Executors.newCachedThreadPool();
-        executorService.execute(bitmapFutureTask);
-        try {
-            return bitmapFutureTask.get();
-        } catch (InterruptedException | ExecutionException e) {
-            e.printStackTrace();
-        }
-        return null;
+                    }
+                });
     }
 
 }

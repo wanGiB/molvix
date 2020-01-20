@@ -72,4 +72,13 @@ public class AppPrefs {
         getAppPreferences().edit().putBoolean(AppConstants.AD_CONSUMED, value).commit();
     }
 
+    public static long getLastMovieRecommendationTime() {
+        return getAppPreferences().getLong(AppConstants.LAST_MOVIES_RECOMMENDATION_TIME, -1);
+    }
+
+    @SuppressLint("ApplySharedPref")
+    public static void setLastMovieRecommendationTime(long time) {
+        getAppPreferences().edit().putLong(AppConstants.LAST_MOVIES_RECOMMENDATION_TIME, time).commit();
+    }
+
 }

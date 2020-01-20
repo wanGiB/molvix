@@ -12,6 +12,7 @@ import com.molvix.android.R;
 import com.molvix.android.companions.AppConstants;
 import com.molvix.android.components.ApplicationLoader;
 import com.molvix.android.models.Movie;
+import com.molvix.android.preferences.AppPrefs;
 import com.molvix.android.ui.activities.EmptyContentActivity;
 import com.molvix.android.ui.activities.MainActivity;
 import com.molvix.android.ui.activities.MovieDetailsActivity;
@@ -21,7 +22,9 @@ import org.apache.commons.lang3.text.WordUtils;
 
 import io.realm.ImportFlag;
 import io.realm.Realm;
+
 import com.molvix.android.ui.notifications.notification.Load;
+
 class MolvixNotificationManager {
 
     private static void createNotificationChannel(String channelName, String channelDescription, String channelId) {
@@ -97,6 +100,7 @@ class MolvixNotificationManager {
                         .background(bitmap)
                         .setPlaceholder(R.drawable.ic_placeholder)
                         .build();
+                AppPrefs.setLastMovieRecommendationTime(System.currentTimeMillis());
                 realm.executeTransaction(r -> {
                     recommendableMovie.setRecommendedToUser(true);
                     r.copyToRealmOrUpdate(recommendableMovie, ImportFlag.CHECK_SAME_VALUES_BEFORE_SET);

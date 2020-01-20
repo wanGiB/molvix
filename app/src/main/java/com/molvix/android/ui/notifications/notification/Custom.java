@@ -3,6 +3,7 @@ package com.molvix.android.ui.notifications.notification;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.graphics.Bitmap;
+import android.graphics.drawable.Icon;
 import android.os.Looper;
 import android.text.Spanned;
 import android.util.Log;
