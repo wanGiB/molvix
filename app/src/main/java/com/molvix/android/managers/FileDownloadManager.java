@@ -5,10 +5,12 @@ import com.downloader.OnDownloadListener;
 import com.downloader.PRDownloader;
 import com.downloader.Status;
 import com.molvix.android.companions.AppConstants;
+import com.molvix.android.components.ApplicationLoader;
 import com.molvix.android.models.DownloadableEpisode;
 import com.molvix.android.models.Episode;
 import com.molvix.android.models.Movie;
 import com.molvix.android.models.Season;
+import com.molvix.android.ui.notifications.notification.MolvixNotification;
 import com.molvix.android.utils.FileUtils;
 
 import org.apache.commons.lang3.StringUtils;
@@ -62,6 +64,7 @@ public class FileDownloadManager {
                                 if (downloadableEpisode != null) {
                                     downloadableEpisode.deleteFromRealm();
                                 }
+                                MolvixNotification.with(ApplicationLoader.getInstance()).cancel(Math.abs(episodeId.hashCode()));
                             })).setOnProgressListener(progress -> {
                                 long progressPercent = progress.currentBytes * 100 / progress.totalBytes;
                                 String progressMessage = FileUtils.getProgressDisplayLine(progress.currentBytes, progress.totalBytes);
@@ -107,12 +110,6 @@ public class FileDownloadManager {
             }
         }
     }
-
-//    public static void pausDownload(int downloadId) {
-//        if (Status.RUNNING == PRDownloader.getStatus(downloadId)) {
-//            PRDownloader.pause(downloadId);
-//        }
-//    }
 
     public static void cancelDownload(int downloadId) {
         if (Status.RUNNING == PRDownloader.getStatus(downloadId)) {
