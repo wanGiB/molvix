@@ -17,6 +17,7 @@ import androidx.core.content.ContextCompat;
 
 import com.molvix.android.R;
 import com.molvix.android.companions.AppConstants;
+import com.molvix.android.managers.AdsLoadManager;
 import com.molvix.android.managers.ContentManager;
 import com.molvix.android.models.Movie;
 import com.molvix.android.models.Season;
@@ -49,8 +50,10 @@ public class MovieView extends FrameLayout {
     @BindView(R.id.movie_seasons_count_view)
     TextView movieSeasonsCountView;
 
-    private Movie movie;
+    @BindView(R.id.admob_ad_view)
+    AdMobNativeAdView adMobNativeAdView;
 
+    private Movie movie;
     private String searchString;
     private MovieMetadataExtractionTask movieMetadataExtractionTask;
 
@@ -90,7 +93,24 @@ public class MovieView extends FrameLayout {
         this.movie = movie;
         setupMovieCoreData(movie);
         initEventHandlers(movie);
+        checkAndLoadAd();
         refreshMovieDetails(movie);
+    }
+
+    private void checkAndLoadAd() {
+        if (!AdsLoadManager.nativeAds.isEmpty() && !AdsLoadManager.adConsumed()) {
+            UiUtils.toggleViewVisibility(adMobNativeAdView, true);
+            adMobNativeAdView.loadInAd(AdsLoadManager.nativeAds.get(0));
+            AdsLoadManager.setAdConsumed(true);
+        } else {
+            UiUtils.toggleViewVisibility(adMobNativeAdView, false);
+        }
+    }
+
+    @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        AdsLoadManager.destroyAds();
     }
 
     private void initEventHandlers(Movie movie) {

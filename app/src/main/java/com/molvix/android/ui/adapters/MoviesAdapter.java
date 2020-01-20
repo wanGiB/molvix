@@ -22,11 +22,9 @@ import butterknife.ButterKnife;
 @SuppressWarnings("FieldCanBeLocal")
 public class MoviesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
-    private List<Movie> movies= Collections.emptyList();
+    private List<Movie> movies = Collections.emptyList();
     private LayoutInflater layoutInflater;
 
-    private final int ITEM_TYPE_MOVIE = 0;
-    private final int ITEM_TYPE_AD = 1;
     private String searchString;
     private Context context;
 
@@ -35,7 +33,7 @@ public class MoviesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         layoutInflater = LayoutInflater.from(context);
     }
 
-    public void setData(List<Movie>movies){
+    public void setData(List<Movie> movies) {
         this.movies = movies;
         notifyDataSetChanged();
     }
@@ -43,18 +41,13 @@ public class MoviesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
     @NonNull
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        return viewType == ITEM_TYPE_MOVIE ? new MoviesItemViewHolder(layoutInflater.inflate(R.layout.recycler_item_movie, parent, false)) : new AdMobItemViewHolder(layoutInflater.inflate(R.layout.recycler_item_admob_ad, parent, false));
+        return new MoviesItemViewHolder(layoutInflater.inflate(R.layout.recycler_item_movie, parent, false));
     }
 
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
-        if (holder instanceof MoviesItemViewHolder) {
-            MoviesItemViewHolder moviesItemViewHolder = (MoviesItemViewHolder) holder;
-            moviesItemViewHolder.bindData(movies.get(position), getSearchString());
-        } else {
-            AdMobItemViewHolder adMobItemViewHolder = (AdMobItemViewHolder) holder;
-            adMobItemViewHolder.refreshAd(context);
-        }
+        MoviesItemViewHolder moviesItemViewHolder = (MoviesItemViewHolder) holder;
+        moviesItemViewHolder.bindData(movies.get(position), getSearchString());
     }
 
     public void setSearchString(String searchString) {
@@ -70,12 +63,6 @@ public class MoviesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         return movies != null ? movies.size() : 0;
     }
 
-    @Override
-    public int getItemViewType(int position) {
-        boolean isAd = movies.get(position).isAd();
-        return !isAd ? ITEM_TYPE_MOVIE : ITEM_TYPE_AD;
-    }
-
     static class MoviesItemViewHolder extends RecyclerView.ViewHolder {
         @BindView(R.id.movie_view)
         MovieView movieView;
@@ -88,21 +75,6 @@ public class MoviesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         void bindData(Movie movie, String searchString) {
             movieView.setSearchString(searchString);
             movieView.setupMovie(movie);
-        }
-    }
-
-    static class AdMobItemViewHolder extends RecyclerView.ViewHolder {
-
-        @BindView(R.id.admob_ad_view)
-        AdMobNativeAdView adMobNativeAdView;
-
-        AdMobItemViewHolder(@NonNull View itemView) {
-            super(itemView);
-            ButterKnife.bind(this, itemView);
-        }
-
-        void refreshAd(Context context) {
-            adMobNativeAdView.refreshAd(context);
         }
 
     }

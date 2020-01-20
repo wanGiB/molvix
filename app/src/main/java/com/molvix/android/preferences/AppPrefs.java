@@ -63,4 +63,13 @@ public class AppPrefs {
         return getAppPreferences().getBoolean(AppConstants.DAILY_MOVIES_RECOMMENDABILITY, true);
     }
 
+    public static boolean isAdAlreadyConsumed() {
+        return getAppPreferences().getBoolean(AppConstants.AD_CONSUMED, false);
+    }
+
+    @SuppressLint("ApplySharedPref")
+    public static void setAdConsumed(boolean value) {
+        getAppPreferences().edit().putBoolean(AppConstants.AD_CONSUMED, value).commit();
+    }
+
 }

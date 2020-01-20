@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.molvix.android.R;
 import com.molvix.android.beans.MovieContentItem;
+import com.molvix.android.managers.AdsLoadManager;
 import com.molvix.android.models.Movie;
 import com.molvix.android.models.Season;
 import com.molvix.android.ui.widgets.AdMobNativeAdView;
@@ -69,7 +70,7 @@ public class SeasonsWithEpisodesAdapter extends RecyclerView.Adapter<RecyclerVie
             seasonHeaderGroupViewHolder.bindSeasonData(movieContentItem.getSeason());
         } else if (holder instanceof AdHeaderViewHolder) {
             AdHeaderViewHolder adHeaderViewHolder = (AdHeaderViewHolder) holder;
-            adHeaderViewHolder.refreshAd(context);
+            adHeaderViewHolder.refreshAd();
         }
     }
 
@@ -160,8 +161,9 @@ public class SeasonsWithEpisodesAdapter extends RecyclerView.Adapter<RecyclerVie
             ButterKnife.bind(this, itemView);
         }
 
-        void refreshAd(Context context) {
-            adMobNativeAdView.refreshAd(context);
+        void refreshAd() {
+            adMobNativeAdView.loadInAd(AdsLoadManager.nativeAds.get(0));
+            AdsLoadManager.setAdConsumed(true);
         }
 
     }

@@ -59,4 +59,5 @@ public class AppConstants {
     public static final int DESTINATION_NEW_EPISODE_AVAILABLE = 1;
     public static final int DESTINATION_NEW_SEASON_AVAILABLE = 2;
     public static final String DAILY_MOVIES_RECOMMENDABILITY = "daily_movies_recommendability";
+    public static final String AD_CONSUMED = "ad_consumed";
 }

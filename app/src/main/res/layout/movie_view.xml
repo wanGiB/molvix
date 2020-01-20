@@ -2,16 +2,16 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/parent_card_view"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:id="@+id/parent_card_view"
     android:background="@android:color/transparent"
     android:orientation="vertical">
 
     <LinearLayout
-        android:background="@android:color/white"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="@android:color/white"
         android:orientation="vertical">
 
         <ImageView
@@ -58,6 +58,13 @@
             app:textStyle="medium" />
 
     </LinearLayout>
+
+    <com.molvix.android.ui.widgets.AdMobNativeAdView xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/admob_ad_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:visibility="gone" />
 
     <View
         android:layout_width="match_parent"

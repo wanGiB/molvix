@@ -9,28 +9,16 @@ import android.widget.ImageView;
 import android.widget.RatingBar;
 import android.widget.TextView;
 
-import com.google.android.gms.ads.AdListener;
-import com.google.android.gms.ads.AdLoader;
-import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.VideoController;
-import com.google.android.gms.ads.VideoOptions;
 import com.google.android.gms.ads.formats.MediaView;
-import com.google.android.gms.ads.formats.NativeAdOptions;
 import com.google.android.gms.ads.formats.UnifiedNativeAd;
 import com.google.android.gms.ads.formats.UnifiedNativeAdView;
-import com.molvix.android.BuildConfig;
 import com.molvix.android.R;
-import com.molvix.android.companions.AppConstants;
-
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author Wan Clem
  ***/
 public class AdMobNativeAdView extends FrameLayout {
-
-    private UnifiedNativeAd nativeAd;
-    public static final int NUMBER_OF_ADS = 1;
 
     public AdMobNativeAdView(Context context) {
         super(context);
@@ -147,50 +135,9 @@ public class AdMobNativeAdView extends FrameLayout {
      * Creates a request for a new native ad based on the boolean parameters and calls the
      * corresponding "populate" method when one is successfully returned.
      */
-    public void refreshAd(Context context) {
-        AdLoader.Builder builder = new AdLoader.Builder(context, context.getString(R.string.native_ad_unit_id));
-        // OnUnifiedNativeAdLoadedListener implementation.
-        builder.forUnifiedNativeAd(unifiedNativeAd -> {
-            // You must call destroy on old ads when you are done with them,
-            // otherwise you will have a memory leak.
-            if (nativeAd != null) {
-                nativeAd.destroy();
-            }
-            nativeAd = unifiedNativeAd;
-            UnifiedNativeAdView adView = findViewById(R.id.ad_unified);
-            populateUnifiedNativeAdView(unifiedNativeAd, adView);
-        });
-        VideoOptions videoOptions = new VideoOptions.Builder()
-                .setStartMuted(true)
-                .build();
-        NativeAdOptions adOptions = new NativeAdOptions.Builder()
-                .setVideoOptions(videoOptions)
-                .build();
-        builder.withNativeAdOptions(adOptions);
-        AdLoader adLoader = builder.withAdListener(new AdListener() {
-            @Override
-            public void onAdFailedToLoad(int errorCode) {
-            }
-        }).build();
-        AdRequest.Builder adRequestBuilder = new AdRequest.Builder();
-        if (StringUtils.isNotEmpty(AppConstants.TEST_DEVICE_ID) && BuildConfig.DEBUG) {
-            adRequestBuilder.addTestDevice(AppConstants.TEST_DEVICE_ID);
-        }
-        adLoader.loadAds(adRequestBuilder.build(), NUMBER_OF_ADS);
-    }
-
-    @Override
-    protected void onAttachedToWindow() {
-        super.onAttachedToWindow();
-        refreshAd(getContext());
-    }
-
-    @Override
-    protected void onDetachedFromWindow() {
-        if (nativeAd != null) {
-            nativeAd.destroy();
-        }
-        super.onDetachedFromWindow();
+    public void loadInAd(UnifiedNativeAd nativeAd) {
+        UnifiedNativeAdView adView = findViewById(R.id.ad_unified);
+        populateUnifiedNativeAdView(nativeAd, adView);
     }
 
 }

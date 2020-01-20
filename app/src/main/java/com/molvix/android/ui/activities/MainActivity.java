@@ -25,7 +25,9 @@ import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.molvix.android.R;
 import com.molvix.android.companions.AppConstants;
+import com.molvix.android.eventbuses.LoadAds;
 import com.molvix.android.eventbuses.SearchEvent;
+import com.molvix.android.managers.AdsLoadManager;
 import com.molvix.android.managers.EpisodesManager;
 import com.molvix.android.managers.FileDownloadManager;
 import com.molvix.android.models.DownloadableEpisode;
@@ -79,6 +81,14 @@ public class MainActivity extends BaseActivity {
         initEventHandlers();
         checkForNewIntent();
         listenToIncomingDownloadableEpisodes();
+        AdsLoadManager.loadAds(this);
+    }
+
+    @Override
+    public void onEventMainThread(Object event) {
+        if (event instanceof LoadAds) {
+            AdsLoadManager.loadAds(MainActivity.this);
+        }
     }
 
     @SuppressLint("SetJavaScriptEnabled")
