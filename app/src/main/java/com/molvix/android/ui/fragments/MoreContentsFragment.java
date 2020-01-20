@@ -10,6 +10,7 @@ import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.SwitchPreferenceCompat;
 
 import com.google.android.gms.oss.licenses.OssLicensesActivity;
+import com.google.android.gms.oss.licenses.OssLicensesMenuActivity;
 import com.molvix.android.R;
 import com.molvix.android.preferences.AppPrefs;
 import com.molvix.android.utils.UiUtils;
@@ -27,7 +28,7 @@ public class MoreContentsFragment extends PreferenceFragmentCompat implements Pr
         SwitchPreferenceCompat dailyMovieRecommendationSwitch = findPreference(getString(R.string.daily_movie_recommendation_key));
         Preference bitcoinDonationsPref = findPreference(getString(R.string.donation_key));
         if (bitcoinDonationsPref != null) {
-            bitcoinDonationsPref.setWidgetLayoutResource(R.layout.bitcoin_donation_page);
+            bitcoinDonationsPref.setLayoutResource(R.layout.bitcoin_donation_page);
             bitcoinDonationsPref.setOnPreferenceClickListener(preference -> {
                 copyBitcoinAddress();
                 UiUtils.showSafeToast("Bitcoin address copied!");
@@ -56,7 +57,7 @@ public class MoreContentsFragment extends PreferenceFragmentCompat implements Pr
     }
 
     private void displayThirdPartySoftwareUsed() {
-        startActivity(new Intent(getActivity(), OssLicensesActivity.class));
+        startActivity(new Intent(getActivity(), OssLicensesMenuActivity.class));
     }
 
     private void initAppRater() {
