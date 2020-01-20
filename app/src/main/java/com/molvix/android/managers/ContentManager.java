@@ -184,6 +184,7 @@ public class ContentManager {
     }
 
     public static void extractMetaDataFromMovieSeasonLink(String seasonLink, String seasonId) {
+        Log.d(ContentManager.class.getSimpleName(), "Preparing to load season details " + seasonLink);
         try (Realm realm = Realm.getDefaultInstance()) {
             Season updatableSeason = realm.where(Season.class).equalTo(AppConstants.SEASON_ID, seasonId).findFirst();
             if (updatableSeason != null) {
@@ -202,14 +203,17 @@ public class ContentManager {
                             Episode newEpisode = generateNewEpisode(r, updatableSeason, episodeLink, episodeName);
                             if (!updatableSeason.getEpisodes().contains(newEpisode)) {
                                 updatableSeason.getEpisodes().add(newEpisode);
+                                Log.d(ContentManager.class.getSimpleName(), "Adding New Episode " + newEpisode.getEpisodeName() + " to season episodes");
                             }
                         }
+                        Log.d(ContentManager.class.getSimpleName(), "Updating Season Details for Season " + updatableSeason.getSeasonName());
                         r.copyToRealmOrUpdate(updatableSeason, ImportFlag.CHECK_SAME_VALUES_BEFORE_SET);
                     });
                 }
             }
         } catch (IOException e) {
             e.printStackTrace();
+            Log.d(ContentManager.class.getSimpleName(), "Error Updating Season Details");
             EventBus.getDefault().post(e);
         }
     }
