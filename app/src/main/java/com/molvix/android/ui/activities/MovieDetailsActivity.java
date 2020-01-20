@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.graphics.Bitmap;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
@@ -155,6 +156,7 @@ public class MovieDetailsActivity extends BaseActivity {
             @Override
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
+                Log.d(ContentManager.class.getSimpleName(), "onPageFinished=" + url);
                 String mimeTypeOfUrl = FileUtils.getMimeType(url);
                 if (!mimeTypeOfUrl.toLowerCase().contains("video")) {
                     injectMagicScript();
@@ -164,6 +166,7 @@ public class MovieDetailsActivity extends BaseActivity {
             @Override
             public void onPageStarted(WebView view, String url, Bitmap favicon) {
                 super.onPageStarted(view, url, favicon);
+                Log.d(ContentManager.class.getSimpleName(), "onPageStarted=" + url);
                 String mimeTypeOfUrl = FileUtils.getMimeType(url);
                 if (mimeTypeOfUrl.toLowerCase().contains("video")) {
                     UiUtils.showSafeToast("DownloadUrl Of Video=" + url);
