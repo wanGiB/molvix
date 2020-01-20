@@ -57,7 +57,9 @@ public class NotificationsFragment extends Fragment {
     @Override
     public void onStop() {
         super.onStop();
-        notifications.removeAllChangeListeners();
+        if (notifications != null) {
+            notifications.removeAllChangeListeners();
+        }
         realm.close();
     }
 

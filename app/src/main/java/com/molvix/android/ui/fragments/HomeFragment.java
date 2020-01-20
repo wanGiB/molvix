@@ -89,7 +89,9 @@ public class HomeFragment extends BaseFragment {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        movies.removeAllChangeListeners();
+        if (movies != null) {
+            movies.removeAllChangeListeners();
+        }
         realm.close();
     }
 
@@ -249,7 +251,9 @@ public class HomeFragment extends BaseFragment {
                     checkAndInvalidateUI();
                     displayTotalNumberOfMoviesLoadedInHeader();
                     swipeRefreshLayout.setRefreshing(false);
-                    searchResults.removeAllChangeListeners();
+                    if (searchResults != null) {
+                        searchResults.removeAllChangeListeners();
+                    }
                 });
             }
         } else if (event instanceof Exception) {

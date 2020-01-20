@@ -260,7 +260,9 @@ public class MovieDetailsActivity extends BaseActivity {
     protected void onDestroy() {
         super.onDestroy();
         movie.removeAllChangeListeners();
-        downloadableEpisodes.removeAllChangeListeners();
+        if (downloadableEpisodes != null) {
+            downloadableEpisodes.removeAllChangeListeners();
+        }
         realm.close();
         hackWebView.onDestroy();
         unLockCaptchaChallenge();
