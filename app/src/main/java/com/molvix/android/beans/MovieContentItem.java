@@ -20,7 +20,7 @@ public class MovieContentItem {
         this.contentId = contentId;
     }
 
-    public String getContentId() {
+    private String getContentId() {
         return contentId;
     }
 

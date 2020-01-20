@@ -22,7 +22,7 @@ import io.realm.RealmResults;
 public class MovieTracker {
 
     @SuppressWarnings("ConstantConditions")
-    public static void recordEpisodeAsDownloaded(String episodeId) {
+    static void recordEpisodeAsDownloaded(String episodeId) {
         //Add to user notifications pane
         try (Realm realm = Realm.getDefaultInstance()) {
             Episode episode = realm.where(Episode.class).equalTo(AppConstants.EPISODE_ID, episodeId).findFirst();

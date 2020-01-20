@@ -18,9 +18,8 @@
         tools:layout="@layout/fragment_notifications" />
 
     <fragment
-        android:id="@+id/navigation_settings"
-        android:name="com.molvix.android.ui.fragments.SettingsFragment"
-        android:label="@string/title_more"
-        tools:layout="@layout/fragment_more" />
+        android:id="@+id/navigation_more"
+        android:name="com.molvix.android.ui.fragments.MoreContentsFragment"
+        android:label="@string/title_more" />
 
 </navigation>

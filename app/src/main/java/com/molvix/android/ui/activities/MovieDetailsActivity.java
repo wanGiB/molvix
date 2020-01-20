@@ -38,6 +38,7 @@ import org.apache.commons.lang3.text.WordUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -76,6 +77,7 @@ public class MovieDetailsActivity extends BaseActivity {
     private List<MovieContentItem> movieContentItems = new ArrayList<>();
     private Movie movie;
     private RealmResults<DownloadableEpisode> downloadableEpisodes;
+    private AtomicReference<String> currentEpisodeRef = new AtomicReference<>();
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -127,7 +129,9 @@ public class MovieDetailsActivity extends BaseActivity {
         RealmChangeListener<RealmResults<DownloadableEpisode>> downloadableEpisodesChangeListener = results -> {
             if (!results.isEmpty()) {
                 if (EpisodesManager.isCaptchaSolvable()) {
-                    solveEpisodeCaptchaChallenge(results.get(0).getDownloadableEpisode());
+                    DownloadableEpisode downloadableEpisode = results.get(0);
+                    currentEpisodeRef.set(downloadableEpisode.getEpisodeId());
+                    solveEpisodeCaptchaChallenge(downloadableEpisode.getDownloadableEpisode());
                 }
             }
         };
@@ -257,6 +261,7 @@ public class MovieDetailsActivity extends BaseActivity {
         downloadableEpisodes.removeAllChangeListeners();
         realm.close();
         hackWebView.onDestroy();
+        unLockCaptchaChallenge();
     }
 
     private void spinMoviePullTask() {
@@ -296,6 +301,20 @@ public class MovieDetailsActivity extends BaseActivity {
         LinearLayoutManager bottomSheetLinearLayoutManager = new LinearLayoutManager(this, RecyclerView.VERTICAL, false);
         bottomSheetRecyclerView.setLayoutManager(bottomSheetLinearLayoutManager);
         bottomSheetRecyclerView.setAdapter(bottomSheetRecyclerViewAdapter);
+    }
+
+    @Override
+    public void finish() {
+        unLockCaptchaChallenge();
+        hackWebView.stopLoading();
+        super.finish();
+    }
+
+    private void unLockCaptchaChallenge() {
+        String currentEpisodeId = currentEpisodeRef.get();
+        if (currentEpisodeId != null) {
+            EpisodesManager.unLockCaptureSolver(currentEpisodeId);
+        }
     }
 
     private void injectMagicScript() {

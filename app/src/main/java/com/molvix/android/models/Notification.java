@@ -10,6 +10,15 @@ public class Notification extends RealmObject {
     private int destination;
     private String message;
     private long timeStamp;
+    private boolean seen;
+
+    public void setSeen(boolean seen) {
+        this.seen = seen;
+    }
+
+    public boolean isSeen() {
+        return seen;
+    }
 
     public void setTimeStamp(long timeStamp) {
         this.timeStamp = timeStamp;

@@ -12,7 +12,7 @@ public class AppPrefs {
 
     private static SharedPreferences appSharedPreferences;
 
-    public static SharedPreferences getAppPreferences() {
+    private static SharedPreferences getAppPreferences() {
         if (appSharedPreferences == null) {
             appSharedPreferences = ApplicationLoader.getInstance()
                     .getSharedPreferences(AppConstants.APP_PREFS_NAME, Context.MODE_PRIVATE);
@@ -52,6 +52,15 @@ public class AppPrefs {
     @SuppressLint("ApplySharedPref")
     public static void fireEpisodeUpdated(String episodeId, boolean value) {
         getAppPreferences().edit().putBoolean(episodeId, value).commit();
+    }
+
+    @SuppressLint("ApplySharedPref")
+    public static void setDailyMoviesRecommendability(boolean newValue) {
+        getAppPreferences().edit().putBoolean(AppConstants.DAILY_MOVIES_RECOMMENDABILITY, newValue).commit();
+    }
+
+    public static boolean canDailyMoviesBeRecommended() {
+        return getAppPreferences().getBoolean(AppConstants.DAILY_MOVIES_RECOMMENDABILITY, true);
     }
 
 }

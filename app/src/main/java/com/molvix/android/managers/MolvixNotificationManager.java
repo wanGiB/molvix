@@ -35,9 +35,9 @@ import ir.zadak.zadaknotify.interfaces.OnImageLoadingCompleted;
 import ir.zadak.zadaknotify.notification.Load;
 import ir.zadak.zadaknotify.notification.ZadakNotification;
 
-public class MolvixNotificationManager {
+class MolvixNotificationManager {
 
-    private static String createNotificationChannel(String channelName, String channelDescription, String channelId) {
+    private static void createNotificationChannel(String channelName, String channelDescription, String channelId) {
         // Create the NotificationChannel, but only on API 26+ because
         // the NotificationChannel class is new and not in the support library
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -51,10 +51,9 @@ public class MolvixNotificationManager {
                 notificationManager.createNotificationChannel(channel);
             }
         }
-        return channelId;
     }
 
-    public static void showEpisodeDownloadProgressNotification(String movieName, String movieDescription, String seasonId, String episodeId, String title, int progress, String progressMessage) {
+    static void showEpisodeDownloadProgressNotification(String movieName, String movieDescription, String seasonId, String episodeId, String title, int progress, String progressMessage) {
         createNotificationChannel(movieName, movieDescription, seasonId);
 
         int identifier = episodeId.hashCode();
@@ -149,7 +148,7 @@ public class MolvixNotificationManager {
         };
     }
 
-    public static void recommendMovieToUser(String movieId) {
+    static void recommendMovieToUser(String movieId) {
         RequestOptions imageLoadRequestOptions = new RequestOptions()
                 .diskCacheStrategy(DiskCacheStrategy.ALL);
         try (Realm realm = Realm.getDefaultInstance()) {

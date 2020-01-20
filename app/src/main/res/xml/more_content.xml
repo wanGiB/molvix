@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    android:title="General Settings">
+
+    <PreferenceCategory android:title="Notifications">
+
+        <SwitchPreferenceCompat
+            android:defaultValue="true"
+            android:key="@string/daily_movie_recommendation_key"
+            android:summary="Enable Daily Movie Recommendation"
+            android:title="Movie Recommendations" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="Feedback &amp; Support">
+
+        <Preference
+            android:key="@string/feedback_key"
+            android:summary="Are you enjoying Molvix?\nRate Us"
+            android:title="Feedback" />
+
+        <Preference
+            android:key="@string/donation_key"
+            android:summary="Donate to Support the Project"
+            android:title="Donations" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="Legal">
+
+        <Preference
+            android:key="@string/third_party_software_attr"
+            android:summary="Attributions to third party software"
+            android:title="Thank You" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="About">
+
+        <Preference
+            android:key="@string/molvix_app_version"
+            android:summary="Version 1.0"
+            android:title="Molvix" />
+
+    </PreferenceCategory>
+
+</PreferenceScreen>

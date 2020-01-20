@@ -46,7 +46,7 @@
             app:cardElevation="3dp">
 
             <LinearLayout
-                android:id="@+id/search_box_outter_container"
+                android:id="@+id/search_box_outer_container"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal">

@@ -1,5 +1,6 @@
 package com.molvix.android.ui.widgets;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -8,9 +9,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat;
 
 import com.molvix.android.R;
@@ -44,7 +47,7 @@ public class NotificationView extends FrameLayout {
     ImageView notificationIconView;
 
     @BindView(R.id.notification_root_view)
-    ImageView notificationRootView;
+    LinearLayout notificationRootView;
 
     private Realm realm;
 
@@ -64,7 +67,7 @@ public class NotificationView extends FrameLayout {
     }
 
     private void init(Context context) {
-        View notificationView = LayoutInflater.from(context).inflate(R.layout.notificaton_view, null);
+        @SuppressLint("InflateParams") View notificationView = LayoutInflater.from(context).inflate(R.layout.notificaton_view, null);
         ButterKnife.bind(this, notificationView);
         removeAllViews();
         addView(notificationView);
@@ -74,12 +77,14 @@ public class NotificationView extends FrameLayout {
     @SuppressWarnings("ConstantConditions")
     public void bindNotification(Notification notification) {
         realm = Realm.getDefaultInstance();
-        notificationDescriptionView.setText(notification.getMessage());
+        notificationDescriptionView.setText(UiUtils.fromHtml(notification.getMessage()));
         int notificationDestination = notification.getDestination();
         if (notificationDestination == AppConstants.DESTINATION_EPISODE) {
+            notificationRootView.setBackgroundColor(ContextCompat.getColor(getContext(), R.color.episode_notification_background_color));
             VectorDrawableCompat downloadIcon = VectorDrawableCompat.create(getResources(), R.drawable.ic_file_download_white_24dp, null);
             notificationIconView.setImageDrawable(downloadIcon);
         } else {
+            notificationRootView.setBackgroundColor(ContextCompat.getColor(getContext(), R.color.other_notification_background_color));
             VectorDrawableCompat newReleaseIcon = VectorDrawableCompat.create(getResources(), R.drawable.ic_new_releases_black_24dp, null);
             notificationIconView.setImageDrawable(newReleaseIcon);
         }
@@ -123,6 +128,12 @@ public class NotificationView extends FrameLayout {
         notificationIconView.setOnClickListener(onClickListener);
         notificationDescriptionView.setOnClickListener(onClickListener);
         notificationTimeView.setOnClickListener(onClickListener);
+    }
+
+    @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        realm.close();
     }
 
 }

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -18,7 +19,7 @@
 
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
-    <LinearLayout
+    <FrameLayout
         android:id="@+id/content_loading_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -26,6 +27,29 @@
 
         <include layout="@layout/loading_layout" />
 
-    </LinearLayout>
+        <LinearLayout
+            android:id="@+id/notifications_empty_view"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <androidx.appcompat.widget.AppCompatImageView
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_gravity="center"
+                app:srcCompat="@drawable/ic_notifications_black_24dp" />
+
+            <com.molvix.android.ui.widgets.MolvixTextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="No notifications"
+                app:textStyle="medium" />
+
+        </LinearLayout>
+
+    </FrameLayout>
 
 </RelativeLayout>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/bitcoin_donations_root_page"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/lighter_blue"
+    android:descendantFocusability="beforeDescendants"
+    android:orientation="vertical">
+
+    <ImageView
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_margin="10dp"
+        tools:ignore="ContentDescription" />
+
+    <com.molvix.android.ui.widgets.MolvixTextView
+        android:id="@+id/bitcoin_address_text_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="30dp"
+        android:background="@drawable/bitcoin_address_background"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center_horizontal"
+        android:padding="10dp"
+        android:text="@string/bitcoin_address"
+        app:textStyle="bold" />
+
+</LinearLayout>

@@ -14,6 +14,12 @@
     <string name="preparing">PREPARING</string>
     <string name="downloading">DOWNLOADING…</string>
     <string name="Today">Today</string>
+    <string name="molvix_app_version">molvix_app_version</string>
+    <string name="bitcoin_address">ef67f9701787cbadff78701707109719598719905196501</string>
+    <string name="daily_movie_recommendation_key">daily_movie_recommendation_key</string>
+    <string name="donation_key">donation_key</string>
+    <string name="third_party_software_attr">third_party_software_attr</string>
+    <string name="feedback_key">feedback_key</string>
     <array name="episode_download_options">
         <item>Highest Quality</item>
         <item>Standard Quality</item>
