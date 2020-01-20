@@ -40,7 +40,6 @@ public class SeasonView extends FrameLayout {
     View rootView;
 
     private Season season;
-    private SeasonEpisodesExtractionTask seasonEpisodesExtractionTask;
     private AtomicBoolean pendingEpisodesLoadOperation = new AtomicBoolean();
 
     public SeasonView(@NonNull Context context) {
@@ -113,11 +112,7 @@ public class SeasonView extends FrameLayout {
 
     private void loadSeasonEpisodes() {
         if (SeasonsManager.canRefreshSeason(season.getSeasonId())) {
-            if (seasonEpisodesExtractionTask != null) {
-                seasonEpisodesExtractionTask.cancel(true);
-                seasonEpisodesExtractionTask = null;
-            }
-            seasonEpisodesExtractionTask = new SeasonEpisodesExtractionTask(season.getSeasonLink(), season.getSeasonId());
+            SeasonEpisodesExtractionTask seasonEpisodesExtractionTask = new SeasonEpisodesExtractionTask(season.getSeasonLink(), season.getSeasonId());
             seasonEpisodesExtractionTask.execute();
         }
     }

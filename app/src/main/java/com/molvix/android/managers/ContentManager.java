@@ -104,6 +104,9 @@ public class ContentManager {
     }
 
     public static void extractMetaDataFromMovieLink(String movieLink, String movieId) {
+        if (!MovieManager.canRefreshMovieDetails(movieId)){
+            return;
+        }
         Log.d(ContentManager.class.getSimpleName(), "Loading Details for " + movieLink);
         try (Realm realm = Realm.getDefaultInstance()) {
             Document movieDoc = Jsoup.connect(movieLink).get();
@@ -188,6 +191,9 @@ public class ContentManager {
     }
 
     public static void extractMetaDataFromMovieSeasonLink(String seasonLink, String seasonId) {
+        if (!SeasonsManager.canRefreshSeason(seasonId)) {
+            return;
+        }
         Log.d(ContentManager.class.getSimpleName(), "Preparing to load season details " + seasonLink);
         try (Realm realm = Realm.getDefaultInstance()) {
             Season updatableSeason = realm.where(Season.class).equalTo(AppConstants.SEASON_ID, seasonId).findFirst();
@@ -214,7 +220,11 @@ public class ContentManager {
                         r.copyToRealmOrUpdate(updatableSeason, ImportFlag.CHECK_SAME_VALUES_BEFORE_SET);
                         SeasonsManager.addToRefreshedSeasons(updatableSeason.getSeasonId());
                     });
+                } else {
+                    Log.d(ContentManager.class.getSimpleName(), "Updatable Season episodes count is zero");
                 }
+            } else {
+                Log.d(ContentManager.class.getSimpleName(), "Updatable Season is null");
             }
         } catch (IOException e) {
             e.printStackTrace();

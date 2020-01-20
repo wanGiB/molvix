@@ -57,7 +57,6 @@ public class MovieView extends FrameLayout {
 
     private Movie movie;
     private String searchString;
-    private MovieMetadataExtractionTask movieMetadataExtractionTask;
 
     public MovieView(Context context) {
         super(context);
@@ -164,10 +163,7 @@ public class MovieView extends FrameLayout {
 
     private void refreshMovieDetails(Movie movie) {
         if (MovieManager.canRefreshMovieDetails(movie.getMovieId())) {
-            if (movieMetadataExtractionTask != null) {
-                movieMetadataExtractionTask.cancel(true);
-            }
-            movieMetadataExtractionTask = new MovieMetadataExtractionTask(movie.getMovieLink(), movie.getMovieId());
+            MovieMetadataExtractionTask movieMetadataExtractionTask = new MovieMetadataExtractionTask(movie.getMovieLink(), movie.getMovieId());
             movieMetadataExtractionTask.execute();
         }
     }
