@@ -24,6 +24,7 @@ import com.molvix.android.companions.AppConstants;
 import com.molvix.android.eventbuses.LoadEpisodesForSeason;
 import com.molvix.android.managers.ContentManager;
 import com.molvix.android.managers.EpisodesManager;
+import com.molvix.android.managers.FileDownloadManager;
 import com.molvix.android.models.DownloadableEpisode;
 import com.molvix.android.models.Episode;
 import com.molvix.android.models.Movie;
@@ -165,6 +166,7 @@ public class MovieDetailsActivity extends BaseActivity {
                 if (mimeTypeOfUrl.toLowerCase().contains("video")) {
                     UiUtils.showSafeToast("DownloadUrl Of Video=" + url);
                     hackWebView.stopLoading();
+                    FileDownloadManager.startNewEpisodeDownload(episode);
                     realm.executeTransaction(r -> {
                         Episode updatableEpisode = r.where(Episode.class).equalTo(AppConstants.EPISODE_ID, episode.getEpisodeId()).findFirst();
                         if (updatableEpisode != null) {

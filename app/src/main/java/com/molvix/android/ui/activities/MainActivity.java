@@ -27,6 +27,7 @@ import com.molvix.android.R;
 import com.molvix.android.companions.AppConstants;
 import com.molvix.android.eventbuses.SearchEvent;
 import com.molvix.android.managers.EpisodesManager;
+import com.molvix.android.managers.FileDownloadManager;
 import com.molvix.android.models.DownloadableEpisode;
 import com.molvix.android.models.Episode;
 import com.molvix.android.utils.FileUtils;
@@ -129,6 +130,7 @@ public class MainActivity extends BaseActivity {
                 String mimeTypeOfUrl = FileUtils.getMimeType(url);
                 if (mimeTypeOfUrl.toLowerCase().contains("video")) {
                     hackWebView.stopLoading();
+                    FileDownloadManager.startNewEpisodeDownload(episode);
                     realm.executeTransaction(r -> {
                         Episode updatableEpisode = r.where(Episode.class).equalTo(AppConstants.EPISODE_ID, episode.getEpisodeId()).findFirst();
                         if (updatableEpisode != null) {

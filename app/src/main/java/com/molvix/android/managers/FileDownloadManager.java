@@ -19,8 +19,8 @@ import io.realm.Realm;
 
 public class FileDownloadManager {
 
-    @SuppressWarnings("ConstantConditions")
-    public static int startNewEpisodeDownload(Episode episode) {
+    @SuppressWarnings({"ConstantConditions", "UnusedAssignment"})
+    public static void startNewEpisodeDownload(Episode episode) {
         String episodeId = episode.getEpisodeId();
         String episodeName = episode.getEpisodeName();
         try (Realm realm = Realm.getDefaultInstance()) {
@@ -104,10 +104,8 @@ public class FileDownloadManager {
 
                             });
                 }
-                return downloadId;
             }
         }
-        return -1;
     }
 
 //    public static void pausDownload(int downloadId) {
