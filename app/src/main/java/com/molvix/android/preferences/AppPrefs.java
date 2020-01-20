@@ -7,6 +7,9 @@ import android.content.SharedPreferences;
 import com.molvix.android.companions.AppConstants;
 import com.molvix.android.components.ApplicationLoader;
 
+import java.util.HashSet;
+import java.util.Set;
+
 @SuppressWarnings("unused")
 public class AppPrefs {
 
@@ -79,6 +82,44 @@ public class AppPrefs {
     @SuppressLint("ApplySharedPref")
     public static void setLastMovieRecommendationTime(long time) {
         getAppPreferences().edit().putLong(AppConstants.LAST_MOVIES_RECOMMENDATION_TIME, time).commit();
+    }
+
+    public static boolean canRefreshMovieDetails(String movieId) {
+        Set<String> refreshed = getAppPreferences().getStringSet(AppConstants.REFRESHED_MOVIES, new HashSet<>());
+        return !refreshed.contains(movieId);
+    }
+
+    @SuppressLint("ApplySharedPref")
+    public static void addToRefreshedMovies(String movieId) {
+        Set<String> refreshedMovies = getAppPreferences().getStringSet(AppConstants.REFRESHED_MOVIES, new HashSet<>());
+        refreshedMovies.add(movieId);
+        getAppPreferences().edit().putStringSet(AppConstants.REFRESHED_MOVIES, refreshedMovies).commit();
+    }
+
+    @SuppressLint("ApplySharedPref")
+    public static void clearAllRefreshedMovies() {
+        Set<String> refreshedMovies = getAppPreferences().getStringSet(AppConstants.REFRESHED_MOVIES, new HashSet<>());
+        refreshedMovies.clear();
+        getAppPreferences().edit().putStringSet(AppConstants.REFRESHED_MOVIES, refreshedMovies).commit();
+    }
+
+    public static boolean canRefreshSeasonDetails(String seasonId) {
+        Set<String> refreshed = getAppPreferences().getStringSet(AppConstants.REFRESHED_SEASONS, new HashSet<>());
+        return !refreshed.contains(seasonId);
+    }
+
+    @SuppressLint("ApplySharedPref")
+    public static void addToRefreshedSeasons(String seasonId) {
+        Set<String> refreshedSeasons = getAppPreferences().getStringSet(AppConstants.REFRESHED_SEASONS, new HashSet<>());
+        refreshedSeasons.add(seasonId);
+        getAppPreferences().edit().putStringSet(AppConstants.REFRESHED_SEASONS, refreshedSeasons).commit();
+    }
+
+    @SuppressLint("ApplySharedPref")
+    public static void clearAllRefreshedSeasons() {
+        Set<String> refreshedSeasons = getAppPreferences().getStringSet(AppConstants.REFRESHED_SEASONS, new HashSet<>());
+        refreshedSeasons.clear();
+        getAppPreferences().edit().putStringSet(AppConstants.REFRESHED_SEASONS, refreshedSeasons).commit();
     }
 
 }

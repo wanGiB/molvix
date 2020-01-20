@@ -15,6 +15,7 @@ import androidx.annotation.Nullable;
 import com.molvix.android.R;
 import com.molvix.android.eventbuses.LoadEpisodesForSeason;
 import com.molvix.android.managers.ContentManager;
+import com.molvix.android.managers.SeasonsManager;
 import com.molvix.android.models.Season;
 import com.molvix.android.utils.ConnectivityUtils;
 import com.molvix.android.utils.UiUtils;
@@ -76,7 +77,6 @@ public class SeasonView extends FrameLayout {
     private void registerModelChangeListener(Season season) {
         season.addChangeListener((RealmChangeListener<Season>) newSeason -> {
             if (newSeason.getEpisodes() != null && !newSeason.getEpisodes().isEmpty()) {
-               UiUtils.showSafeToast("Season Details changed at "+season.getSeasonName());
                 this.season = newSeason;
                 seasonNameView.setText(newSeason.getSeasonName());
                 if (pendingEpisodesLoadOperation.get()) {
@@ -112,19 +112,21 @@ public class SeasonView extends FrameLayout {
     }
 
     private void loadSeasonEpisodes() {
-        if (seasonEpisodesExtractionTask != null) {
-            seasonEpisodesExtractionTask.cancel(true);
-            seasonEpisodesExtractionTask = null;
+        if (SeasonsManager.canRefreshSeason(season.getSeasonId())) {
+            if (seasonEpisodesExtractionTask != null) {
+                seasonEpisodesExtractionTask.cancel(true);
+                seasonEpisodesExtractionTask = null;
+            }
+            seasonEpisodesExtractionTask = new SeasonEpisodesExtractionTask(season.getSeasonLink(), season.getSeasonId());
+            seasonEpisodesExtractionTask.execute();
         }
-        seasonEpisodesExtractionTask = new SeasonEpisodesExtractionTask(season.getSeasonLink(), season.getSeasonId());
-        seasonEpisodesExtractionTask.execute();
     }
 
     static class SeasonEpisodesExtractionTask extends AsyncTask<Void, Void, Void> {
 
         private String seasonId, seasonLink;
 
-        SeasonEpisodesExtractionTask(String seasonId, String seasonLink) {
+        SeasonEpisodesExtractionTask(String seasonLink, String seasonId) {
             this.seasonId = seasonId;
             this.seasonLink = seasonLink;
         }

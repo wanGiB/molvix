@@ -23,6 +23,7 @@ import com.molvix.android.R;
 import com.molvix.android.companions.AppConstants;
 import com.molvix.android.eventbuses.SearchEvent;
 import com.molvix.android.managers.ContentManager;
+import com.molvix.android.managers.MovieManager;
 import com.molvix.android.models.Movie;
 import com.molvix.android.ui.adapters.MoviesAdapter;
 import com.molvix.android.utils.UiUtils;
@@ -158,6 +159,7 @@ public class HomeFragment extends BaseFragment {
     }
 
     private void fetchAllAvailableMovies() {
+        MovieManager.clearAllRefreshedMovies();
         nullifySearch();
         movies = realm.where(Movie.class)
                 .sort(AppConstants.MOVIE_RECOMMENDED_TO_USER, Sort.DESCENDING)

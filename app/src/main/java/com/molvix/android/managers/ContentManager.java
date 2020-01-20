@@ -1,6 +1,5 @@
 package com.molvix.android.managers;
 
-import android.os.AsyncTask;
 import android.util.Log;
 import android.util.Pair;
 
@@ -23,7 +22,6 @@ import java.util.List;
 
 import io.realm.ImportFlag;
 import io.realm.Realm;
-import io.realm.RealmList;
 
 public class ContentManager {
 
@@ -58,15 +56,17 @@ public class ContentManager {
             Document document = Jsoup.connect(TV_SERIES_URL).get();
             Element update = document.selectFirst("div.data_list");
             if (update != null) {
-                Log.d("NotifLogs", "Data List Found");
                 Elements updates = update.children();
                 for (Element updateItem : updates) {
                     String updateTitle = updateItem.text();
-                    Log.d("NotifLogs", updateTitle);
                     String movieTitle = StringUtils.substringBefore(updateTitle, "- Season");
+                    String secondProcessed = updateTitle.replace(movieTitle, "");
+                    String movieSeason = StringUtils.substringBefore(secondProcessed, "- Episode");
+                    String thirdProcessed = secondProcessed.replace(movieSeason, "");
+                    String episodeName = StringUtils.substringBeforeLast(thirdProcessed, "-");
+                    Log.d(ContentManager.class.getSimpleName(), "Notif Text=" + updateTitle);
+                    Log.d(ContentManager.class.getSimpleName(), "MovieTitle=" + movieTitle + ",SeasonName=" + movieSeason + ",EpisodeName=" + episodeName);
                 }
-            } else {
-                Log.d("NotifLogs", "Data List Not Found");
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -102,6 +102,7 @@ public class ContentManager {
     }
 
     public static void extractMetaDataFromMovieLink(String movieLink, String movieId) {
+        Log.d(ContentManager.class.getSimpleName(), "Loading Details for " + movieLink);
         try (Realm realm = Realm.getDefaultInstance()) {
             Document movieDoc = Jsoup.connect(movieLink).get();
             Element movieInfoElement = movieDoc.select("div.tv_series_info").first();
@@ -152,6 +153,7 @@ public class ContentManager {
                 }
             }
             r.copyToRealmOrUpdate(updatableMovie, ImportFlag.CHECK_SAME_VALUES_BEFORE_SET);
+            MovieManager.addToRefreshedMovies(updatableMovie.getMovieId());
         }
     }
 
@@ -208,6 +210,7 @@ public class ContentManager {
                         }
                         Log.d(ContentManager.class.getSimpleName(), "Updating Season Details for Season " + updatableSeason.getSeasonName());
                         r.copyToRealmOrUpdate(updatableSeason, ImportFlag.CHECK_SAME_VALUES_BEFORE_SET);
+                        SeasonsManager.addToRefreshedSeasons(updatableSeason.getSeasonId());
                     });
                 }
             }

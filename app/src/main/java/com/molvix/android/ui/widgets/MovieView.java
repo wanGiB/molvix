@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.graphics.drawable.ColorDrawable;
 import android.os.AsyncTask;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.FrameLayout;
@@ -19,6 +20,7 @@ import com.molvix.android.R;
 import com.molvix.android.companions.AppConstants;
 import com.molvix.android.managers.AdsLoadManager;
 import com.molvix.android.managers.ContentManager;
+import com.molvix.android.managers.MovieManager;
 import com.molvix.android.models.Movie;
 import com.molvix.android.models.Season;
 import com.molvix.android.ui.activities.MovieDetailsActivity;
@@ -107,12 +109,6 @@ public class MovieView extends FrameLayout {
         }
     }
 
-    @Override
-    protected void onDetachedFromWindow() {
-        super.onDetachedFromWindow();
-        AdsLoadManager.destroyAds();
-    }
-
     private void initEventHandlers(Movie movie) {
         OnClickListener onClickListener = v -> {
             UiUtils.blinkView(parentCardView);
@@ -167,17 +163,26 @@ public class MovieView extends FrameLayout {
     }
 
     private void refreshMovieDetails(Movie movie) {
-        if (movieMetadataExtractionTask != null) {
-            movieMetadataExtractionTask.cancel(true);
+        if (MovieManager.canRefreshMovieDetails(movie.getMovieId())) {
+            if (movieMetadataExtractionTask != null) {
+                movieMetadataExtractionTask.cancel(true);
+            }
+            movieMetadataExtractionTask = new MovieMetadataExtractionTask(movie.getMovieLink(), movie.getMovieId());
+            movieMetadataExtractionTask.execute();
         }
-        movieMetadataExtractionTask = new MovieMetadataExtractionTask(movie.getMovieLink(), movie.getMovieId());
-        movieMetadataExtractionTask.execute();
     }
 
     @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
         refreshMovieDetails(movie);
+    }
+
+    @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        Log.d(ContentManager.class.getSimpleName(), movie.getMovieName() + " Detached");
+        AdsLoadManager.destroyAds();
     }
 
     static class MovieMetadataExtractionTask extends AsyncTask<Void, Void, Void> {

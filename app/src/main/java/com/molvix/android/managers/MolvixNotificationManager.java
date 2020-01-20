@@ -6,7 +6,6 @@ import android.app.PendingIntent;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Build;
-import android.util.Log;
 
 import com.molvix.android.R;
 import com.molvix.android.companions.AppConstants;
@@ -16,14 +15,13 @@ import com.molvix.android.preferences.AppPrefs;
 import com.molvix.android.ui.activities.EmptyContentActivity;
 import com.molvix.android.ui.activities.MainActivity;
 import com.molvix.android.ui.activities.MovieDetailsActivity;
+import com.molvix.android.ui.notifications.notification.Load;
 import com.molvix.android.ui.notifications.notification.MolvixNotification;
 
 import org.apache.commons.lang3.text.WordUtils;
 
 import io.realm.ImportFlag;
 import io.realm.Realm;
-
-import com.molvix.android.ui.notifications.notification.Load;
 
 class MolvixNotificationManager {
 

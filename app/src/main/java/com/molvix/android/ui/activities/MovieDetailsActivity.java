@@ -25,6 +25,7 @@ import com.molvix.android.eventbuses.LoadEpisodesForSeason;
 import com.molvix.android.managers.ContentManager;
 import com.molvix.android.managers.EpisodesManager;
 import com.molvix.android.managers.FileDownloadManager;
+import com.molvix.android.managers.SeasonsManager;
 import com.molvix.android.models.DownloadableEpisode;
 import com.molvix.android.models.Episode;
 import com.molvix.android.models.Movie;
@@ -91,6 +92,7 @@ public class MovieDetailsActivity extends BaseActivity {
         movieId = getIntent().getStringExtra(AppConstants.MOVIE_ID);
         cleanUpMovieContentItems();
         initMovieAdapter();
+        SeasonsManager.clearAllRefreshedSeasons();
         listenToIncomingDownloadableEpisodes();
         if (movieId != null) {
             loadingLayoutProgressMsgView.setText(getString(R.string.please_wait));

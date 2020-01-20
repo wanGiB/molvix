@@ -61,4 +61,6 @@ public class AppConstants {
     public static final String DAILY_MOVIES_RECOMMENDABILITY = "daily_movies_recommendability";
     public static final String AD_CONSUMED = "ad_consumed";
     public static final String LAST_MOVIES_RECOMMENDATION_TIME = "last_movies_recommendation_time";
+    public static final String REFRESHED_MOVIES = "refreshed_movies";
+    public static final String REFRESHED_SEASONS = "refreshed_seasons";
 }
