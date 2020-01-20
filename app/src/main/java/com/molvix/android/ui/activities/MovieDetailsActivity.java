@@ -200,6 +200,10 @@ public class MovieDetailsActivity extends BaseActivity {
             List<Season> movieSeasons = movie.getMovieSeasons();
             loadInMovieSeasons(movieContentItems, movieSeasons);
             UiUtils.toggleViewVisibility(loadingLayout, false);
+            realm.executeTransaction(r -> {
+                movie.setRecommendedToUser(true);
+                r.copyToRealmOrUpdate(movie, ImportFlag.CHECK_SAME_VALUES_BEFORE_SET);
+            });
         });
     }
 

@@ -28,10 +28,8 @@ import com.molvix.android.companions.AppConstants;
 import com.molvix.android.eventbuses.LoadAds;
 import com.molvix.android.eventbuses.SearchEvent;
 import com.molvix.android.managers.AdsLoadManager;
-import com.molvix.android.managers.ContentManager;
 import com.molvix.android.managers.EpisodesManager;
 import com.molvix.android.managers.FileDownloadManager;
-import com.molvix.android.managers.MovieTracker;
 import com.molvix.android.models.DownloadableEpisode;
 import com.molvix.android.models.Episode;
 import com.molvix.android.utils.FileUtils;
@@ -83,14 +81,13 @@ public class MainActivity extends BaseActivity {
         initEventHandlers();
         checkForNewIntent();
         listenToIncomingDownloadableEpisodes();
-        AdsLoadManager.loadAds(this);
-        MovieTracker.recommendUnWatchedMoviesToUser();
+        AdsLoadManager.loadAds();
     }
 
     @Override
     public void onEventMainThread(Object event) {
         if (event instanceof LoadAds) {
-            AdsLoadManager.loadAds(MainActivity.this);
+            AdsLoadManager.loadAds();
         }
     }
 

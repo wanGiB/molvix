@@ -89,7 +89,7 @@ class MolvixNotificationManager {
                         .load()
                         .notificationChannelId("Molvix Next Rated Movie")
                         .title("Molvix")
-                        .message("Recommended For You")
+                        .message("Have you seen the Movie \"" + WordUtils.capitalize(recommendableMovie.getMovieName()) + "\"")
                         .autoCancel(true)
                         .click(movieDetailsPendingIntent)
                         .bigTextStyle("Have you seen the Movie \"" + WordUtils.capitalize(recommendableMovie.getMovieName()) + "\"")

@@ -40,6 +40,7 @@ import io.realm.Case;
 import io.realm.OrderedRealmCollectionChangeListener;
 import io.realm.Realm;
 import io.realm.RealmResults;
+import io.realm.Sort;
 import jp.wasabeef.recyclerview.animators.ScaleInAnimator;
 
 @SuppressWarnings("ConstantConditions")
@@ -158,7 +159,9 @@ public class HomeFragment extends BaseFragment {
 
     private void fetchAllAvailableMovies() {
         nullifySearch();
-        movies = realm.where(Movie.class).findAllAsync();
+        movies = realm.where(Movie.class)
+                .sort(AppConstants.MOVIE_RECOMMENDED_TO_USER, Sort.DESCENDING)
+                .findAllAsync();
         spinMoviesDownloadJob();
         listenToChangesInLocalMoviesDatabase();
     }

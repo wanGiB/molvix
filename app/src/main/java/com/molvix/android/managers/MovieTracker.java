@@ -35,6 +35,8 @@ import io.realm.RealmResults;
 
 public class MovieTracker {
 
+    private static BitmapLoadTask bitmapLoadTask;
+
     @SuppressWarnings("ConstantConditions")
     static void recordEpisodeAsDownloaded(String episodeId) {
         //Add to user notifications pane
@@ -71,7 +73,6 @@ public class MovieTracker {
         try (Realm realm = Realm.getDefaultInstance()) {
             RealmResults<Movie> recommendableMovies = realm.where(Movie.class).equalTo(AppConstants.MOVIE_RECOMMENDED_TO_USER, false).findAll();
             if (recommendableMovies != null && recommendableMovies.isLoaded() && !recommendableMovies.isEmpty()) {
-                //Get the First Movie
                 Movie firstMovie = recommendableMovies.get(0);
                 if (firstMovie != null) {
                     String movieArtUrl = firstMovie.getMovieArtUrl();
@@ -103,23 +104,41 @@ public class MovieTracker {
     }
 
     private static void loadBitmapAndRecommendVideo(String videoId, String artUrl) {
-        RequestOptions imageLoadRequestOptions = new RequestOptions()
-                .diskCacheStrategy(DiskCacheStrategy.ALL);
-        Glide.with(ApplicationLoader.getInstance())
-                .asBitmap()
-                .load(artUrl)
-                .apply(imageLoadRequestOptions)
-                .into(new CustomTarget<Bitmap>() {
-                    @Override
-                    public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
-                        UiUtils.runOnMain(() -> MolvixNotificationManager.recommendMovieToUser(videoId, resource));
-                    }
+        if (bitmapLoadTask != null) {
+            bitmapLoadTask.cancel(true);
+            bitmapLoadTask = null;
+        }
+        bitmapLoadTask = new BitmapLoadTask();
+        bitmapLoadTask.execute(videoId, artUrl);
+    }
 
-                    @Override
-                    public void onLoadCleared(@Nullable Drawable placeholder) {
+    private static class BitmapLoadTask extends AsyncTask<String, Void, Void> {
 
-                    }
-                });
+        @Override
+        protected Void doInBackground(String... strings) {
+            String videoId = strings[0];
+            String artUrl = strings[1];
+            RequestOptions imageLoadRequestOptions = new RequestOptions()
+                    .diskCacheStrategy(DiskCacheStrategy.ALL);
+            Glide.with(ApplicationLoader.getInstance())
+                    .asBitmap()
+                    .load(artUrl)
+                    .apply(imageLoadRequestOptions)
+                    .into(new CustomTarget<Bitmap>() {
+                        @Override
+                        public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
+                            UiUtils.runOnMain(() -> MolvixNotificationManager.recommendMovieToUser(videoId, resource));
+                        }
+
+                        @Override
+                        public void onLoadCleared(@Nullable Drawable placeholder) {
+
+                        }
+
+                    });
+            return null;
+        }
+
     }
 
 }
