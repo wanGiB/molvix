@@ -16,13 +16,13 @@
 
         <Preference
             android:key="@string/feedback_key"
-            android:summary="Are you enjoying Molvix?\nRate Us"
-            android:title="Feedback" />
+            android:summary="How would you rate Molvix?"
+            android:title="Rate Us" />
 
         <Preference
             android:key="@string/donation_key"
-            android:summary="Donate to Support the Project"
-            android:title="Donations" />
+            android:summary="Help Us By Donating"
+            android:title="Love Molvix?" />
 
         <Preference android:key="@string/donation_view" />
 

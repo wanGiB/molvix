@@ -9,10 +9,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.molvix.android.companions.AppConstants;
 import com.molvix.android.models.DownloadableEpisode;
 import com.molvix.android.models.Episode;
+import com.molvix.android.ui.notifications.notification.MolvixNotification;
 
 import io.realm.ImportFlag;
 import io.realm.Realm;
-import ir.zadak.zadaknotify.notification.ZadakNotification;
 
 public class EmptyContentActivity extends AppCompatActivity {
 
@@ -37,7 +37,7 @@ public class EmptyContentActivity extends AppCompatActivity {
                     r.copyToRealmOrUpdate(episode, ImportFlag.CHECK_SAME_VALUES_BEFORE_SET);
                 }
             });
-            ZadakNotification.with(this).cancel(Math.abs(episodeId.hashCode()));
+            MolvixNotification.with(this).cancel(Math.abs(episodeId.hashCode()));
         }
         finish();
     }

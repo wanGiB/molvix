@@ -1,6 +1,9 @@
 package com.molvix.android.managers;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
+import android.util.Pair;
 
 import com.molvix.android.companions.AppConstants;
 import com.molvix.android.models.Episode;
@@ -8,10 +11,19 @@ import com.molvix.android.models.Movie;
 import com.molvix.android.models.Notification;
 import com.molvix.android.models.Season;
 import com.molvix.android.utils.CryptoUtils;
+import com.molvix.android.utils.UiUtils;
 
-import java.security.SecureRandom;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.Collections;
 import java.util.Random;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.FutureTask;
 
 import io.realm.ImportFlag;
 import io.realm.Realm;
@@ -20,6 +32,8 @@ import io.realm.RealmList;
 import io.realm.RealmResults;
 
 public class MovieTracker {
+
+    private static BitmapLoadTask bitmapLoadTask;
 
     @SuppressWarnings("ConstantConditions")
     static void recordEpisodeAsDownloaded(String episodeId) {
@@ -50,8 +64,8 @@ public class MovieTracker {
         try (Realm realm = Realm.getDefaultInstance()) {
             RealmResults<Movie> recommendableMovies = realm.where(Movie.class).equalTo(AppConstants.MOVIE_RECOMMENDED_TO_USER, false).findAll();
             if (recommendableMovies != null && recommendableMovies.isLoaded() && !recommendableMovies.isEmpty()) {
-                Collections.shuffle(recommendableMovies, new SecureRandom());
                 //Get the First Movie
+                Collections.reverse(recommendableMovies);
                 Movie firstMovie = recommendableMovies.get(0);
                 if (firstMovie != null) {
                     String movieArtUrl = firstMovie.getMovieArtUrl();
@@ -60,21 +74,79 @@ public class MovieTracker {
                     RealmList<Season> movieSeasons = firstMovie.getMovieSeasons();
                     if (movieArtUrl == null || movieSeasons == null || movieSeasons.isEmpty()) {
                         firstMovie.addChangeListener((RealmChangeListener<Movie>) realmModel -> {
-                            MolvixNotificationManager.recommendMovieToUser(realmModel.getMovieId());
-                            realmModel.removeAllChangeListeners();
+                            loadBitmapAndRecommendVideo(realmModel.getMovieId(), realmModel.getMovieArtUrl());
+                            firstMovie.removeAllChangeListeners();
                         });
-                        new AsyncTask<String, Void, Void>() {
-                            @Override
-                            protected Void doInBackground(String... movieIds) {
-                                ContentManager.extractMetaDataFromMovieLink(movieIds[0], movieIds[1]);
-                                return null;
-                            }
-                        }.execute(movieLink, movieId);
+                        new MovieContentsExtractionTask().execute(movieLink, movieId);
                     } else {
-                        MolvixNotificationManager.recommendMovieToUser(firstMovie.getMovieId());
+                        loadBitmapAndRecommendVideo(firstMovie.getMovieId(), firstMovie.getMovieArtUrl());
                     }
                 }
             }
         }
     }
+
+    private static class MovieContentsExtractionTask extends AsyncTask<String, Void, Void> {
+
+        @Override
+        protected Void doInBackground(String... movieIds) {
+            ContentManager.extractMetaDataFromMovieLink(movieIds[0], movieIds[1]);
+            return null;
+        }
+
+    }
+
+    private static void loadBitmapAndRecommendVideo(String videoId, String artUrl) {
+        if (bitmapLoadTask != null) {
+            bitmapLoadTask.cancel(true);
+            bitmapLoadTask = null;
+        }
+        bitmapLoadTask = new BitmapLoadTask();
+        bitmapLoadTask.execute(videoId, artUrl);
+    }
+
+    static class BitmapLoadTask extends AsyncTask<String, Void, Pair<String, Bitmap>> {
+
+        @Override
+        protected Pair<String, Bitmap> doInBackground(String... strings) {
+            String videoId = strings[0];
+            String artUrl = strings[1];
+            Bitmap artBitmap = getBitmapFromURL(artUrl);
+            return new Pair<>(videoId, artBitmap);
+        }
+
+        @Override
+        protected void onPostExecute(Pair<String, Bitmap> stringBitmapPair) {
+            super.onPostExecute(stringBitmapPair);
+            if (stringBitmapPair.first != null && stringBitmapPair.second != null) {
+                UiUtils.runOnMain(() -> MolvixNotificationManager.recommendMovieToUser(stringBitmapPair.first, stringBitmapPair.second));
+            }
+        }
+    }
+
+    private static Bitmap getBitmapFromURL(final String strURL) {
+        Callable<Bitmap> bitmapCallable = () -> {
+            try {
+                URL url = new URL(strURL);
+                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                connection.setDoInput(true);
+                connection.connect();
+                InputStream input = connection.getInputStream();
+                return BitmapFactory.decodeStream(input);
+            } catch (IOException e) {
+                e.printStackTrace();
+                return null;
+            }
+        };
+        FutureTask<Bitmap> bitmapFutureTask = new FutureTask<>(bitmapCallable);
+        ExecutorService executorService = Executors.newCachedThreadPool();
+        executorService.execute(bitmapFutureTask);
+        try {
+            return bitmapFutureTask.get();
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
 }

@@ -29,7 +29,7 @@ public class MoreContentsFragment extends PreferenceFragmentCompat implements Pr
         if (bitcoinDonationsPref != null) {
             bitcoinDonationsPref.setOnPreferenceClickListener(preference -> {
                 copyBitcoinAddress();
-                UiUtils.showSafeToast("Bitcoin address copied!");
+                UiUtils.showSafeToast("Bitcoin address copied!\nThank You.");
                 return true;
             });
         }
@@ -38,7 +38,7 @@ public class MoreContentsFragment extends PreferenceFragmentCompat implements Pr
             donationsView.setLayoutResource(R.layout.bitcoin_donation_page);
             donationsView.setOnPreferenceClickListener(preference -> {
                 copyBitcoinAddress();
-                UiUtils.showSafeToast("Bitcoin address copied!");
+                UiUtils.showSafeToast("Bitcoin address copied!\nThank You");
                 return true;
             });
         }
@@ -64,8 +64,8 @@ public class MoreContentsFragment extends PreferenceFragmentCompat implements Pr
     }
 
     private void displayThirdPartySoftwareUsed() {
+        OssLicensesMenuActivity.setActivityTitle("Notices for Files");
         Intent licencesIntent = new Intent(getActivity(), OssLicensesMenuActivity.class);
-        licencesIntent.putExtra("title", "Notices for files");
         startActivity(licencesIntent);
     }
 

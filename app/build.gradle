@@ -64,7 +64,6 @@ dependencies {
     implementation 'jp.wasabeef:recyclerview-animators:3.0.0'
     implementation 'com.karumi:dexter:6.0.1'
     implementation 'com.github.delight-im:Android-AdvancedWebView:v3.0.0'
-    implementation 'com.github.mehrdadsafari:ZadakNotification:0.0.2'
     implementation 'com.mindorks.android:prdownloader:0.6.0'
     implementation 'com.liucanwen.app:headerfooterrecyclerview:1.0.0'
     implementation 'androidx.preference:preference:1.1.0'

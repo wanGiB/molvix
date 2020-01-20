@@ -1,5 +1,6 @@
 package com.molvix.android.ui.fragments;
 
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,6 +15,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.molvix.android.R;
+import com.molvix.android.managers.ContentManager;
 import com.molvix.android.models.Notification;
 import com.molvix.android.ui.adapters.NotificationsAdapter;
 import com.molvix.android.ui.rendering.StickyRecyclerHeadersDecoration;
@@ -47,6 +49,7 @@ public class NotificationsFragment extends Fragment {
     private NotificationsAdapter notificationsAdapter;
     private Realm realm;
     private StickyRecyclerHeadersDecoration stickyRecyclerHeadersDecoration;
+    private NotificationsFetchTask notificationsFetchTask;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -80,16 +83,21 @@ public class NotificationsFragment extends Fragment {
     }
 
     @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-    }
-
-    @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         setupSwipeRefreshLayoutColorScheme();
         setupAdapter();
         fetchNotifications();
+        fetchNotificationsFromRemoteResource();
+    }
+
+    private void fetchNotificationsFromRemoteResource() {
+        if (notificationsFetchTask != null) {
+            notificationsFetchTask.cancel(true);
+            notificationsFetchTask = null;
+        }
+        notificationsFetchTask = new NotificationsFetchTask();
+        notificationsFetchTask.execute();
     }
 
     private void setupAdapter() {
@@ -125,6 +133,15 @@ public class NotificationsFragment extends Fragment {
         } else {
             UiUtils.toggleViewVisibility(contentLoadingView, false);
             swipeRefreshLayout.setRefreshing(false);
+        }
+    }
+
+    static class NotificationsFetchTask extends AsyncTask<Void, Void, Void> {
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            ContentManager.fetchNotifications();
+            return null;
         }
     }
 

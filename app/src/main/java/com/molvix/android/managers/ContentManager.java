@@ -1,5 +1,7 @@
 package com.molvix.android.managers;
 
+import android.os.AsyncTask;
+import android.util.Log;
 import android.util.Pair;
 
 import com.molvix.android.companions.AppConstants;
@@ -21,6 +23,7 @@ import java.util.List;
 
 import io.realm.ImportFlag;
 import io.realm.Realm;
+import io.realm.RealmList;
 
 public class ContentManager {
 
@@ -46,6 +49,28 @@ public class ContentManager {
             if (!movies.isEmpty()) {
                 performBulkInsertionOfMovies(movies);
             }
+        }
+    }
+
+    public static void fetchNotifications() {
+        try {
+            String TV_SERIES_URL = "https://o2tvseries.com";
+            Document document = Jsoup.connect(TV_SERIES_URL).get();
+            Element update = document.selectFirst("div.data_list");
+            if (update != null) {
+                Log.d("NotifLogs", "Data List Found");
+                Elements updates = update.children();
+                for (Element updateItem : updates) {
+                    String updateTitle = updateItem.text();
+                    Log.d("NotifLogs", updateTitle);
+                    String movieTitle = StringUtils.substringBefore(updateTitle, "- Season");
+                }
+            } else {
+                Log.d("NotifLogs", "Data List Not Found");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            EventBus.getDefault().post(e);
         }
     }
 

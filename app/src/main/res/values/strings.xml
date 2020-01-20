@@ -43,4 +43,17 @@
     <string name="DeviceListItem_linked_s">Linked %s</string>
     <string name="DeviceListItem_last_active_s">Last active %s</string>
     <string name="DeviceListItem_today">Today</string>
+    <string name="text_notification">Notification</string>
+    <string name="text_notification_custom">Notification Custom</string>
+    <string name="text_title">Title</string>
+    <string name="text_message">Message</string>
+    <string name="text_description_image_icon">Small Icon</string>
+    <string name="text_description_image_background">Background</string>
+    <string name="key_voice_reply">extra_voice_reply</string>
+    <string name="label_voice_reply">Reply</string>
+    <string-array name="reply_choices">
+        <item>Yes</item>
+        <item>No</item>
+        <item>Maybe</item>
+    </string-array>
 </resources>

@@ -230,9 +230,6 @@ public class MovieDetailsActivity extends BaseActivity {
         if (!movieContentItems.contains(movieHeaderItem)) {
             movieContentItems.add(movieHeaderItem);
             seasonsWithEpisodesAdapter.notifyItemInserted(movieContentItems.size() - 1);
-        } else {
-            movieContentItems.set(0, movieHeaderItem);
-            seasonsWithEpisodesAdapter.notifyItemChanged(0);
         }
     }
 

@@ -28,6 +28,7 @@ import com.molvix.android.companions.AppConstants;
 import com.molvix.android.eventbuses.LoadAds;
 import com.molvix.android.eventbuses.SearchEvent;
 import com.molvix.android.managers.AdsLoadManager;
+import com.molvix.android.managers.ContentManager;
 import com.molvix.android.managers.EpisodesManager;
 import com.molvix.android.managers.FileDownloadManager;
 import com.molvix.android.models.DownloadableEpisode;

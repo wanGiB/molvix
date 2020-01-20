@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
+    <color name="notification_background">#CC2f2f2f</color>
+    <color name="color_white">#FFFFFF</color>
     <color name="psts_background_tab_pressed">#1AFFFFFF</color>
     <color name="ripple_black">#80000000</color>
     <color name="icons_unselected_color">@color/ease_gray</color>

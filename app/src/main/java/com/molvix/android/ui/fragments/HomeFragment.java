@@ -31,9 +31,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.greenrobot.eventbus.EventBus;
 
 import java.io.IOException;
-import java.security.SecureRandom;
 import java.text.DecimalFormat;
-import java.util.Collections;
 import java.util.List;
 
 import butterknife.BindView;
@@ -117,7 +115,6 @@ public class HomeFragment extends BaseFragment {
             if (changeSet == null) {
                 return;
             }
-            Collections.shuffle(results, new SecureRandom());
             moviesAdapter.setData(results);
             checkAndInvalidateUI();
             swipeRefreshLayout.setRefreshing(false);
