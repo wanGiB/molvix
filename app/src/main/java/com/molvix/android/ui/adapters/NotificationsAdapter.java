@@ -13,11 +13,14 @@ import com.molvix.android.R;
 import com.molvix.android.companions.AppConstants;
 import com.molvix.android.models.Notification;
 import com.molvix.android.ui.widgets.NotificationView;
+import com.molvix.android.utils.DateUtils;
+import com.molvix.android.utils.MolvixGenUtils;
 
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -49,7 +52,11 @@ public class NotificationsAdapter extends RecyclerView.Adapter<RecyclerView.View
 
     @Override
     public String getHeaderId(int position) {
-        return getDateHeaderValue(notifications.get(position).getTimeStamp());
+        Notification notification = notifications.get(position);
+        Date createdAt = new Date(notification.getTimeStamp());
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(createdAt);
+        return String.valueOf(MolvixGenUtils.hashCode(calendar.get(Calendar.YEAR), calendar.get(Calendar.DAY_OF_YEAR)));
     }
 
     @Override
@@ -60,37 +67,16 @@ public class NotificationsAdapter extends RecyclerView.Adapter<RecyclerView.View
     @Override
     public void onBindHeaderViewHolder(RecyclerView.ViewHolder holder, int position) {
         NotificationsSectionItemViewHolder notificationsSectionItemViewHolder = (NotificationsSectionItemViewHolder) holder;
-        notificationsSectionItemViewHolder.bindDateLabel(notifications.get(position).getTimeStamp());
+        Notification notification = notifications.get(position);
+        if (notification != null) {
+            Date createdAt = new Date(notification.getTimeStamp());
+            notificationsSectionItemViewHolder.bindDateLabel(DateUtils.getRelativeDate(context, Locale.getDefault(), createdAt.getTime()));
+        }
     }
 
     @Override
     public int getItemCount() {
         return notifications == null ? 0 : notifications.size();
-    }
-
-    private static String getDateHeaderValue(long timeStamp) {
-        Date today = new Date();
-        Date notificationDate = new Date(timeStamp);
-        Calendar todayCalendar = Calendar.getInstance();
-        Calendar notificationDateCalendar = Calendar.getInstance();
-        notificationDateCalendar.setTime(notificationDate);
-        int notificationDateValue = notificationDateCalendar.get(Calendar.DATE);
-        int todayDateValue = todayCalendar.get(Calendar.DATE);
-        String dateString;
-        if (todayCalendar.get(Calendar.MONTH) == notificationDateCalendar.get(Calendar.MONTH)
-                && todayCalendar.get(Calendar.DATE) == notificationDateCalendar.get(Calendar.DATE)
-                && todayCalendar.get(Calendar.YEAR) == notificationDateCalendar.get(Calendar.YEAR)) {
-            dateString = "Today";
-        } else {
-            int timeDiff = Math.abs(notificationDateValue - todayDateValue);
-            if (timeDiff == 1 && todayCalendar.get(Calendar.MONTH) == notificationDateCalendar.get(Calendar.MONTH) && todayCalendar.get(Calendar.YEAR) == notificationDateCalendar.get(Calendar.YEAR)) {
-                dateString = "Yesterday";
-            } else {
-                String currentYear = AppConstants.DATE_FORMATTER_IN_YEARS.format(today);
-                dateString = AppConstants.DATE_FORMATTER_IN_BIRTHDAY_FORMAT.format(notificationDate).replace(currentYear, "");
-            }
-        }
-        return dateString;
     }
 
     static class NotificationsItemViewHolder extends RecyclerView.ViewHolder {
@@ -118,9 +104,9 @@ public class NotificationsAdapter extends RecyclerView.Adapter<RecyclerView.View
             ButterKnife.bind(this, itemView);
         }
 
-        void bindDateLabel(long timeStamp) {
-            String dateString = getDateHeaderValue(timeStamp);
-            dateLabelView.setText(dateString);
+        void bindDateLabel(String dateString) {
+            String currentYear = AppConstants.DATE_FORMATTER_IN_YEARS.format(new Date());
+            dateLabelView.setText(dateString.replace(currentYear, ""));
         }
 
     }

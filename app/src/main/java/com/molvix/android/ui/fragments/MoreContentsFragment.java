@@ -64,8 +64,9 @@ public class MoreContentsFragment extends PreferenceFragmentCompat implements Pr
     }
 
     private void displayThirdPartySoftwareUsed() {
-        startActivity(new Intent(getActivity(), OssLicensesMenuActivity.class));
-        OssLicensesMenuActivity.setActivityTitle("Notices for Files");
+        Intent licencesIntent = new Intent(getActivity(), OssLicensesMenuActivity.class);
+        licencesIntent.putExtra("title", "Notices for Files");
+        startActivity(licencesIntent);
     }
 
     private void initAppRater() {
