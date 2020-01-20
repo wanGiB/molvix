@@ -28,8 +28,16 @@ public class MoreContentsFragment extends PreferenceFragmentCompat implements Pr
         SwitchPreferenceCompat dailyMovieRecommendationSwitch = findPreference(getString(R.string.daily_movie_recommendation_key));
         Preference bitcoinDonationsPref = findPreference(getString(R.string.donation_key));
         if (bitcoinDonationsPref != null) {
-            bitcoinDonationsPref.setLayoutResource(R.layout.bitcoin_donation_page);
             bitcoinDonationsPref.setOnPreferenceClickListener(preference -> {
+                copyBitcoinAddress();
+                UiUtils.showSafeToast("Bitcoin address copied!");
+                return true;
+            });
+        }
+        Preference donationsView = findPreference(getString(R.string.donation_view));
+        if (donationsView != null) {
+            donationsView.setLayoutResource(R.layout.bitcoin_donation_page);
+            donationsView.setOnPreferenceClickListener(preference -> {
                 copyBitcoinAddress();
                 UiUtils.showSafeToast("Bitcoin address copied!");
                 return true;
@@ -57,6 +65,7 @@ public class MoreContentsFragment extends PreferenceFragmentCompat implements Pr
     }
 
     private void displayThirdPartySoftwareUsed() {
+        OssLicensesMenuActivity.setActivityTitle("Notices for Files");
         startActivity(new Intent(getActivity(), OssLicensesMenuActivity.class));
     }
 
@@ -69,7 +78,7 @@ public class MoreContentsFragment extends PreferenceFragmentCompat implements Pr
     }
 
     private void copyBitcoinAddress() {
-        ClipboardManager myClipboard= (ClipboardManager) Objects.requireNonNull(getActivity()).getSystemService(CLIPBOARD_SERVICE);
+        ClipboardManager myClipboard = (ClipboardManager) Objects.requireNonNull(getActivity()).getSystemService(CLIPBOARD_SERVICE);
         ClipData myClip;
         String text = getString(R.string.bitcoin_address);
         myClip = ClipData.newPlainText("text", text);

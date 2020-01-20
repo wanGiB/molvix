@@ -24,6 +24,8 @@
             android:summary="Donate to Support the Project"
             android:title="Donations" />
 
+        <Preference android:key="@string/donation_view" />
+
     </PreferenceCategory>
 
     <PreferenceCategory android:title="Legal">
