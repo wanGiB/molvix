@@ -70,7 +70,7 @@ public class NotificationsAdapter extends RecyclerView.Adapter<RecyclerView.View
         Notification notification = notifications.get(position);
         if (notification != null) {
             Date createdAt = new Date(notification.getTimeStamp());
-            notificationsSectionItemViewHolder.bindDateLabel(DateUtils.getRelativeDate(context, Locale.getDefault(), createdAt.getTime()));
+            notificationsSectionItemViewHolder.bindDate(DateUtils.getRelativeDate(context, Locale.getDefault(), createdAt.getTime()));
         }
     }
 
@@ -104,7 +104,7 @@ public class NotificationsAdapter extends RecyclerView.Adapter<RecyclerView.View
             ButterKnife.bind(this, itemView);
         }
 
-        void bindDateLabel(String dateString) {
+        void bindDate(String dateString) {
             String currentYear = AppConstants.DATE_FORMATTER_IN_YEARS.format(new Date());
             dateLabelView.setText(dateString.replace(currentYear, ""));
         }
