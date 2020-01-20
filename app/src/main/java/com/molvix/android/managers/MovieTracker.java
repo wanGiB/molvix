@@ -65,7 +65,6 @@ public class MovieTracker {
             RealmResults<Movie> recommendableMovies = realm.where(Movie.class).equalTo(AppConstants.MOVIE_RECOMMENDED_TO_USER, false).findAll();
             if (recommendableMovies != null && recommendableMovies.isLoaded() && !recommendableMovies.isEmpty()) {
                 //Get the First Movie
-                Collections.reverse(recommendableMovies);
                 Movie firstMovie = recommendableMovies.get(0);
                 if (firstMovie != null) {
                     String movieArtUrl = firstMovie.getMovieArtUrl();
