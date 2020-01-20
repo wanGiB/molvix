@@ -59,13 +59,15 @@ public class ContentManager {
                 Elements updates = update.children();
                 for (Element updateItem : updates) {
                     String updateTitle = updateItem.text();
-                    String movieTitle = StringUtils.substringBefore(updateTitle, "- Season");
+                    String movieTitle = StringUtils.stripStart(StringUtils.stripEnd(StringUtils.substringBefore(updateTitle, "- Season"), "-"), "-").trim();
                     String secondProcessed = updateTitle.replace(movieTitle, "");
-                    String movieSeason = StringUtils.substringBefore(secondProcessed, "- Episode");
-                    String thirdProcessed = secondProcessed.replace(movieSeason, "");
-                    String episodeName = StringUtils.substringBeforeLast(thirdProcessed, "-");
-                    Log.d(ContentManager.class.getSimpleName(), "Notif Text=" + updateTitle);
-                    Log.d(ContentManager.class.getSimpleName(), "MovieTitle=" + movieTitle + ",SeasonName=" + movieSeason + ",EpisodeName=" + episodeName);
+                    String seasonName = StringUtils.stripEnd(StringUtils.stripStart(StringUtils.substringBefore(secondProcessed, "- Episode"), "-"), "-").trim();
+                    String thirdProcessed = secondProcessed.replace(seasonName, "");
+                    String episodeName = StringUtils.stripStart(StringUtils.stripEnd(StringUtils.substringBeforeLast(thirdProcessed, "-"), "-"), "-").trim();
+                    if (StringUtils.isNotEmpty(movieTitle) && StringUtils.isNotEmpty(seasonName) && StringUtils.isNotEmpty(episodeName)) {
+                        Log.d(ContentManager.class.getSimpleName(), "Notif Text=" + updateTitle);
+                        Log.d(ContentManager.class.getSimpleName(), "MovieTitle=" + movieTitle + "; SeasonName=" + seasonName + "; EpisodeName=" + episodeName);
+                    }
                 }
             }
         } catch (IOException e) {
