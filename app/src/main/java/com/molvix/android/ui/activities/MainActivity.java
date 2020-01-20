@@ -31,6 +31,7 @@ import com.molvix.android.managers.AdsLoadManager;
 import com.molvix.android.managers.ContentManager;
 import com.molvix.android.managers.EpisodesManager;
 import com.molvix.android.managers.FileDownloadManager;
+import com.molvix.android.managers.MovieTracker;
 import com.molvix.android.models.DownloadableEpisode;
 import com.molvix.android.models.Episode;
 import com.molvix.android.utils.FileUtils;
@@ -83,6 +84,7 @@ public class MainActivity extends BaseActivity {
         checkForNewIntent();
         listenToIncomingDownloadableEpisodes();
         AdsLoadManager.loadAds(this);
+        MovieTracker.recommendUnWatchedMoviesToUser();
     }
 
     @Override

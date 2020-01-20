@@ -76,6 +76,7 @@ public class SeasonView extends FrameLayout {
     private void registerModelChangeListener(Season season) {
         season.addChangeListener((RealmChangeListener<Season>) newSeason -> {
             if (newSeason.getEpisodes() != null && !newSeason.getEpisodes().isEmpty()) {
+               UiUtils.showSafeToast("Season Details changed at "+season.getSeasonName());
                 this.season = newSeason;
                 seasonNameView.setText(newSeason.getSeasonName());
                 if (pendingEpisodesLoadOperation.get()) {

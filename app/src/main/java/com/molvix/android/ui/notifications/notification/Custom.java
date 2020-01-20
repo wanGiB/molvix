@@ -5,12 +5,14 @@ import android.annotation.TargetApi;
 import android.graphics.Bitmap;
 import android.os.Looper;
 import android.text.Spanned;
+import android.util.Log;
 import android.widget.RemoteViews;
 
 import androidx.annotation.DrawableRes;
 import androidx.core.app.NotificationCompat;
 
 import com.molvix.android.R;
+import com.molvix.android.managers.MovieTracker;
 
 @TargetApi(android.os.Build.VERSION_CODES.JELLY_BEAN)
 public class Custom extends Builder {
@@ -93,7 +95,7 @@ public class Custom extends Builder {
 
     private void loadImageBackground() {
         mRemoteView.setImageViewResource(R.id.notification_img_background, mPlaceHolderResourceId);
-        if (backgroundBitmap !=null){
+        if (backgroundBitmap != null) {
             mRemoteView.setImageViewBitmap(R.id.notification_img_background, backgroundBitmap);
         }
     }

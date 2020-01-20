@@ -6,6 +6,7 @@ import android.app.PendingIntent;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Build;
+import android.util.Log;
 
 import com.molvix.android.R;
 import com.molvix.android.companions.AppConstants;
