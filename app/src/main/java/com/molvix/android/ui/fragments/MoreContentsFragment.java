@@ -9,7 +9,6 @@ import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.SwitchPreferenceCompat;
 
-import com.google.android.gms.oss.licenses.OssLicensesActivity;
 import com.google.android.gms.oss.licenses.OssLicensesMenuActivity;
 import com.molvix.android.R;
 import com.molvix.android.preferences.AppPrefs;
@@ -65,8 +64,8 @@ public class MoreContentsFragment extends PreferenceFragmentCompat implements Pr
     }
 
     private void displayThirdPartySoftwareUsed() {
-        OssLicensesMenuActivity.setActivityTitle("Notices for Files");
         startActivity(new Intent(getActivity(), OssLicensesMenuActivity.class));
+        OssLicensesMenuActivity.setActivityTitle("Notices for Files");
     }
 
     private void initAppRater() {
