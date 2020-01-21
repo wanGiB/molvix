@@ -12,6 +12,9 @@ public class SeasonsManager {
         return AppPrefs.canRefreshSeasonDetails(seasonId);
     }
 
+    public static void setSeasonRefreshable(String seasonId){
+        AppPrefs.setSeasonRefreshable(seasonId);
+    }
     public static void clearAllRefreshedSeasons() {
         AppPrefs.clearAllRefreshedSeasons();
     }

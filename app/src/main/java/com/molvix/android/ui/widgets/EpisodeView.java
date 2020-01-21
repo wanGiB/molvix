@@ -145,6 +145,7 @@ public class EpisodeView extends FrameLayout {
     }
 
     private void listenToChangesOnEpisode(Episode episode) {
+        episode.removeAllChangeListeners();
         episode.addChangeListener((RealmChangeListener<Episode>) updatedEpisode -> {
             this.episode = updatedEpisode;
             setupEpisodeName(updatedEpisode);

@@ -122,4 +122,10 @@ public class AppPrefs {
         getAppPreferences().edit().putStringSet(AppConstants.REFRESHED_SEASONS, refreshedSeasons).commit();
     }
 
+    @SuppressLint("ApplySharedPref")
+    public static void setSeasonRefreshable(String seasonId) {
+        Set<String> refreshedSeasons = getAppPreferences().getStringSet(AppConstants.REFRESHED_SEASONS, new HashSet<>());
+        refreshedSeasons.add(seasonId);
+        getAppPreferences().edit().putStringSet(AppConstants.REFRESHED_SEASONS, refreshedSeasons).commit();
+    }
 }

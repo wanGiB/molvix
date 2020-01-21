@@ -74,6 +74,7 @@ public class SeasonView extends FrameLayout {
     }
 
     private void registerModelChangeListener(Season season) {
+        season.removeAllChangeListeners();
         season.addChangeListener((RealmChangeListener<Season>) newSeason -> {
             if (newSeason.getEpisodes() != null && !newSeason.getEpisodes().isEmpty()) {
                 this.season = newSeason;
@@ -97,6 +98,7 @@ public class SeasonView extends FrameLayout {
                 EventBus.getDefault().post(new LoadEpisodesForSeason(season));
             } else {
                 if (ConnectivityUtils.isDeviceConnectedToTheInternet()) {
+                    SeasonsManager.setSeasonRefreshable(season.getSeasonId());
                     UiUtils.showSafeToast("Please wait...");
                     pendingEpisodesLoadOperation.set(true);
                     loadSeasonEpisodes();
