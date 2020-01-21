@@ -65,7 +65,7 @@ public class MovieTracker {
                 return;
             }
         }
-        MolvixDB.fetchAllAvailableMovies((recommendableMovies, e) -> {
+        MolvixDB.fetchRecommendableMovies((recommendableMovies, e) -> {
             if (!recommendableMovies.isEmpty()) {
                 Collections.shuffle(recommendableMovies, new SecureRandom());
                 Movie firstMovie = recommendableMovies.get(0);
@@ -75,7 +75,10 @@ public class MovieTracker {
                     String movieLink = firstMovie.getMovieLink();
                     List<Season> movieSeasons = firstMovie.getMovieSeasons();
                     if (movieArtUrl == null || movieSeasons.isEmpty()) {
-                        MolvixContentChangeObserver.addMovieChangedListener(firstMovie.getMovieId(), changedData -> loadBitmapAndRecommendVideo(changedData.getMovieId(), changedData.getMovieArtUrl()));
+                        MolvixContentChangeObserver.addMovieChangedListener(firstMovie.getMovieId(), changedData -> {
+                            loadBitmapAndRecommendVideo(changedData.getMovieId(), changedData.getMovieArtUrl());
+                            MolvixContentChangeObserver.removeMovieChangeListener(firstMovie.getMovieId());
+                        });
                         new MovieContentsExtractionTask().execute(movieLink, movieId);
                     } else {
                         loadBitmapAndRecommendVideo(firstMovie.getMovieId(), firstMovie.getMovieArtUrl());

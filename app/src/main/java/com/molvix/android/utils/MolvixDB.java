@@ -102,6 +102,10 @@ public class MolvixDB {
 
     }
 
+    public static void fetchRecommendableMovies(DoneCallback<List<Movie>> fetchDoneCallBack) {
+
+    }
+
     public static void fetchNotifications(DoneCallback<List<Notification>> notificationsFetchDoneCallBack) {
 
     }
