@@ -26,6 +26,7 @@ import com.molvix.android.managers.ContentManager;
 import com.molvix.android.managers.MovieManager;
 import com.molvix.android.models.Movie;
 import com.molvix.android.ui.adapters.MoviesAdapter;
+import com.molvix.android.utils.ConnectivityUtils;
 import com.molvix.android.utils.UiUtils;
 
 import org.apache.commons.lang3.StringUtils;
@@ -83,6 +84,7 @@ public class HomeFragment extends BaseFragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        MovieManager.clearAllRefreshedMovies();
         realm = Realm.getDefaultInstance();
     }
 
@@ -122,6 +124,7 @@ public class HomeFragment extends BaseFragment {
             swipeRefreshLayout.setRefreshing(false);
             displayTotalNumberOfMoviesLoadedInHeader();
         };
+        movies.removeAllChangeListeners();
         movies.addChangeListener(realmChangeListener);
     }
 
@@ -158,8 +161,16 @@ public class HomeFragment extends BaseFragment {
         RecyclerViewUtils.setHeaderView(moviesRecyclerView, headerView);
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (realm == null || realm.isClosed()) {
+            realm = Realm.getDefaultInstance();
+            fetchAllAvailableMovies();
+        }
+    }
+
     private void fetchAllAvailableMovies() {
-        MovieManager.clearAllRefreshedMovies();
         nullifySearch();
         movies = realm.where(Movie.class)
                 .sort(AppConstants.MOVIE_RECOMMENDED_TO_USER, Sort.DESCENDING)
@@ -214,13 +225,22 @@ public class HomeFragment extends BaseFragment {
         initMovieExtractionTask();
     }
 
+    @SuppressLint("SetTextI18n")
     private void initMovieExtractionTask() {
-        if (contentPullOverTask != null) {
-            contentPullOverTask.cancel(true);
-            contentPullOverTask = null;
+        if (ConnectivityUtils.isDeviceConnectedToTheInternet()) {
+            if (contentPullOverTask != null) {
+                contentPullOverTask.cancel(true);
+                contentPullOverTask = null;
+            }
+            contentPullOverTask = new ContentPullOverTask();
+            contentPullOverTask.execute();
+        } else {
+            if (movies.isEmpty()) {
+                UiUtils.toggleViewVisibility(contentLoadingProgressBar, false);
+                contentLoadingProgressMessageView.setText("Network error.Please connect to the internet to download movies.");
+                swipeRefreshLayout.setRefreshing(false);
+            }
         }
-        contentPullOverTask = new ContentPullOverTask();
-        contentPullOverTask.execute();
     }
 
     @SuppressLint("SetTextI18n")
@@ -271,8 +291,10 @@ public class HomeFragment extends BaseFragment {
     }
 
     private void nullifySearch() {
-        moviesAdapter.setSearchString(null);
-        moviesAdapter.notifyDataSetChanged();
+        if (moviesAdapter != null) {
+            moviesAdapter.setSearchString(null);
+            moviesAdapter.notifyDataSetChanged();
+        }
     }
 
     static class ContentPullOverTask extends AsyncTask<Void, Void, Void> {

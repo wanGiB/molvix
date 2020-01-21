@@ -10,7 +10,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.animation.Animation;
-import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ProgressBar;
@@ -171,6 +170,7 @@ public class EpisodeView extends FrameLayout {
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
         episode.removeAllChangeListeners();
+        realm.close();
     }
 
     private void initDownloadOrPlayButtonEventListener(Episode episode, String episodeName) {
@@ -203,6 +203,14 @@ public class EpisodeView extends FrameLayout {
                         realm.executeTransaction(r -> {
                             Episode updatableEpisode = r.where(Episode.class).equalTo(AppConstants.EPISODE_ID, episode.getEpisodeId()).findFirst();
                             if (updatableEpisode != null) {
+                                int episodeQualitySelection = episodeDownloadOptionsSpinner.getSelectedItemPosition();
+                                if (episodeQualitySelection == 0) {
+                                    updatableEpisode.setEpisodeQuality(AppConstants.HIGH_QUALITY);
+                                } else if (episodeQualitySelection == 1) {
+                                    updatableEpisode.setEpisodeQuality(AppConstants.STANDARD_QUALITY);
+                                } else {
+                                    updatableEpisode.setEpisodeQuality(AppConstants.LOW_QUALITY);
+                                }
                                 updatableEpisode.setDownloadProgress(0);
                                 r.copyToRealmOrUpdate(updatableEpisode, ImportFlag.CHECK_SAME_VALUES_BEFORE_SET);
                                 extractEpisodeDownloadOptions(updatableEpisode);
@@ -280,28 +288,6 @@ public class EpisodeView extends FrameLayout {
 
     private void initSpinner(Episode episode) {
         checkAndSelectEpisodeQuality(episode);
-        episodeDownloadOptionsSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                realm.executeTransaction(r -> {
-                    if (position == 0) {
-                        episode.setEpisodeQuality(AppConstants.HIGH_QUALITY);
-                    } else if (position == 1) {
-                        episode.setEpisodeQuality(AppConstants.STANDARD_QUALITY);
-                    } else {
-                        episode.setEpisodeQuality(AppConstants.LOW_QUALITY);
-                    }
-                    r.copyToRealmOrUpdate(episode, ImportFlag.CHECK_SAME_VALUES_BEFORE_SET);
-                });
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-
-            }
-
-        });
-
     }
 
     private void checkAndSelectEpisodeQuality(Episode episode) {

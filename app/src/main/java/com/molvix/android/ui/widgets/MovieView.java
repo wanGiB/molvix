@@ -24,6 +24,7 @@ import com.molvix.android.managers.MovieManager;
 import com.molvix.android.models.Movie;
 import com.molvix.android.models.Season;
 import com.molvix.android.ui.activities.MovieDetailsActivity;
+import com.molvix.android.utils.ConnectivityUtils;
 import com.molvix.android.utils.UiUtils;
 
 import org.apache.commons.lang3.StringUtils;
@@ -162,7 +163,7 @@ public class MovieView extends FrameLayout {
     }
 
     private void refreshMovieDetails(Movie movie) {
-        if (MovieManager.canRefreshMovieDetails(movie.getMovieId())) {
+        if (MovieManager.canRefreshMovieDetails(movie.getMovieId()) && ConnectivityUtils.isDeviceConnectedToTheInternet()) {
             MovieMetadataExtractionTask movieMetadataExtractionTask = new MovieMetadataExtractionTask(movie.getMovieLink(), movie.getMovieId());
             movieMetadataExtractionTask.execute();
         }

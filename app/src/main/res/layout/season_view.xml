@@ -5,12 +5,10 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@color/white"
-    android:clickable="true"
-    android:descendantFocusability="beforeDescendants"
-    android:focusable="true"
     android:orientation="vertical">
 
     <LinearLayout
+        android:id="@+id/sub_root_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
