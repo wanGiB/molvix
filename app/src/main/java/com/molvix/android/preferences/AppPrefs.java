@@ -125,7 +125,14 @@ public class AppPrefs {
     @SuppressLint("ApplySharedPref")
     public static void setSeasonRefreshable(String seasonId) {
         Set<String> refreshedSeasons = getAppPreferences().getStringSet(AppConstants.REFRESHED_SEASONS, new HashSet<>());
-        refreshedSeasons.add(seasonId);
+        refreshedSeasons.remove(seasonId);
         getAppPreferences().edit().putStringSet(AppConstants.REFRESHED_SEASONS, refreshedSeasons).commit();
+    }
+
+    @SuppressLint("ApplySharedPref")
+    public static void setMovieRefreshable(String movieId) {
+        Set<String> refreshedMovies = getAppPreferences().getStringSet(AppConstants.REFRESHED_MOVIES, new HashSet<>());
+        refreshedMovies.remove(movieId);
+        getAppPreferences().edit().putStringSet(AppConstants.REFRESHED_MOVIES, refreshedMovies).commit();
     }
 }

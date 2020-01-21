@@ -16,4 +16,8 @@ public class MovieManager {
         AppPrefs.addToRefreshedMovies(movieId);
     }
 
+    public static void setMovieRefreshable(String movieId) {
+        AppPrefs.setMovieRefreshable(movieId);
+    }
+
 }
