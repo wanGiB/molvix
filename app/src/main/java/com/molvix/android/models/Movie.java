@@ -1,18 +1,20 @@
 package com.molvix.android.models;
 
+import com.molvix.android.utils.MolvixDB;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import io.realm.RealmList;
-import io.realm.RealmObject;
-import io.realm.annotations.PrimaryKey;
 
-public class Movie extends RealmObject {
+public class Movie {
 
-    @PrimaryKey
     private String movieId;
     private String movieName;
     private String movieLink;
     private String movieDescription;
     private String movieArtUrl;
-    private RealmList<Season> movieSeasons;
+    private List<Season> movieSeasons;
     private boolean ad;
     private boolean recommendedToUser;
     private boolean seenByUser;
@@ -57,11 +59,16 @@ public class Movie extends RealmObject {
         this.movieArtUrl = movieArtUrl;
     }
 
-    public RealmList<Season> getMovieSeasons() {
-        return movieSeasons;
+    public List<Season> getMovieSeasons() {
+        List<Season> updatedSeasons = new ArrayList<>();
+        for (Season s : movieSeasons) {
+            Season newSeason = MolvixDB.getSeason(s.getSeasonId());
+            updatedSeasons.add(newSeason);
+        }
+        return updatedSeasons;
     }
 
-    public void setMovieSeasons(RealmList<Season> movieSeasons) {
+    public void setMovieSeasons(List<Season> movieSeasons) {
         this.movieSeasons = movieSeasons;
     }
 

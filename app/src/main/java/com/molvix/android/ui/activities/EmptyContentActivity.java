@@ -10,42 +10,29 @@ import com.molvix.android.companions.AppConstants;
 import com.molvix.android.models.DownloadableEpisode;
 import com.molvix.android.models.Episode;
 import com.molvix.android.ui.notifications.notification.MolvixNotification;
-
-import io.realm.ImportFlag;
-import io.realm.Realm;
+import com.molvix.android.utils.MolvixDB;
 
 public class EmptyContentActivity extends AppCompatActivity {
-
-    private Realm realm;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        realm = Realm.getDefaultInstance();
         Intent intent = getIntent();
         String episodeId = intent.getStringExtra(AppConstants.EPISODE_ID);
         if (episodeId != null) {
-            realm.executeTransaction(r -> {
-                DownloadableEpisode downloadableEpisode = r.where(DownloadableEpisode.class).equalTo(AppConstants.EPISODE_ID, episodeId).findFirst();
-                if (downloadableEpisode != null) {
-                    downloadableEpisode.deleteFromRealm();
-                }
-                Episode episode = r.where(Episode.class).equalTo(AppConstants.EPISODE_ID, episodeId).findFirst();
-                if (episode != null) {
-                    episode.setDownloadProgress(-1);
-                    episode.setProgressDisplayText("");
-                    r.copyToRealmOrUpdate(episode, ImportFlag.CHECK_SAME_VALUES_BEFORE_SET);
-                }
-            });
+            DownloadableEpisode downloadableEpisode = MolvixDB.getDownloadableEpisode(episodeId);
+            if (downloadableEpisode != null) {
+                MolvixDB.deleteDownloadableEpisode(downloadableEpisode);
+            }
+            Episode episode = MolvixDB.getEpisode(episodeId);
+            if (episode != null) {
+                episode.setDownloadProgress(-1);
+                episode.setProgressDisplayText("");
+                MolvixDB.updateEpisode(episode);
+            }
             MolvixNotification.with(this).cancel(Math.abs(episodeId.hashCode()));
         }
         finish();
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        realm.close();
     }
 
 }

@@ -31,10 +31,12 @@ import com.molvix.android.models.DownloadableEpisode;
 import com.molvix.android.models.Episode;
 import com.molvix.android.models.Movie;
 import com.molvix.android.models.Season;
+import com.molvix.android.observers.MolvixContentChangeObserver;
 import com.molvix.android.ui.adapters.EpisodesAdapter;
 import com.molvix.android.ui.adapters.SeasonsWithEpisodesAdapter;
 import com.molvix.android.utils.CryptoUtils;
 import com.molvix.android.utils.FileUtils;
+import com.molvix.android.utils.MolvixDB;
 import com.molvix.android.utils.UiUtils;
 
 import org.apache.commons.lang3.text.WordUtils;
@@ -46,10 +48,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import im.delight.android.webview.AdvancedWebView;
-import io.realm.ImportFlag;
-import io.realm.Realm;
-import io.realm.RealmChangeListener;
-import io.realm.RealmResults;
 
 public class MovieDetailsActivity extends BaseActivity {
 
@@ -73,13 +71,10 @@ public class MovieDetailsActivity extends BaseActivity {
     ImageView backButton;
 
     private MoviePullTask moviePullTask;
-    private Realm realm;
 
     private SeasonsWithEpisodesAdapter seasonsWithEpisodesAdapter;
     private String movieId;
     private List<MovieContentItem> movieContentItems = new ArrayList<>();
-    private Movie movie;
-    private RealmResults<DownloadableEpisode> downloadableEpisodes;
     private AtomicReference<String> currentEpisodeRef = new AtomicReference<>();
 
     @Override
@@ -87,7 +82,6 @@ public class MovieDetailsActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_movie_details);
         ButterKnife.bind(this);
-        realm = Realm.getDefaultInstance();
         initWebView();
         initBackButton();
         movieId = getIntent().getStringExtra(AppConstants.MOVIE_ID);
@@ -97,7 +91,7 @@ public class MovieDetailsActivity extends BaseActivity {
         if (movieId != null) {
             MovieManager.setMovieRefreshable(movieId);
             loadingLayoutProgressMsgView.setText(getString(R.string.please_wait));
-            Movie movie = realm.where(Movie.class).equalTo(AppConstants.MOVIE_ID, movieId).findFirst();
+            Movie movie = MolvixDB.getMovie(movieId);
             initModelChangeListener();
             if (movie != null) {
                 List<Season> movieSeasons = movie.getMovieSeasons();
@@ -127,19 +121,16 @@ public class MovieDetailsActivity extends BaseActivity {
         backButton.setOnClickListener(v -> finish());
     }
 
-    @SuppressWarnings("ConstantConditions")
     private void listenToIncomingDownloadableEpisodes() {
-        downloadableEpisodes = realm.where(DownloadableEpisode.class).findAllAsync();
-        RealmChangeListener<RealmResults<DownloadableEpisode>> downloadableEpisodesChangeListener = results -> {
-            if (!results.isEmpty()) {
+        MolvixDB.listenToIncomingDownloadableEpisodes(changedData -> {
+            if (!changedData.isEmpty()) {
                 if (EpisodesManager.isCaptchaSolvable()) {
-                    DownloadableEpisode downloadableEpisode = results.get(0);
+                    DownloadableEpisode downloadableEpisode = changedData.get(0);
                     currentEpisodeRef.set(downloadableEpisode.getEpisodeId());
                     solveEpisodeCaptchaChallenge(downloadableEpisode.getDownloadableEpisode());
                 }
             }
-        };
-        downloadableEpisodes.addChangeListener(downloadableEpisodesChangeListener);
+        });
     }
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -172,20 +163,15 @@ public class MovieDetailsActivity extends BaseActivity {
                     UiUtils.showSafeToast("DownloadUrl Of Video=" + url);
                     hackWebView.stopLoading();
                     FileDownloadManager.startNewEpisodeDownload(episode);
-                    realm.executeTransaction(r -> {
-                        Episode updatableEpisode = r.where(Episode.class).equalTo(AppConstants.EPISODE_ID, episode.getEpisodeId()).findFirst();
-                        if (updatableEpisode != null) {
-                            if (updatableEpisode.getEpisodeQuality() == AppConstants.STANDARD_QUALITY) {
-                                updatableEpisode.setStandardQualityDownloadLink(url);
-                            } else if (updatableEpisode.getEpisodeQuality() == AppConstants.HIGH_QUALITY) {
-                                updatableEpisode.setHighQualityDownloadLink(url);
-                            } else {
-                                updatableEpisode.setLowQualityDownloadLink(url);
-                            }
-                            r.copyToRealmOrUpdate(updatableEpisode, ImportFlag.CHECK_SAME_VALUES_BEFORE_SET);
-                            EpisodesManager.popEpisode(updatableEpisode);
-                        }
-                    });
+                    if (episode.getEpisodeQuality() == AppConstants.STANDARD_QUALITY) {
+                        episode.setStandardQualityDownloadLink(url);
+                    } else if (episode.getEpisodeQuality() == AppConstants.HIGH_QUALITY) {
+                        episode.setHighQualityDownloadLink(url);
+                    } else {
+                        episode.setLowQualityDownloadLink(url);
+                    }
+                    MolvixDB.updateEpisode(episode);
+                    EpisodesManager.popEpisode(episode);
                 }
             }
 
@@ -205,10 +191,8 @@ public class MovieDetailsActivity extends BaseActivity {
             List<Season> movieSeasons = movie.getMovieSeasons();
             loadInMovieSeasons(movieContentItems, movieSeasons);
             UiUtils.toggleViewVisibility(loadingLayout, false);
-            realm.executeTransaction(r -> {
-                movie.setRecommendedToUser(true);
-                r.copyToRealmOrUpdate(movie, ImportFlag.CHECK_SAME_VALUES_BEFORE_SET);
-            });
+            movie.setRecommendedToUser(true);
+            MolvixDB.updateMovie(movie);
         });
     }
 
@@ -243,34 +227,19 @@ public class MovieDetailsActivity extends BaseActivity {
     }
 
     @Override
-    public void onResume() {
-        super.onResume();
-        hackWebView.onResume();
-    }
-
-    @Override
     public void onPause() {
         super.onPause();
         hackWebView.onPause();
     }
 
     private void initModelChangeListener() {
-        RealmChangeListener<Movie> movieModelChangedListener = this::loadMovieDetails;
-        movie = realm.where(Movie.class).equalTo(AppConstants.MOVIE_ID, movieId).findFirst();
-        if (movie != null) {
-            movie.addChangeListener(movieModelChangedListener);
-        }
+        MolvixContentChangeObserver.addMovieChangedListener(movieId, this::loadMovieDetails);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        movie.removeAllChangeListeners();
-        if (downloadableEpisodes != null) {
-            downloadableEpisodes.removeAllChangeListeners();
-        }
-        realm.close();
-        hackWebView.onDestroy();
+        MolvixContentChangeObserver.removeMovieChangeListener(movieId);
         unLockCaptchaChallenge();
     }
 
@@ -290,7 +259,7 @@ public class MovieDetailsActivity extends BaseActivity {
             runOnUiThread(() -> {
                 LoadEpisodesForSeason seasonData = (LoadEpisodesForSeason) event;
                 String seasonId = seasonData.getSeasonId();
-                Season seasonToLoad = realm.where(Season.class).equalTo(AppConstants.SEASON_ID, seasonId).findFirst();
+                Season seasonToLoad = MolvixDB.getSeason(seasonId);
                 if (seasonToLoad != null) {
                     loadEpisodesForSeason(seasonToLoad);
                 }
@@ -350,11 +319,9 @@ public class MovieDetailsActivity extends BaseActivity {
 
         @Override
         protected Void doInBackground(Void... voids) {
-            try (Realm realm = Realm.getDefaultInstance()) {
-                Movie movie = realm.where(Movie.class).equalTo(AppConstants.MOVIE_ID, movieId).findFirst();
-                if (movie != null) {
-                    ContentManager.extractMetaDataFromMovieLink(movie.getMovieLink(), movie.getMovieId());
-                }
+            Movie movie = MolvixDB.getMovie(movieId);
+            if (movie != null) {
+                ContentManager.extractMetaDataFromMovieLink(movie.getMovieLink(), movie.getMovieId());
             }
             return null;
         }

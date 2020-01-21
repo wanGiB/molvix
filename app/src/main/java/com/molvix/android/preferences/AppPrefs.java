@@ -135,4 +135,5 @@ public class AppPrefs {
         refreshedMovies.remove(movieId);
         getAppPreferences().edit().putStringSet(AppConstants.REFRESHED_MOVIES, refreshedMovies).commit();
     }
+
 }

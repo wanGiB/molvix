@@ -1,17 +1,17 @@
 package com.molvix.android.models;
 
-import io.realm.RealmList;
-import io.realm.RealmObject;
-import io.realm.annotations.PrimaryKey;
+import com.molvix.android.utils.MolvixDB;
 
-public class Season extends RealmObject {
+import java.util.ArrayList;
+import java.util.List;
 
-    @PrimaryKey
+public class Season {
+
     private String seasonId;
     private String seasonName;
     private String seasonLink;
     private String movieId;
-    private RealmList<Episode> episodes;
+    private List<Episode> episodes;
 
     public String getSeasonId() {
         return seasonId;
@@ -45,11 +45,16 @@ public class Season extends RealmObject {
         this.movieId = movieId;
     }
 
-    public RealmList<Episode> getEpisodes() {
+    public List<Episode> getEpisodes() {
+        List<Episode> episodes = new ArrayList<>();
+        for (Episode e : episodes) {
+            Episode updatedEpisode = MolvixDB.getEpisode(e.getEpisodeId());
+            episodes.add(updatedEpisode);
+        }
         return episodes;
     }
 
-    public void setEpisodes(RealmList<Episode> episodes) {
+    public void setEpisodes(List<Episode> episodes) {
         this.episodes = episodes;
     }
 

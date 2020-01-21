@@ -17,11 +17,9 @@ import com.molvix.android.ui.activities.MainActivity;
 import com.molvix.android.ui.activities.MovieDetailsActivity;
 import com.molvix.android.ui.notifications.notification.Load;
 import com.molvix.android.ui.notifications.notification.MolvixNotification;
+import com.molvix.android.utils.MolvixDB;
 
 import org.apache.commons.lang3.text.WordUtils;
-
-import io.realm.ImportFlag;
-import io.realm.Realm;
 
 class MolvixNotificationManager {
 
@@ -76,35 +74,30 @@ class MolvixNotificationManager {
     }
 
     static void recommendMovieToUser(String movieId, Bitmap bitmap) {
-        try (Realm realm = Realm.getDefaultInstance()) {
-            Movie recommendableMovie = realm.where(Movie.class).equalTo(AppConstants.MOVIE_ID, movieId).findFirst();
-            if (recommendableMovie != null) {
-                Intent movieDetailsIntent = new Intent(ApplicationLoader.getInstance(), MovieDetailsActivity.class);
-                movieDetailsIntent.putExtra(AppConstants.MOVIE_ID, recommendableMovie.getMovieId());
-                PendingIntent movieDetailsPendingIntent = PendingIntent.getActivity(ApplicationLoader.getInstance(), 100, movieDetailsIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-                createNotificationChannel("Next Rate Movie", "Check this out", "Molvix Next Rated Movie");
-                MolvixNotification.with(ApplicationLoader.getInstance())
-                        .load()
-                        .notificationChannelId("Molvix Next Rated Movie")
-                        .title("Molvix")
-                        .message("Have you seen the Movie \"" + WordUtils.capitalize(recommendableMovie.getMovieName()) + "\"")
-                        .autoCancel(true)
-                        .click(movieDetailsPendingIntent)
-                        .bigTextStyle("Have you seen the Movie \"" + WordUtils.capitalize(recommendableMovie.getMovieName()) + "\"")
-                        .smallIcon(R.drawable.ic_launcher)
-                        .largeIcon(R.drawable.ic_launcher)
-                        .color(android.R.color.background_dark)
-                        .custom()
-                        .background(bitmap)
-                        .setPlaceholder(R.drawable.ic_placeholder)
-                        .build();
-                AppPrefs.setLastMovieRecommendationTime(System.currentTimeMillis());
-                realm.executeTransaction(r -> {
-                    recommendableMovie.setRecommendedToUser(true);
-                    r.copyToRealmOrUpdate(recommendableMovie, ImportFlag.CHECK_SAME_VALUES_BEFORE_SET);
-                });
-            }
+        Movie recommendableMovie = MolvixDB.getMovie(movieId);
+        if (recommendableMovie != null) {
+            Intent movieDetailsIntent = new Intent(ApplicationLoader.getInstance(), MovieDetailsActivity.class);
+            movieDetailsIntent.putExtra(AppConstants.MOVIE_ID, recommendableMovie.getMovieId());
+            PendingIntent movieDetailsPendingIntent = PendingIntent.getActivity(ApplicationLoader.getInstance(), 100, movieDetailsIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+            createNotificationChannel("Next Rate Movie", "Check this out", "Molvix Next Rated Movie");
+            MolvixNotification.with(ApplicationLoader.getInstance())
+                    .load()
+                    .notificationChannelId("Molvix Next Rated Movie")
+                    .title("Molvix")
+                    .message("Have you seen the Movie \"" + WordUtils.capitalize(recommendableMovie.getMovieName()) + "\"")
+                    .autoCancel(true)
+                    .click(movieDetailsPendingIntent)
+                    .bigTextStyle("Have you seen the Movie \"" + WordUtils.capitalize(recommendableMovie.getMovieName()) + "\"")
+                    .smallIcon(R.drawable.ic_launcher)
+                    .largeIcon(R.drawable.ic_launcher)
+                    .color(android.R.color.background_dark)
+                    .custom()
+                    .background(bitmap)
+                    .setPlaceholder(R.drawable.ic_placeholder)
+                    .build();
+            AppPrefs.setLastMovieRecommendationTime(System.currentTimeMillis());
+            recommendableMovie.setRecommendedToUser(true);
+            MolvixDB.updateMovie(recommendableMovie);
         }
     }
-
 }

@@ -20,13 +20,14 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.liucanwen.app.headerfooterrecyclerview.HeaderAndFooterRecyclerViewAdapter;
 import com.liucanwen.app.headerfooterrecyclerview.RecyclerViewUtils;
 import com.molvix.android.R;
-import com.molvix.android.companions.AppConstants;
 import com.molvix.android.eventbuses.SearchEvent;
 import com.molvix.android.managers.ContentManager;
 import com.molvix.android.managers.MovieManager;
 import com.molvix.android.models.Movie;
+import com.molvix.android.observers.MolvixContentChangeObserver;
 import com.molvix.android.ui.adapters.MoviesAdapter;
 import com.molvix.android.utils.ConnectivityUtils;
+import com.molvix.android.utils.MolvixDB;
 import com.molvix.android.utils.UiUtils;
 
 import org.apache.commons.lang3.StringUtils;
@@ -34,15 +35,12 @@ import org.greenrobot.eventbus.EventBus;
 
 import java.io.IOException;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import io.realm.Case;
-import io.realm.OrderedRealmCollectionChangeListener;
-import io.realm.Realm;
-import io.realm.RealmResults;
-import io.realm.Sort;
 import jp.wasabeef.recyclerview.animators.ScaleInAnimator;
 
 @SuppressWarnings("ConstantConditions")
@@ -63,9 +61,7 @@ public class HomeFragment extends BaseFragment {
     @BindView(R.id.movies_recycler_view)
     RecyclerView moviesRecyclerView;
 
-    private Realm realm;
-    private RealmResults<Movie> movies;
-    private RealmResults<Movie> searchResults;
+    private List<Movie> movies = new ArrayList<>();
     private MoviesAdapter moviesAdapter;
 
     private Handler mUiHandler;
@@ -75,6 +71,9 @@ public class HomeFragment extends BaseFragment {
 
     private void setSearchString(String searchString) {
         this.searchString = searchString;
+        if (moviesAdapter != null) {
+            moviesAdapter.setSearchString(searchString);
+        }
     }
 
     private String getSearchString() {
@@ -85,16 +84,19 @@ public class HomeFragment extends BaseFragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         MovieManager.clearAllRefreshedMovies();
-        realm = Realm.getDefaultInstance();
+        listenToChangesInLocalMoviesDatabase();
     }
 
     @Override
-    public void onDestroy() {
-        super.onDestroy();
-        if (movies != null) {
-            movies.removeAllChangeListeners();
-        }
-        realm.close();
+    public void onResume() {
+        super.onResume();
+        listenToChangesInLocalMoviesDatabase();
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        MolvixContentChangeObserver.removeMoviesChangeListener();
     }
 
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -115,17 +117,16 @@ public class HomeFragment extends BaseFragment {
     }
 
     private void listenToChangesInLocalMoviesDatabase() {
-        OrderedRealmCollectionChangeListener<RealmResults<Movie>> realmChangeListener = (results, changeSet) -> {
-            if (changeSet == null) {
-                return;
+        MolvixContentChangeObserver.addMoviesChangedListener(changedData -> {
+            if (!changedData.isEmpty()) {
+                loadMovies(changedData);
             }
-            moviesAdapter.setData(results);
-            checkAndInvalidateUI();
-            swipeRefreshLayout.setRefreshing(false);
-            displayTotalNumberOfMoviesLoadedInHeader();
-        };
-        movies.removeAllChangeListeners();
-        movies.addChangeListener(realmChangeListener);
+        });
+    }
+
+    private void postCreateUI() {
+        checkAndInvalidateUI();
+        swipeRefreshLayout.setRefreshing(false);
     }
 
     private void checkAndInvalidateUI() {
@@ -161,46 +162,49 @@ public class HomeFragment extends BaseFragment {
         RecyclerViewUtils.setHeaderView(moviesRecyclerView, headerView);
     }
 
-    @Override
-    public void onResume() {
-        super.onResume();
-        if (realm == null || realm.isClosed()) {
-            realm = Realm.getDefaultInstance();
-            fetchAllAvailableMovies();
-        }
-    }
-
     private void fetchAllAvailableMovies() {
         nullifySearch();
-        movies = realm.where(Movie.class)
-                .sort(AppConstants.MOVIE_RECOMMENDED_TO_USER, Sort.DESCENDING)
-                .findAllAsync();
+        MolvixDB.fetchAllAvailableMovies((result, e) -> {
+            if (!result.isEmpty()) {
+                Collections.shuffle(result);
+                loadMovies(result);
+            }
+        });
         spinMoviesDownloadJob();
-        listenToChangesInLocalMoviesDatabase();
     }
 
     private void searchMovies(String searchString) {
-        searchResults = realm.where(Movie.class)
-                .contains(AppConstants.MOVIE_NAME, searchString.toLowerCase(), Case.INSENSITIVE)
-                .or()
-                .contains(AppConstants.MOVIE_DESCRIPTION, searchString.toLowerCase(), Case.INSENSITIVE)
-                .findAllAsync();
-        moviesAdapter.setSearchString(searchString);
-        listenToSearchChangeResults();
+        setSearchString(searchString);
+        MolvixDB.searchMovies(searchString, (result, e) -> {
+            checkAndClearCurrentData(result);
+            loadMovies(result);
+        });
     }
 
-    private void listenToSearchChangeResults() {
-        OrderedRealmCollectionChangeListener<RealmResults<Movie>> realmChangeListener = (results, changeSet) -> {
-            if (changeSet == null) {
-                return;
+    private void checkAndClearCurrentData(List<Movie> result) {
+        if (!result.isEmpty()) {
+            movies.clear();
+            moviesAdapter.notifyDataSetChanged();
+        }
+    }
+
+    private void loadMovies(List<Movie> result) {
+        for (Movie movie : result) {
+            if (!movies.contains(movie)) {
+                movies.add(movie);
+                moviesAdapter.notifyItemInserted(movies.size() - 1);
+            } else {
+                int indexOfMovie = movies.indexOf(movie);
+                movies.set(indexOfMovie, movie);
+                moviesAdapter.notifyItemChanged(indexOfMovie);
             }
-            moviesAdapter.setSearchString(getSearchString());
-            moviesAdapter.setData(results);
-            checkAndInvalidateUI();
-            swipeRefreshLayout.setRefreshing(false);
-            displayFoundResults(results);
-        };
-        searchResults.addChangeListener(realmChangeListener);
+        }
+        postCreateUI();
+        if (getSearchString() == null) {
+            displayTotalNumberOfMoviesLoadedInHeader();
+        } else {
+            displayFoundResults(result);
+        }
     }
 
     @SuppressLint("SetTextI18n")
@@ -246,12 +250,10 @@ public class HomeFragment extends BaseFragment {
     @SuppressLint("SetTextI18n")
     private void displayFoundResults(List<Movie> queriedMovies) {
         mUiHandler.post(() -> {
-            if (getSearchString() != null) {
-                int totalNumberOfMovies = queriedMovies.size();
-                DecimalFormat moviesNoFormatter = new DecimalFormat("#,###");
-                String resultMsg = totalNumberOfMovies == 1 ? "result" : "results";
-                headerTextView.setText(moviesNoFormatter.format(totalNumberOfMovies) + " " + resultMsg + " found");
-            }
+            int totalNumberOfMovies = queriedMovies.size();
+            DecimalFormat moviesNoFormatter = new DecimalFormat("#,###");
+            String resultMsg = totalNumberOfMovies == 1 ? "result" : "results";
+            headerTextView.setText(moviesNoFormatter.format(totalNumberOfMovies) + " " + resultMsg + " found");
         });
     }
 
@@ -262,21 +264,10 @@ public class HomeFragment extends BaseFragment {
         if (event instanceof SearchEvent) {
             SearchEvent searchEvent = (SearchEvent) event;
             String searchString = searchEvent.getSearchString();
-            if (StringUtils.isNotEmpty(searchString) && searchString != null) {
-                setSearchString(searchString);
+            if (StringUtils.isNotEmpty(searchString)) {
                 mUiHandler.post(() -> searchMovies(searchEvent.getSearchString().toLowerCase()));
             } else {
-                mUiHandler.post(() -> {
-                    setSearchString(null);
-                    moviesAdapter.setSearchString(null);
-                    moviesAdapter.setData(movies);
-                    checkAndInvalidateUI();
-                    displayTotalNumberOfMoviesLoadedInHeader();
-                    swipeRefreshLayout.setRefreshing(false);
-                    if (searchResults != null) {
-                        searchResults.removeAllChangeListeners();
-                    }
-                });
+                mUiHandler.post(this::fetchAllAvailableMovies);
             }
         } else if (event instanceof Exception) {
             mUiHandler.post(() -> {
@@ -293,6 +284,7 @@ public class HomeFragment extends BaseFragment {
     private void nullifySearch() {
         if (moviesAdapter != null) {
             moviesAdapter.setSearchString(null);
+            setSearchString(null);
             moviesAdapter.notifyDataSetChanged();
         }
     }

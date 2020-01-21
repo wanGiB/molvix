@@ -1,11 +1,7 @@
 package com.molvix.android.models;
 
-import io.realm.RealmObject;
-import io.realm.annotations.PrimaryKey;
+public class DownloadableEpisode {
 
-public class DownloadableEpisode extends RealmObject {
-
-    @PrimaryKey
     private String episodeId;
     private Episode downloadableEpisode;
 

@@ -2,11 +2,8 @@ package com.molvix.android.models;
 
 import androidx.annotation.Nullable;
 
-import io.realm.RealmObject;
-import io.realm.annotations.PrimaryKey;
+public class Episode {
 
-public class Episode extends RealmObject {
-    @PrimaryKey
     private String episodeId;
     private String movieId;
     private String seasonId;

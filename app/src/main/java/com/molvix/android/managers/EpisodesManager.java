@@ -1,37 +1,28 @@
 package com.molvix.android.managers;
 
-import com.molvix.android.companions.AppConstants;
 import com.molvix.android.models.DownloadableEpisode;
 import com.molvix.android.models.Episode;
 import com.molvix.android.preferences.AppPrefs;
-
-import io.realm.ImportFlag;
-import io.realm.Realm;
+import com.molvix.android.utils.MolvixDB;
 
 public class EpisodesManager {
 
     public static void enqueEpisodeForDownload(Episode episode) {
-        try (Realm realm = Realm.getDefaultInstance()) {
-            realm.executeTransaction(r -> {
-                DownloadableEpisode existingEpisode = r.where(DownloadableEpisode.class).equalTo(AppConstants.EPISODE_ID, episode.getEpisodeId()).findFirst();
-                if (existingEpisode != null) {
-                    return;
-                }
-                DownloadableEpisode newDownloadableEpisode = r.createObject(DownloadableEpisode.class, episode.getEpisodeId());
-                newDownloadableEpisode.setDownloadableEpisode(episode);
-                r.copyToRealmOrUpdate(newDownloadableEpisode, ImportFlag.CHECK_SAME_VALUES_BEFORE_SET);
-            });
+        DownloadableEpisode existingDownloadableEpisode = MolvixDB.getDownloadableEpisode(episode.getEpisodeId());
+        if (existingDownloadableEpisode != null) {
+            return;
         }
+        DownloadableEpisode newDownloadableEpisode = new DownloadableEpisode();
+        newDownloadableEpisode.setEpisodeId(episode.getEpisodeId());
+        newDownloadableEpisode.setDownloadableEpisode(episode);
+        MolvixDB.createNewDownloadableEpisode(newDownloadableEpisode);
     }
 
     public static void popEpisode(Episode episode) {
-        Realm realm = Realm.getDefaultInstance();
-        DownloadableEpisode downloadableEpisode = realm.where(DownloadableEpisode.class).equalTo(AppConstants.EPISODE_ID, episode.getEpisodeId()).findFirst();
+        DownloadableEpisode downloadableEpisode = MolvixDB.getDownloadableEpisode(episode.getEpisodeId());
         if (downloadableEpisode != null) {
-            realm.executeTransaction(r -> {
-                downloadableEpisode.deleteFromRealm();
-                unLockCaptureSolver(episode.getEpisodeId());
-            });
+            MolvixDB.deleteDownloadableEpisode(downloadableEpisode);
+            unLockCaptureSolver(episode.getEpisodeId());
         }
     }
 

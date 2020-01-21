@@ -10,7 +10,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.molvix.android.R;
 import com.molvix.android.models.Movie;
-import com.molvix.android.ui.widgets.AdMobNativeAdView;
 import com.molvix.android.ui.widgets.MovieView;
 
 import java.util.Collections;
@@ -26,16 +25,18 @@ public class MoviesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
     private LayoutInflater layoutInflater;
 
     private String searchString;
-    private Context context;
 
     public MoviesAdapter(Context context) {
-        this.context = context;
         layoutInflater = LayoutInflater.from(context);
     }
 
     public void setData(List<Movie> movies) {
         this.movies = movies;
         notifyDataSetChanged();
+    }
+
+    public List<Movie> getMovies() {
+        return movies;
     }
 
     @NonNull

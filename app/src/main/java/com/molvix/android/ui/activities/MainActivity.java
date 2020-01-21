@@ -30,9 +30,9 @@ import com.molvix.android.eventbuses.SearchEvent;
 import com.molvix.android.managers.AdsLoadManager;
 import com.molvix.android.managers.EpisodesManager;
 import com.molvix.android.managers.FileDownloadManager;
-import com.molvix.android.models.DownloadableEpisode;
 import com.molvix.android.models.Episode;
 import com.molvix.android.utils.FileUtils;
+import com.molvix.android.utils.MolvixDB;
 import com.molvix.android.utils.UiUtils;
 
 import org.apache.commons.lang3.StringUtils;
@@ -41,10 +41,7 @@ import org.greenrobot.eventbus.EventBus;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import im.delight.android.webview.AdvancedWebView;
-import io.realm.ImportFlag;
 import io.realm.Realm;
-import io.realm.RealmChangeListener;
-import io.realm.RealmResults;
 
 public class MainActivity extends BaseActivity {
 
@@ -65,14 +62,11 @@ public class MainActivity extends BaseActivity {
 
     private NavController navController;
 
-    private Realm realm;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
-        realm = Realm.getDefaultInstance();
         initSearchBox();
         initNavBarTints();
         initWebView();
@@ -99,18 +93,14 @@ public class MainActivity extends BaseActivity {
         hackWebView.setThirdPartyCookiesEnabled(true);
     }
 
-    @SuppressWarnings("ConstantConditions")
     private void listenToIncomingDownloadableEpisodes() {
-        RealmResults<DownloadableEpisode> downloadableEpisodes = realm.where(DownloadableEpisode.class).findAllAsync();
-        RealmChangeListener<RealmResults<DownloadableEpisode>> downloadableEpisodesChangeListener = results -> {
-            if (!results.isEmpty()) {
+        MolvixDB.listenToIncomingDownloadableEpisodes(changedData -> {
+            if (!changedData.isEmpty()) {
                 if (EpisodesManager.isCaptchaSolvable()) {
-                    solveEpisodeCaptchaChallenge(results.get(0).getDownloadableEpisode());
+                    solveEpisodeCaptchaChallenge(changedData.get(0).getDownloadableEpisode());
                 }
             }
-        };
-        downloadableEpisodes.removeAllChangeListeners();
-        downloadableEpisodes.addChangeListener(downloadableEpisodesChangeListener);
+        });
     }
 
     private void injectMagicScript() {
@@ -141,20 +131,15 @@ public class MainActivity extends BaseActivity {
                 if (mimeTypeOfUrl.toLowerCase().contains("video")) {
                     hackWebView.stopLoading();
                     FileDownloadManager.startNewEpisodeDownload(episode);
-                    realm.executeTransaction(r -> {
-                        Episode updatableEpisode = r.where(Episode.class).equalTo(AppConstants.EPISODE_ID, episode.getEpisodeId()).findFirst();
-                        if (updatableEpisode != null) {
-                            if (updatableEpisode.getEpisodeQuality() == AppConstants.STANDARD_QUALITY) {
-                                updatableEpisode.setStandardQualityDownloadLink(url);
-                            } else if (updatableEpisode.getEpisodeQuality() == AppConstants.HIGH_QUALITY) {
-                                updatableEpisode.setHighQualityDownloadLink(url);
-                            } else {
-                                updatableEpisode.setLowQualityDownloadLink(url);
-                            }
-                            r.copyToRealmOrUpdate(updatableEpisode, ImportFlag.CHECK_SAME_VALUES_BEFORE_SET);
-                            EpisodesManager.popEpisode(updatableEpisode);
-                        }
-                    });
+                    if (episode.getEpisodeQuality() == AppConstants.STANDARD_QUALITY) {
+                        episode.setStandardQualityDownloadLink(url);
+                    } else if (episode.getEpisodeQuality() == AppConstants.HIGH_QUALITY) {
+                        episode.setHighQualityDownloadLink(url);
+                    } else {
+                        episode.setLowQualityDownloadLink(url);
+                    }
+                    MolvixDB.updateEpisode(episode);
+                    EpisodesManager.popEpisode(episode);
                 }
             }
 
@@ -171,7 +156,6 @@ public class MainActivity extends BaseActivity {
     @Override
     public void onResume() {
         super.onResume();
-        hackWebView.onResume();
         listenToIncomingDownloadableEpisodes();
     }
 

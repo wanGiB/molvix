@@ -1,12 +1,8 @@
 package com.molvix.android.models;
 
-import io.realm.RealmObject;
-import io.realm.annotations.PrimaryKey;
-
-public class Notification extends RealmObject {
-    @PrimaryKey
+public class Notification {
     private String notificationObjectId;
-    private String resolutionKey;
+    private String destinationKey;
     private int destination;
     private String message;
     private long timeStamp;
@@ -36,12 +32,12 @@ public class Notification extends RealmObject {
         this.notificationObjectId = notificationObjectId;
     }
 
-    public String getResolutionKey() {
-        return resolutionKey;
+    public String getDestinationKey() {
+        return destinationKey;
     }
 
-    public void setResolutionKey(String resolutionKey) {
-        this.resolutionKey = resolutionKey;
+    public void setDestinationKey(String resolutionKey) {
+        this.destinationKey = resolutionKey;
     }
 
     public int getDestination() {

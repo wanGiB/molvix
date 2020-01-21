@@ -12,12 +12,10 @@ import com.molvix.android.models.Movie;
 import com.molvix.android.models.Season;
 import com.molvix.android.ui.notifications.notification.MolvixNotification;
 import com.molvix.android.utils.FileUtils;
+import com.molvix.android.utils.MolvixDB;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.text.WordUtils;
-
-import io.realm.ImportFlag;
-import io.realm.Realm;
 
 public class FileDownloadManager {
 
@@ -25,90 +23,74 @@ public class FileDownloadManager {
     public static void startNewEpisodeDownload(Episode episode) {
         String episodeId = episode.getEpisodeId();
         String episodeName = episode.getEpisodeName();
-        try (Realm realm = Realm.getDefaultInstance()) {
-            Movie movie = realm.where(Movie.class).equalTo(AppConstants.MOVIE_ID, episode.getMovieId()).findFirst();
-            String movieId = movie.getMovieId();
-            Season season = realm.where(Season.class).equalTo(AppConstants.SEASON_ID, episode.getSeasonId()).findFirst();
-            if (season != null) {
-                String movieName = WordUtils.capitalize(movie.getMovieName());
-                String movieDescription = movie.getMovieDescription();
-                String seasonName = WordUtils.capitalize(season.getSeasonName());
-                String seasonId = season.getSeasonId();
-                int downloadQuality = episode.getEpisodeQuality();
-                String downloadUrl;
-                if (downloadQuality == AppConstants.HIGH_QUALITY) {
-                    downloadUrl = episode.getHighQualityDownloadLink();
-                } else if (downloadQuality == AppConstants.STANDARD_QUALITY) {
-                    downloadUrl = episode.getStandardQualityDownloadLink();
-                } else {
-                    downloadUrl = episode.getLowQualityDownloadLink();
-                }
-                String fileExtension = StringUtils.substringAfter(downloadUrl, ".");
-                String fileName = episode.getEpisodeName() + "." + fileExtension;
-                String dirPath = FileUtils.getFilePath(movieName, seasonName).getPath();
-                int downloadId = (dirPath + fileName).hashCode();
-                if (Status.PAUSED == PRDownloader.getStatus(downloadId)) {
-                    PRDownloader.resume(downloadId);
-                } else {
-                    downloadId = PRDownloader.download(downloadUrl, dirPath, fileName)
-                            .build()
-                            .setOnStartOrResumeListener(() -> {
-                            }).setOnPauseListener(() -> {
-                            }).setOnCancelListener(() -> realm.executeTransaction(r -> {
-                                Episode updatableEpisode = r.where(Episode.class).equalTo(AppConstants.EPISODE_ID, episodeId).findFirst();
-                                if (updatableEpisode != null) {
-                                    updatableEpisode.setDownloadProgress(-1);
-                                    r.copyToRealmOrUpdate(updatableEpisode, ImportFlag.CHECK_SAME_VALUES_BEFORE_SET);
+        Movie movie = MolvixDB.getMovie(episode.getMovieId());
+        Season season = MolvixDB.getSeason(episode.getSeasonId());
+        if (season != null) {
+            String movieName = WordUtils.capitalize(movie.getMovieName());
+            String movieDescription = movie.getMovieDescription();
+            String seasonName = WordUtils.capitalize(season.getSeasonName());
+            String seasonId = season.getSeasonId();
+            int downloadQuality = episode.getEpisodeQuality();
+            String downloadUrl;
+            if (downloadQuality == AppConstants.HIGH_QUALITY) {
+                downloadUrl = episode.getHighQualityDownloadLink();
+            } else if (downloadQuality == AppConstants.STANDARD_QUALITY) {
+                downloadUrl = episode.getStandardQualityDownloadLink();
+            } else {
+                downloadUrl = episode.getLowQualityDownloadLink();
+            }
+            String fileExtension = StringUtils.substringAfter(downloadUrl, ".");
+            String fileName = episode.getEpisodeName() + "." + fileExtension;
+            String dirPath = FileUtils.getFilePath(movieName, seasonName).getPath();
+            int downloadId = (dirPath + fileName).hashCode();
+            if (Status.PAUSED == PRDownloader.getStatus(downloadId)) {
+                PRDownloader.resume(downloadId);
+            } else {
+                downloadId = PRDownloader.download(downloadUrl, dirPath, fileName)
+                        .build()
+                        .setOnStartOrResumeListener(() -> {
+                        }).setOnPauseListener(() -> {
+                        }).setOnCancelListener(() -> {
+                            episode.setDownloadProgress(-1);
+                            MolvixDB.updateEpisode(episode);
+                            DownloadableEpisode downloadableEpisode = MolvixDB.getDownloadableEpisode(episodeId);
+                            if (downloadableEpisode != null) {
+                                MolvixDB.deleteDownloadableEpisode(downloadableEpisode);
+                            }
+                            MolvixNotification.with(ApplicationLoader.getInstance()).cancel(Math.abs(episodeId.hashCode()));
+                        }).setOnProgressListener(progress -> {
+                            long progressPercent = progress.currentBytes * 100 / progress.totalBytes;
+                            String progressMessage = FileUtils.getProgressDisplayLine(progress.currentBytes, progress.totalBytes);
+                            MolvixNotificationManager.showEpisodeDownloadProgressNotification(movieName, movieDescription, seasonId, episodeId, episodeName + "/" + seasonName + "/" + movieName, (int) progressPercent, progressMessage);
+                            episode.setDownloadProgress((int) progressPercent);
+                            episode.setProgressDisplayText(progressMessage);
+                            MolvixDB.updateEpisode(episode);
+                        }).start(new OnDownloadListener() {
+                            @Override
+                            public void onDownloadComplete() {
+                                episode.setDownloadProgress(-1);
+                                MolvixDB.updateEpisode(episode);
+                                if (movie != null) {
+                                    movie.setSeenByUser(true);
+                                    movie.setRecommendedToUser(true);
+                                    MolvixDB.updateMovie(movie);
                                 }
-                                DownloadableEpisode downloadableEpisode = r.where(DownloadableEpisode.class).equalTo(AppConstants.EPISODE_ID, episodeId).findFirst();
+                                DownloadableEpisode downloadableEpisode = MolvixDB.getDownloadableEpisode(episodeId);
                                 if (downloadableEpisode != null) {
-                                    downloadableEpisode.deleteFromRealm();
+                                    MolvixDB.deleteDownloadableEpisode(downloadableEpisode);
+                                    MovieTracker.recordEpisodeAsDownloaded(episodeId);
                                 }
-                                MolvixNotification.with(ApplicationLoader.getInstance()).cancel(Math.abs(episodeId.hashCode()));
-                            })).setOnProgressListener(progress -> {
-                                long progressPercent = progress.currentBytes * 100 / progress.totalBytes;
-                                String progressMessage = FileUtils.getProgressDisplayLine(progress.currentBytes, progress.totalBytes);
-                                MolvixNotificationManager.showEpisodeDownloadProgressNotification(movieName, movieDescription, seasonId, episodeId, episodeName + "/" + seasonName + "/" + movieName, (int) progressPercent, progressMessage);
-                                realm.executeTransaction(r -> {
-                                    Episode updatableEpisode = r.where(Episode.class).equalTo(AppConstants.EPISODE_ID, episodeId).findFirst();
-                                    if (updatableEpisode != null) {
-                                        updatableEpisode.setDownloadProgress((int) progressPercent);
-                                        updatableEpisode.setProgressDisplayText(progressMessage);
-                                        r.copyToRealmOrUpdate(updatableEpisode, ImportFlag.CHECK_SAME_VALUES_BEFORE_SET);
-                                    }
-                                });
-                            }).start(new OnDownloadListener() {
-                                @Override
-                                public void onDownloadComplete() {
-                                    realm.executeTransaction(r -> {
-                                        Episode updatableEpisode = r.where(Episode.class).equalTo(AppConstants.EPISODE_ID, episodeId).findFirst();
-                                        if (updatableEpisode != null) {
-                                            updatableEpisode.setDownloadProgress(-1);
-                                            r.copyToRealmOrUpdate(updatableEpisode, ImportFlag.CHECK_SAME_VALUES_BEFORE_SET);
-                                        }
-                                        Movie watchedMovie = r.where(Movie.class).equalTo(AppConstants.MOVIE_ID, movieId).findFirst();
-                                        if (watchedMovie != null) {
-                                            watchedMovie.setSeenByUser(true);
-                                            watchedMovie.setRecommendedToUser(true);
-                                            r.copyToRealmOrUpdate(watchedMovie, ImportFlag.CHECK_SAME_VALUES_BEFORE_SET);
-                                        }
-                                        DownloadableEpisode downloadableEpisode = r.where(DownloadableEpisode.class).equalTo(AppConstants.EPISODE_ID, episodeId).findFirst();
-                                        if (downloadableEpisode != null) {
-                                            downloadableEpisode.deleteFromRealm();
-                                            MovieTracker.recordEpisodeAsDownloaded(episodeId);
-                                        }
-                                    });
-                                }
+                            }
 
-                                @Override
-                                public void onError(Error error) {
+                            @Override
+                            public void onError(Error error) {
 
-                                }
+                            }
 
-                            });
-                }
+                        });
             }
         }
+
     }
 
     public static void cancelDownload(int downloadId) {

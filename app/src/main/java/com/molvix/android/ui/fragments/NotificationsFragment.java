@@ -17,16 +17,17 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.molvix.android.R;
 import com.molvix.android.managers.ContentManager;
 import com.molvix.android.models.Notification;
+import com.molvix.android.observers.MolvixContentChangeObserver;
 import com.molvix.android.ui.adapters.NotificationsAdapter;
 import com.molvix.android.ui.rendering.StickyRecyclerHeadersDecoration;
+import com.molvix.android.utils.MolvixDB;
 import com.molvix.android.utils.UiUtils;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import io.realm.ImportFlag;
-import io.realm.OrderedRealmCollectionChangeListener;
-import io.realm.Realm;
-import io.realm.RealmResults;
 
 public class NotificationsFragment extends Fragment {
 
@@ -45,25 +46,20 @@ public class NotificationsFragment extends Fragment {
     @BindView(R.id.notifications_empty_view)
     View notificationsEmptyView;
 
-    private RealmResults<Notification> notifications;
+    private List<Notification> notifications = new ArrayList<>();
     private NotificationsAdapter notificationsAdapter;
-    private Realm realm;
     private StickyRecyclerHeadersDecoration stickyRecyclerHeadersDecoration;
     private NotificationsFetchTask notificationsFetchTask;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        realm = Realm.getDefaultInstance();
     }
 
     @Override
     public void onStop() {
         super.onStop();
-        if (notifications != null) {
-            notifications.removeAllChangeListeners();
-        }
-        realm.close();
+        MolvixContentChangeObserver.removeNotificationsChangeListener();
     }
 
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -109,21 +105,20 @@ public class NotificationsFragment extends Fragment {
     }
 
     private void fetchNotifications() {
-        notifications = realm.where(Notification.class).findAllAsync();
-        OrderedRealmCollectionChangeListener<RealmResults<Notification>> notificationRealmChangeListener = (results, changeSet) -> {
-            invalidateUI();
-            notificationsAdapter.setNotifications(results);
+        MolvixDB.fetchNotifications((results, e) -> {
+            if (!notifications.containsAll(results)) {
+                notifications.addAll(results);
+                notificationsAdapter.notifyDataSetChanged();
+            }
             stickyRecyclerHeadersDecoration.invalidateHeaders();
             if (!results.isEmpty()) {
-                realm.executeTransaction(r -> {
-                    for (Notification notification : results) {
-                        notification.setSeen(true);
-                        r.copyToRealmOrUpdate(notification, ImportFlag.CHECK_SAME_VALUES_BEFORE_SET);
-                    }
-                });
+                for (Notification notification : results) {
+                    notification.setSeen(true);
+                    MolvixDB.updateNotification(notification);
+                }
             }
-        };
-        notifications.addChangeListener(notificationRealmChangeListener);
+            invalidateUI();
+        });
     }
 
     private void invalidateUI() {

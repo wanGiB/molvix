@@ -17,6 +17,7 @@ import com.molvix.android.eventbuses.LoadEpisodesForSeason;
 import com.molvix.android.managers.ContentManager;
 import com.molvix.android.managers.SeasonsManager;
 import com.molvix.android.models.Season;
+import com.molvix.android.observers.MolvixContentChangeObserver;
 import com.molvix.android.utils.ConnectivityUtils;
 import com.molvix.android.utils.UiUtils;
 
@@ -26,7 +27,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import io.realm.RealmChangeListener;
 
 public class SeasonView extends FrameLayout {
 
@@ -77,10 +77,9 @@ public class SeasonView extends FrameLayout {
     }
 
     private void registerModelChangeListener(Season season) {
-        season.removeAllChangeListeners();
-        season.addChangeListener((RealmChangeListener<Season>) newSeason -> {
+        MolvixContentChangeObserver.addChangeListenerOnSeason(season, newSeason -> {
             if (newSeason.getEpisodes() != null && !newSeason.getEpisodes().isEmpty()) {
-                this.season = newSeason;
+                setNewSeason(newSeason);
                 seasonNameView.setText(newSeason.getSeasonName());
                 if (pendingEpisodesLoadOperation.get()) {
                     EventBus.getDefault().post(new LoadEpisodesForSeason(newSeason.getSeasonId()));
@@ -90,8 +89,12 @@ public class SeasonView extends FrameLayout {
         });
     }
 
+    private void setNewSeason(Season newSeason) {
+        this.season = newSeason;
+    }
+
     private void unRegisterModelChangeListener() {
-        season.removeAllChangeListeners();
+        MolvixContentChangeObserver.removeChangeListenerOnSeason(season);
     }
 
     private void initEventHandlers(Season season) {

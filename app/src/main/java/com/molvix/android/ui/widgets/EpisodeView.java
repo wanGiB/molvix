@@ -27,8 +27,10 @@ import com.molvix.android.managers.FileDownloadManager;
 import com.molvix.android.models.Episode;
 import com.molvix.android.models.Movie;
 import com.molvix.android.models.Season;
+import com.molvix.android.observers.MolvixContentChangeObserver;
 import com.molvix.android.utils.ConnectivityUtils;
 import com.molvix.android.utils.FileUtils;
+import com.molvix.android.utils.MolvixDB;
 import com.molvix.android.utils.UiUtils;
 
 import org.apache.commons.lang3.StringUtils;
@@ -45,9 +47,6 @@ import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import io.realm.ImportFlag;
-import io.realm.Realm;
-import io.realm.RealmChangeListener;
 
 public class EpisodeView extends FrameLayout {
 
@@ -77,7 +76,6 @@ public class EpisodeView extends FrameLayout {
     private Episode episode;
     private Season season;
     private Movie movie;
-    private Realm realm;
     private Animation mFadeInFadeIn;
 
     public EpisodeView(@NonNull Context context) {
@@ -105,10 +103,9 @@ public class EpisodeView extends FrameLayout {
     }
 
     public void bindEpisode(Episode episode) {
-        realm = Realm.getDefaultInstance();
         this.episode = episode;
-        season = realm.where(Season.class).equalTo(AppConstants.SEASON_ID, episode.getSeasonId()).findFirst();
-        movie = realm.where(Movie.class).equalTo(AppConstants.MOVIE_ID, episode.getMovieId()).findFirst();
+        season = MolvixDB.getSeason(episode.getSeasonId());
+        movie = MolvixDB.getMovie(episode.getMovieId());
         String episodeName = setupEpisodeName(episode);
         initSpinner(episode);
         initDownloadOrPlayButtonEventListener(episode, episodeName);
@@ -144,12 +141,15 @@ public class EpisodeView extends FrameLayout {
     }
 
     private void listenToChangesOnEpisode(Episode episode) {
-        episode.removeAllChangeListeners();
-        episode.addChangeListener((RealmChangeListener<Episode>) updatedEpisode -> {
-            this.episode = updatedEpisode;
+        MolvixContentChangeObserver.addChangeListenerOn(episode, updatedEpisode -> {
+            resetEpisode(updatedEpisode);
             setupEpisodeName(updatedEpisode);
             checkEpisodeActiveDownloadStatus(updatedEpisode);
         });
+    }
+
+    private void resetEpisode(Episode updatedEpisode) {
+        this.episode = updatedEpisode;
     }
 
     private String setupEpisodeName(Episode episode) {
@@ -169,8 +169,7 @@ public class EpisodeView extends FrameLayout {
     @Override
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
-        episode.removeAllChangeListeners();
-        realm.close();
+        MolvixContentChangeObserver.removeChangeListenerOnEpisode(episode);
     }
 
     private void initDownloadOrPlayButtonEventListener(Episode episode, String episodeName) {
@@ -200,22 +199,20 @@ public class EpisodeView extends FrameLayout {
             } else {
                 if (ConnectivityUtils.isDeviceConnectedToTheInternet()) {
                     if (downloadButtonOrPlayButton.getAnimation() == null) {
-                        realm.executeTransaction(r -> {
-                            Episode updatableEpisode = r.where(Episode.class).equalTo(AppConstants.EPISODE_ID, episode.getEpisodeId()).findFirst();
-                            if (updatableEpisode != null) {
-                                int episodeQualitySelection = episodeDownloadOptionsSpinner.getSelectedItemPosition();
-                                if (episodeQualitySelection == 0) {
-                                    updatableEpisode.setEpisodeQuality(AppConstants.HIGH_QUALITY);
-                                } else if (episodeQualitySelection == 1) {
-                                    updatableEpisode.setEpisodeQuality(AppConstants.STANDARD_QUALITY);
-                                } else {
-                                    updatableEpisode.setEpisodeQuality(AppConstants.LOW_QUALITY);
-                                }
-                                updatableEpisode.setDownloadProgress(0);
-                                r.copyToRealmOrUpdate(updatableEpisode, ImportFlag.CHECK_SAME_VALUES_BEFORE_SET);
-                                extractEpisodeDownloadOptions(updatableEpisode);
+                        Episode updatableEpisode = MolvixDB.getEpisode(episode.getEpisodeId());
+                        if (updatableEpisode != null) {
+                            int episodeQualitySelection = episodeDownloadOptionsSpinner.getSelectedItemPosition();
+                            if (episodeQualitySelection == 0) {
+                                updatableEpisode.setEpisodeQuality(AppConstants.HIGH_QUALITY);
+                            } else if (episodeQualitySelection == 1) {
+                                updatableEpisode.setEpisodeQuality(AppConstants.STANDARD_QUALITY);
+                            } else {
+                                updatableEpisode.setEpisodeQuality(AppConstants.LOW_QUALITY);
                             }
-                        });
+                            updatableEpisode.setDownloadProgress(0);
+                            MolvixDB.updateEpisode(updatableEpisode);
+                            extractEpisodeDownloadOptions(updatableEpisode);
+                        }
                     }
                 } else {
                     UiUtils.showSafeToast("Please connect to the internet and try again.");
@@ -335,8 +332,8 @@ public class EpisodeView extends FrameLayout {
         }
 
         private void fetchDownloadOptionsForEpisode(String episodeId) {
-            try (Realm realm = Realm.getDefaultInstance()) {
-                Episode episode = realm.where(Episode.class).equalTo(AppConstants.EPISODE_ID, episodeId).findFirst();
+            try {
+                Episode episode = MolvixDB.getEpisode(episodeId);
                 if (episode != null) {
                     Document episodeDocument = Jsoup.connect(episode.getEpisodeLink()).get();
                     //Bring out all href elements containing
@@ -382,17 +379,15 @@ public class EpisodeView extends FrameLayout {
                                 }
                             }
                             String finalEpisodeCaptchaSolverLink = episodeCaptchaSolverLink;
-                            realm.executeTransaction(r -> {
-                                if (finalEpisodeCaptchaSolverLink != null) {
-                                    episode.setEpisodeCaptchaSolverLink(finalEpisodeCaptchaSolverLink);
-                                    r.copyToRealmOrUpdate(episode, ImportFlag.CHECK_SAME_VALUES_BEFORE_SET);
-                                    EpisodesManager.enqueEpisodeForDownload(episode);
-                                } else {
-                                    UiUtils.showSafeToast("Sorry, failed to download " + episode.getEpisodeName() + ".Please try again.");
-                                    episode.setDownloadProgress(-1);
-                                    r.copyToRealmOrUpdate(episode, ImportFlag.CHECK_SAME_VALUES_BEFORE_SET);
-                                }
-                            });
+                            if (finalEpisodeCaptchaSolverLink != null) {
+                                episode.setEpisodeCaptchaSolverLink(finalEpisodeCaptchaSolverLink);
+                                MolvixDB.updateEpisode(episode);
+                                EpisodesManager.enqueEpisodeForDownload(episode);
+                            } else {
+                                UiUtils.showSafeToast("Sorry, failed to download " + episode.getEpisodeName() + ".Please try again.");
+                                episode.setDownloadProgress(-1);
+                                MolvixDB.updateEpisode(episode);
+                            }
                         }
                     }
                 }

@@ -23,6 +23,7 @@ import com.molvix.android.models.Movie;
 import com.molvix.android.models.Notification;
 import com.molvix.android.models.Season;
 import com.molvix.android.utils.FileUtils;
+import com.molvix.android.utils.MolvixDB;
 import com.molvix.android.utils.UiUtils;
 
 import org.apache.commons.lang3.StringUtils;
@@ -33,7 +34,6 @@ import java.util.Date;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import io.realm.Realm;
 
 public class NotificationView extends FrameLayout {
 
@@ -48,8 +48,6 @@ public class NotificationView extends FrameLayout {
 
     @BindView(R.id.notification_root_view)
     LinearLayout notificationRootView;
-
-    private Realm realm;
 
     public NotificationView(@NonNull Context context) {
         super(context);
@@ -76,7 +74,6 @@ public class NotificationView extends FrameLayout {
 
     @SuppressWarnings("ConstantConditions")
     public void bindNotification(Notification notification) {
-        realm = Realm.getDefaultInstance();
         notificationDescriptionView.setText(UiUtils.fromHtml(notification.getMessage()));
         int notificationDestination = notification.getDestination();
         if (notificationDestination == AppConstants.DESTINATION_EPISODE) {
@@ -92,9 +89,9 @@ public class NotificationView extends FrameLayout {
         View.OnClickListener onClickListener = v -> {
             UiUtils.blinkView(notificationRootView);
             if (notificationDestination == AppConstants.DESTINATION_EPISODE) {
-                Episode episode = realm.where(Episode.class).equalTo(AppConstants.EPISODE_ID, notification.getResolutionKey()).findFirst();
-                Movie movie = realm.where(Movie.class).equalTo(AppConstants.MOVIE_ID, episode.getMovieId()).findFirst();
-                Season season = realm.where(Season.class).equalTo(AppConstants.SEASON_ID, episode.getSeasonId()).findFirst();
+                Episode episode = MolvixDB.getEpisode(notification.getDestinationKey());
+                Movie movie = MolvixDB.getMovie(episode.getMovieId());
+                Season season = MolvixDB.getSeason(episode.getSeasonId());
                 if (episode != null) {
                     String episodeName = episode.getEpisodeName();
                     //Open the download movie file
@@ -128,12 +125,6 @@ public class NotificationView extends FrameLayout {
         notificationIconView.setOnClickListener(onClickListener);
         notificationDescriptionView.setOnClickListener(onClickListener);
         notificationTimeView.setOnClickListener(onClickListener);
-    }
-
-    @Override
-    protected void onDetachedFromWindow() {
-        super.onDetachedFromWindow();
-        realm.close();
     }
 
 }
