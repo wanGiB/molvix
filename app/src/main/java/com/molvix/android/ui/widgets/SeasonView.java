@@ -80,7 +80,7 @@ public class SeasonView extends FrameLayout {
                 this.season = newSeason;
                 seasonNameView.setText(newSeason.getSeasonName());
                 if (pendingEpisodesLoadOperation.get()) {
-                    EventBus.getDefault().post(new LoadEpisodesForSeason(newSeason));
+                    EventBus.getDefault().post(new LoadEpisodesForSeason(newSeason.getSeasonId()));
                     pendingEpisodesLoadOperation.set(false);
                 }
             }
@@ -95,7 +95,7 @@ public class SeasonView extends FrameLayout {
         OnClickListener onClickListener = v -> {
             UiUtils.blinkView(rootView);
             if (season.getEpisodes() != null && !season.getEpisodes().isEmpty()) {
-                EventBus.getDefault().post(new LoadEpisodesForSeason(season));
+                EventBus.getDefault().post(new LoadEpisodesForSeason(season.getSeasonId()));
             } else {
                 if (ConnectivityUtils.isDeviceConnectedToTheInternet()) {
                     SeasonsManager.setSeasonRefreshable(season.getSeasonId());

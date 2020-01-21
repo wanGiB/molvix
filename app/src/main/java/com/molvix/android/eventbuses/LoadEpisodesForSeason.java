@@ -1,15 +1,13 @@
 package com.molvix.android.eventbuses;
 
-import com.molvix.android.models.Season;
-
 public class LoadEpisodesForSeason {
-    private Season season;
+    private String seasonId;
 
-    public LoadEpisodesForSeason(Season season) {
-        this.season = season;
+    public LoadEpisodesForSeason(String seasonId) {
+        this.seasonId = seasonId;
     }
 
-    public Season getSeason() {
-        return season;
+    public String getSeasonId() {
+        return seasonId;
     }
 }

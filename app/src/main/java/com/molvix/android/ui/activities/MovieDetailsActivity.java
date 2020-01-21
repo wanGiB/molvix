@@ -27,7 +27,6 @@ import com.molvix.android.managers.ContentManager;
 import com.molvix.android.managers.EpisodesManager;
 import com.molvix.android.managers.FileDownloadManager;
 import com.molvix.android.managers.MovieManager;
-import com.molvix.android.managers.SeasonsManager;
 import com.molvix.android.models.DownloadableEpisode;
 import com.molvix.android.models.Episode;
 import com.molvix.android.models.Movie;
@@ -289,8 +288,12 @@ public class MovieDetailsActivity extends BaseActivity {
         super.onEventMainThread(event);
         if (event instanceof LoadEpisodesForSeason) {
             runOnUiThread(() -> {
-                LoadEpisodesForSeason value = (LoadEpisodesForSeason) event;
-                loadEpisodesForSeason(value.getSeason());
+                LoadEpisodesForSeason seasonData = (LoadEpisodesForSeason) event;
+                String seasonId = seasonData.getSeasonId();
+                Season seasonToLoad = realm.where(Season.class).equalTo(AppConstants.SEASON_ID, seasonId).findFirst();
+                if (seasonToLoad != null) {
+                    loadEpisodesForSeason(seasonToLoad);
+                }
             });
         }
     }
