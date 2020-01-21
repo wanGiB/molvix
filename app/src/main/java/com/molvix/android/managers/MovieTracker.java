@@ -21,9 +21,11 @@ import com.molvix.android.models.Notification;
 import com.molvix.android.models.Season;
 import com.molvix.android.observers.MolvixContentChangeObserver;
 import com.molvix.android.preferences.AppPrefs;
+import com.molvix.android.utils.CryptoUtils;
 import com.molvix.android.utils.DateUtils;
 import com.molvix.android.utils.MolvixDB;
 import com.molvix.android.utils.UiUtils;
+import com.orm.SugarRecord;
 
 import java.security.SecureRandom;
 import java.util.Collections;
@@ -41,8 +43,13 @@ public class MovieTracker {
         Episode episode = MolvixDB.getEpisode(episodeId);
         Movie movie = MolvixDB.getMovie(episode.getMovieId());
         Season season = MolvixDB.getSeason(episode.getSeasonId());
+        String notificationId = CryptoUtils.getSha256Digest(String.valueOf(System.currentTimeMillis() + new Random().nextInt(256)));
+        Notification existingNotification = SugarRecord.findById(Notification.class, notificationId.hashCode());
+        if (existingNotification != null) {
+            return;
+        }
         Notification newNotification = new Notification();
-        newNotification.setNotificationObjectId(String.valueOf(System.currentTimeMillis() + new Random().nextInt(256)));
+        newNotification.setNotificationObjectId(notificationId);
         newNotification.setDestination(AppConstants.DESTINATION_EPISODE);
         newNotification.setMessage("<b>" + episode.getEpisodeName() + "</b>/<b>" + season.getSeasonName() + "</b> of <b>" + movie.getMovieName() + "</b> successfully downloaded");
         newNotification.setDestinationKey(episodeId);

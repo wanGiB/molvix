@@ -63,4 +63,12 @@ public class AppConstants {
     public static final String LAST_MOVIES_RECOMMENDATION_TIME = "last_movies_recommendation_time";
     public static final String REFRESHED_MOVIES = "refreshed_movies";
     public static final String REFRESHED_SEASONS = "refreshed_seasons";
+    public static final String UPDATED = "Updated";
+
+    public static final String MOVIE = "Movie_";
+    public static final String NOTIFICATION = "Notification_";
+    public static final String EPISODE = "Episode_";
+    public static final String SEASON = "Season_";
+    public static final String DOWNLOADABLE_EPISODE = "Downloadable_";
+
 }

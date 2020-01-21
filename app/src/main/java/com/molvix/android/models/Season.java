@@ -1,17 +1,34 @@
 package com.molvix.android.models;
 
 import com.molvix.android.utils.MolvixDB;
+import com.orm.dsl.Table;
+import com.orm.dsl.Unique;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Table
 public class Season {
 
+    @Unique
     private String seasonId;
     private String seasonName;
     private String seasonLink;
     private String movieId;
     private List<Episode> episodes;
+    private long id;
+
+    public Season() {
+
+    }
+
+    public void setId(long id) {
+        this.id = id;
+    }
+
+    public long getId() {
+        return id;
+    }
 
     public String getSeasonId() {
         return seasonId;

@@ -122,7 +122,7 @@ public class MovieDetailsActivity extends BaseActivity {
     }
 
     private void listenToIncomingDownloadableEpisodes() {
-        MolvixDB.listenToIncomingDownloadableEpisodes(changedData -> {
+        MolvixContentChangeObserver.addDownloadableEpisodesChangeListener(changedData -> {
             if (!changedData.isEmpty()) {
                 if (EpisodesManager.isCaptchaSolvable()) {
                     DownloadableEpisode downloadableEpisode = changedData.get(0);

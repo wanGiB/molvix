@@ -1,14 +1,16 @@
 package com.molvix.android.models;
 
 import com.molvix.android.utils.MolvixDB;
+import com.orm.dsl.Table;
+import com.orm.dsl.Unique;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import io.realm.RealmList;
-
+@Table
 public class Movie {
 
+    @Unique
     private String movieId;
     private String movieName;
     private String movieLink;
@@ -18,6 +20,11 @@ public class Movie {
     private boolean ad;
     private boolean recommendedToUser;
     private boolean seenByUser;
+    private long id;
+
+    public Movie() {
+
+    }
 
     public String getMovieId() {
         return movieId;
@@ -118,6 +125,14 @@ public class Movie {
         }
         Movie another = (Movie) obj;
         return this.getMovieId().equals(another.getMovieId());
+    }
+
+    public long getId() {
+        return id;
+    }
+
+    public void setId(long id) {
+        this.id = id;
     }
 
 }

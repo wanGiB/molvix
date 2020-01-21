@@ -2,8 +2,13 @@ package com.molvix.android.models;
 
 import androidx.annotation.Nullable;
 
+import com.orm.dsl.Table;
+import com.orm.dsl.Unique;
+
+@Table
 public class Episode {
 
+    @Unique
     private String episodeId;
     private String movieId;
     private String seasonId;
@@ -16,6 +21,19 @@ public class Episode {
     private String episodeCaptchaSolverLink;
     private int downloadProgress = -1;
     private String progressDisplayText;
+    private long id;
+
+    public Episode() {
+
+    }
+
+    public void setId(long id) {
+        this.id = id;
+    }
+
+    public long getId() {
+        return id;
+    }
 
     public void setProgressDisplayText(@Nullable String progressDisplayText) {
         this.progressDisplayText = progressDisplayText;

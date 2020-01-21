@@ -15,7 +15,7 @@ public class AppPrefs {
 
     private static SharedPreferences appSharedPreferences;
 
-    private static SharedPreferences getAppPreferences() {
+    public static SharedPreferences getAppPreferences() {
         if (appSharedPreferences == null) {
             appSharedPreferences = ApplicationLoader.getInstance()
                     .getSharedPreferences(AppConstants.APP_PREFS_NAME, Context.MODE_PRIVATE);
@@ -136,4 +136,28 @@ public class AppPrefs {
         getAppPreferences().edit().putStringSet(AppConstants.REFRESHED_MOVIES, refreshedMovies).commit();
     }
 
+    @SuppressLint("ApplySharedPref")
+    public static void movieUpdated(String movieId) {
+        getAppPreferences().edit().putString(AppConstants.MOVIE + movieId, AppConstants.UPDATED).commit();
+    }
+
+    @SuppressLint("ApplySharedPref")
+    public static void seasonUpdated(String seasonId) {
+        getAppPreferences().edit().putString(AppConstants.SEASON + seasonId, AppConstants.UPDATED).commit();
+    }
+
+    @SuppressLint("ApplySharedPref")
+    public static void episodeUpdated(String episodeId) {
+        getAppPreferences().edit().putString(AppConstants.EPISODE + episodeId, AppConstants.UPDATED).commit();
+    }
+
+    @SuppressLint("ApplySharedPref")
+    public static void downloadableEpisodeUpdated(String episodeId) {
+        getAppPreferences().edit().putString(AppConstants.DOWNLOADABLE + episodeId, AppConstants.UPDATED).commit();
+    }
+
+    @SuppressLint("ApplySharedPref")
+    public static void notificationsUpdated(String notificationId) {
+        getAppPreferences().edit().putString(AppConstants.NOTIFICATION + notificationId, AppConstants.UPDATED).commit();
+    }
 }

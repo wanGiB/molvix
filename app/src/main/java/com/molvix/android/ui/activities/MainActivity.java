@@ -31,6 +31,7 @@ import com.molvix.android.managers.AdsLoadManager;
 import com.molvix.android.managers.EpisodesManager;
 import com.molvix.android.managers.FileDownloadManager;
 import com.molvix.android.models.Episode;
+import com.molvix.android.observers.MolvixContentChangeObserver;
 import com.molvix.android.utils.FileUtils;
 import com.molvix.android.utils.MolvixDB;
 import com.molvix.android.utils.UiUtils;
@@ -41,7 +42,6 @@ import org.greenrobot.eventbus.EventBus;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import im.delight.android.webview.AdvancedWebView;
-import io.realm.Realm;
 
 public class MainActivity extends BaseActivity {
 
@@ -94,7 +94,7 @@ public class MainActivity extends BaseActivity {
     }
 
     private void listenToIncomingDownloadableEpisodes() {
-        MolvixDB.listenToIncomingDownloadableEpisodes(changedData -> {
+        MolvixContentChangeObserver.addDownloadableEpisodesChangeListener(changedData -> {
             if (!changedData.isEmpty()) {
                 if (EpisodesManager.isCaptchaSolvable()) {
                     solveEpisodeCaptchaChallenge(changedData.get(0).getDownloadableEpisode());

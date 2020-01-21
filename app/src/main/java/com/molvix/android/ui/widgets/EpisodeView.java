@@ -141,7 +141,7 @@ public class EpisodeView extends FrameLayout {
     }
 
     private void listenToChangesOnEpisode(Episode episode) {
-        MolvixContentChangeObserver.addChangeListenerOn(episode, updatedEpisode -> {
+        MolvixContentChangeObserver.addEpisodeChangeListener(episode, updatedEpisode -> {
             resetEpisode(updatedEpisode);
             setupEpisodeName(updatedEpisode);
             checkEpisodeActiveDownloadStatus(updatedEpisode);
@@ -169,7 +169,7 @@ public class EpisodeView extends FrameLayout {
     @Override
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
-        MolvixContentChangeObserver.removeChangeListenerOnEpisode(episode);
+        MolvixContentChangeObserver.removeEpisodeChangeListener(episode);
     }
 
     private void initDownloadOrPlayButtonEventListener(Episode episode, String episodeName) {

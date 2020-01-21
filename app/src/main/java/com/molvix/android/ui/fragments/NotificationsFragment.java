@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.molvix.android.R;
+import com.molvix.android.contracts.OnContentChangedListener;
 import com.molvix.android.managers.ContentManager;
 import com.molvix.android.models.Notification;
 import com.molvix.android.observers.MolvixContentChangeObserver;
@@ -54,6 +55,26 @@ public class NotificationsFragment extends Fragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        initNotificationChangeListener();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        initNotificationChangeListener();
+    }
+
+    private void initNotificationChangeListener() {
+        MolvixContentChangeObserver.addNotificationsChangeListener(changedData -> {
+            if (changedData != null) {
+                if (!notifications.contains(changedData)) {
+                    notifications.add(changedData);
+                    if (notificationsAdapter != null) {
+                        notificationsAdapter.notifyItemInserted(notifications.size() - 1);
+                    }
+                }
+            }
+        });
     }
 
     @Override
@@ -138,6 +159,7 @@ public class NotificationsFragment extends Fragment {
             ContentManager.fetchNotifications();
             return null;
         }
+
     }
 
 }

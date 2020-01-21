@@ -3,14 +3,14 @@ package com.molvix.android.utils;
 import android.util.Pair;
 
 import com.molvix.android.contracts.DoneCallback;
-import com.molvix.android.contracts.OnContentChangedListener;
 import com.molvix.android.models.DownloadableEpisode;
 import com.molvix.android.models.Episode;
 import com.molvix.android.models.Movie;
 import com.molvix.android.models.Notification;
 import com.molvix.android.models.Season;
+import com.molvix.android.preferences.AppPrefs;
+import com.orm.SugarRecord;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class MolvixDB {
@@ -23,8 +23,16 @@ public class MolvixDB {
 
     }
 
-    private static void insertNewMovie(Movie newMovie) {
+    private static void saveMovie(Movie newMovie) {
+        long id = SugarRecord.save(newMovie);
+        newMovie.setId(id);
+        SugarRecord.update(newMovie);
+        AppPrefs.movieUpdated(newMovie.getMovieId());
+    }
 
+    public static void updateMovie(Movie updatableMovie) {
+        SugarRecord.update(updatableMovie);
+        AppPrefs.movieUpdated(updatableMovie.getMovieId());
     }
 
     public static void performBulkInsertionOfMovies(List<Pair<String, String>> movies) {
@@ -40,6 +48,7 @@ public class MolvixDB {
             newMovie.setMovieId(movieId);
             newMovie.setMovieName(movieName.toLowerCase());
             newMovie.setMovieLink(movieLink);
+            saveMovie(newMovie);
         }
     }
 
@@ -48,7 +57,8 @@ public class MolvixDB {
     }
 
     public static void createNewSeason(Season season) {
-
+        SugarRecord.save(season);
+        AppPrefs.seasonUpdated(season.getSeasonId());
     }
 
     public static Episode getEpisode(String episodeId) {
@@ -56,15 +66,13 @@ public class MolvixDB {
     }
 
     public static void createNewEpisode(Episode episode) {
-
+        SugarRecord.save(episode);
+        AppPrefs.episodeUpdated(episode.getEpisodeId());
     }
 
     public static void updateSeason(Season updatableSeason) {
-
-    }
-
-    public static void updateMovie(Movie updatableMovie) {
-
+        SugarRecord.update(updatableSeason);
+        AppPrefs.seasonUpdated(updatableSeason.getSeasonId());
     }
 
     public static DownloadableEpisode getDownloadableEpisode(String episodeId) {
@@ -72,34 +80,44 @@ public class MolvixDB {
     }
 
     public static void createNewDownloadableEpisode(DownloadableEpisode newDownloadableEpisode) {
-
+        SugarRecord.save(newDownloadableEpisode);
+        AppPrefs.downloadableEpisodeUpdated(newDownloadableEpisode.getEpisodeId());
     }
 
     public static void deleteDownloadableEpisode(DownloadableEpisode downloadableEpisode) {
-
+        SugarRecord.delete(downloadableEpisode);
     }
 
     public static void updateEpisode(Episode episode) {
-
+        SugarRecord.update(episode);
+        AppPrefs.episodeUpdated(episode.getEpisodeId());
     }
 
     public static void createNewNotification(Notification newNotification) {
-
+        SugarRecord.save(newNotification);
+        AppPrefs.notificationsUpdated(newNotification.getNotificationObjectId());
     }
 
     public static void fetchAllAvailableMovies(DoneCallback<List<Movie>> fetchDoneCallBack) {
 
     }
 
-    public static void listenToIncomingDownloadableEpisodes(OnContentChangedListener<List<DownloadableEpisode>> downloadableContentChangedListener) {
-
-    }
-
-    public static void fetchNotifications(DoneCallback<List<Notification>>notificationsFetchDoneCallBack) {
+    public static void fetchNotifications(DoneCallback<List<Notification>> notificationsFetchDoneCallBack) {
 
     }
 
     public static void updateNotification(Notification notification) {
+        SugarRecord.update(notification);
+        AppPrefs.notificationsUpdated(notification.getNotificationObjectId());
+    }
+
+    public static Notification getNotification(String notificationKey) {
+        return null;
+    }
+
+    public static void fetchDownloadableEpisodes(DoneCallback<List<DownloadableEpisode>> downloadableEpisodeDoneCallback) {
 
     }
+
+
 }

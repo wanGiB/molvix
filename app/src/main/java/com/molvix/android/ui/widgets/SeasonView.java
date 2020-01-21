@@ -77,7 +77,7 @@ public class SeasonView extends FrameLayout {
     }
 
     private void registerModelChangeListener(Season season) {
-        MolvixContentChangeObserver.addChangeListenerOnSeason(season, newSeason -> {
+        MolvixContentChangeObserver.addSeasonChangeListener(season, newSeason -> {
             if (newSeason.getEpisodes() != null && !newSeason.getEpisodes().isEmpty()) {
                 setNewSeason(newSeason);
                 seasonNameView.setText(newSeason.getSeasonName());
@@ -94,7 +94,7 @@ public class SeasonView extends FrameLayout {
     }
 
     private void unRegisterModelChangeListener() {
-        MolvixContentChangeObserver.removeChangeListenerOnSeason(season);
+        MolvixContentChangeObserver.removeSeasonChangeListener(season);
     }
 
     private void initEventHandlers(Season season) {
