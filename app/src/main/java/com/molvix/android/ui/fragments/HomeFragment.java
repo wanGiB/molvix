@@ -20,6 +20,7 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.liucanwen.app.headerfooterrecyclerview.HeaderAndFooterRecyclerViewAdapter;
 import com.liucanwen.app.headerfooterrecyclerview.RecyclerViewUtils;
 import com.molvix.android.R;
+import com.molvix.android.eventbuses.ConnectivityChanged;
 import com.molvix.android.eventbuses.SearchEvent;
 import com.molvix.android.managers.ContentManager;
 import com.molvix.android.managers.MovieManager;
@@ -180,6 +181,7 @@ public class HomeFragment extends BaseFragment {
                 Collections.shuffle(result);
                 loadMovies(result);
             }
+            swipeRefreshLayout.setRefreshing(false);
         });
         spinMoviesDownloadJob();
     }
@@ -289,6 +291,10 @@ public class HomeFragment extends BaseFragment {
                     swipeRefreshLayout.setRefreshing(false);
                 }
             });
+        } else if (event instanceof ConnectivityChanged) {
+            if (movies.isEmpty()) {
+                spinMoviesDownloadJob();
+            }
         }
     }
 
