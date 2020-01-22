@@ -1,5 +1,6 @@
 package com.molvix.android.utils;
 
+import android.database.sqlite.SQLiteException;
 import android.util.Pair;
 
 import com.molvix.android.companions.AppConstants;
@@ -19,15 +20,39 @@ import java.util.List;
 public class MolvixDB {
 
     public static Movie getMovie(String movieId) {
-        return Select.from(Movie.class).where(Condition.prop(AppConstants.MOVIE_ID).eq(movieId)).first();
+        try {
+            return Select.from(Movie.class).where(Condition.prop(AppConstants.MOVIE_ID).eq(movieId)).first();
+        } catch (SQLiteException e) {
+            return null;
+        }
     }
 
     public static Season getSeason(String seasonId) {
-        return Select.from(Season.class).where(Condition.prop(AppConstants.SEASON_ID).eq(seasonId)).first();
+        try {
+            return Select.from(Season.class).where(Condition.prop(AppConstants.SEASON_ID).eq(seasonId)).first();
+        } catch (SQLiteException e) {
+            return null;
+        }
     }
 
     public static Episode getEpisode(String episodeId) {
-        return Select.from(Episode.class).where(Condition.prop(AppConstants.EPISODE_ID).eq(episodeId)).first();
+        try {
+            return Select.from(Episode.class).where(Condition.prop(AppConstants.EPISODE_ID).eq(episodeId)).first();
+        } catch (SQLiteException e) {
+            return null;
+        }
+    }
+
+    public static Notification getNotification(String notificationObjectId) {
+        try {
+            return Select.from(Notification.class).where(Condition.prop(AppConstants.NOTIFICATION_OBJECT_ID).eq(notificationObjectId)).first();
+        } catch (SQLiteException e) {
+            return null;
+        }
+    }
+
+    public static void fetchNotifications(DoneCallback<List<Notification>> notificationsFetchDoneCallBack) {
+        notificationsFetchDoneCallBack.done(Select.from(Notification.class).list(), null);
     }
 
     public static void searchMovies(String searchString, DoneCallback<List<Movie>> searchDoneCallBack) {
@@ -112,17 +137,9 @@ public class MolvixDB {
         fetchDoneCallBack.done(recommendableMovies, null);
     }
 
-    public static void fetchNotifications(DoneCallback<List<Notification>> notificationsFetchDoneCallBack) {
-        notificationsFetchDoneCallBack.done(Select.from(Notification.class).list(), null);
-    }
-
     public static void updateNotification(Notification notification) {
         SugarRecord.update(notification);
         AppPrefs.notificationsUpdated(notification.getNotificationObjectId());
-    }
-
-    public static Notification getNotification(String notificationObjectId) {
-        return Select.from(Notification.class).where(Condition.prop(AppConstants.NOTIFICATION_OBJECT_ID).eq(notificationObjectId)).first();
     }
 
     public static void fetchDownloadableEpisodes(DoneCallback<List<DownloadableEpisode>> downloadableEpisodeDoneCallback) {
