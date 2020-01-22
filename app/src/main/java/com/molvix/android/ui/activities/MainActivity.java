@@ -44,6 +44,8 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import im.delight.android.webview.AdvancedWebView;
+import io.objectbox.reactive.DataObserver;
+import io.objectbox.reactive.DataSubscription;
 
 public class MainActivity extends BaseActivity {
 
@@ -63,6 +65,7 @@ public class MainActivity extends BaseActivity {
     AdvancedWebView hackWebView;
 
     private NavController navController;
+    private DataSubscription downloadableEpisodesSubscription;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -96,7 +99,14 @@ public class MainActivity extends BaseActivity {
     }
 
     private void addChangeListenerForDownloadableEpisodes() {
+        downloadableEpisodesSubscription = MolvixDB.getDownloadableEpisodeBox().query().build().subscribe().observer(this::updatedDownloadableEpisodes);
+    }
 
+    private void removeChangeListenerForDownloadableEpisodes() {
+        if (downloadableEpisodesSubscription != null && !downloadableEpisodesSubscription.isCanceled()) {
+            downloadableEpisodesSubscription.cancel();
+            downloadableEpisodesSubscription = null;
+        }
     }
 
     private void updatedDownloadableEpisodes(List<DownloadableEpisode> changedData) {
@@ -166,6 +176,7 @@ public class MainActivity extends BaseActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        removeChangeListenerForDownloadableEpisodes();
         hackWebView.onDestroy();
     }
 

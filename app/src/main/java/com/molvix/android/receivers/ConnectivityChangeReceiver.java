@@ -8,6 +8,7 @@ import android.os.AsyncTask;
 
 import com.molvix.android.managers.ContentManager;
 import com.molvix.android.managers.MovieTracker;
+import com.molvix.android.preferences.AppPrefs;
 import com.molvix.android.utils.ConnectivityUtils;
 
 public class ConnectivityChangeReceiver extends BroadcastReceiver {
@@ -20,7 +21,9 @@ public class ConnectivityChangeReceiver extends BroadcastReceiver {
         }
         if (intent.getAction().equals(ConnectivityManager.CONNECTIVITY_ACTION) && ConnectivityUtils.isDeviceConnectedToTheInternet()) {
             fetchNotifications();
-            MovieTracker.recommendUnWatchedMoviesToUser();
+            if (AppPrefs.canDailyMoviesBeRecommended()) {
+                MovieTracker.recommendUnWatchedMoviesToUser();
+            }
         }
     }
 

@@ -15,14 +15,15 @@ import com.bumptech.glide.request.transition.Transition;
 import com.molvix.android.R;
 import com.molvix.android.companions.AppConstants;
 import com.molvix.android.components.ApplicationLoader;
+import com.molvix.android.database.MolvixDB;
 import com.molvix.android.models.Episode;
 import com.molvix.android.models.Movie;
+import com.molvix.android.models.Movie_;
 import com.molvix.android.models.Notification;
 import com.molvix.android.models.Season;
 import com.molvix.android.preferences.AppPrefs;
 import com.molvix.android.utils.CryptoUtils;
 import com.molvix.android.utils.DateUtils;
-import com.molvix.android.database.MolvixDB;
 import com.molvix.android.utils.UiUtils;
 
 import java.security.SecureRandom;
@@ -31,8 +32,11 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Random;
 
+import io.objectbox.reactive.DataSubscription;
+
 public class MovieTracker {
 
+    private static DataSubscription movieSubscription;
     private static BitmapLoadTask bitmapLoadTask;
 
     static void recordEpisodeAsDownloaded(Episode episode) {
@@ -71,10 +75,14 @@ public class MovieTracker {
                     String movieLink = firstMovie.getMovieLink();
                     List<Season> movieSeasons = firstMovie.getSeasons();
                     if (movieArtUrl == null || movieSeasons.isEmpty()) {
-//                        MolvixContentChangeObserver.addMovieChangedListener(firstMovie.getMovieId(), changedData -> {
-//                            loadBitmapAndRecommendVideo(changedData.getMovieId(), changedData.getMovieArtUrl());
-//                            MolvixContentChangeObserver.removeMovieChangeListener(firstMovie.getMovieId());
-//                        });
+                        movieSubscription = MolvixDB.getMovieBox().query().equal(Movie_.movieId, firstMovie.getMovieId()).build().subscribe().observer(data -> {
+                            if (!data.isEmpty()) {
+                                Movie retrievedMovie = data.get(0);
+                                if (retrievedMovie.equals(firstMovie) && retrievedMovie.getMovieArtUrl() != null) {
+                                    loadBitmapAndRecommendVideo(retrievedMovie.getMovieId(), retrievedMovie.getMovieArtUrl());
+                                }
+                            }
+                        });
                         new MovieContentsExtractionTask().execute(movieLink, movieId);
                     } else {
                         loadBitmapAndRecommendVideo(firstMovie.getMovieId(), firstMovie.getMovieArtUrl());
@@ -96,6 +104,10 @@ public class MovieTracker {
     }
 
     private static void loadBitmapAndRecommendVideo(String videoId, String artUrl) {
+        if (movieSubscription != null && !movieSubscription.isCanceled()) {
+            movieSubscription.cancel();
+            movieSubscription = null;
+        }
         if (bitmapLoadTask != null) {
             bitmapLoadTask.cancel(true);
             bitmapLoadTask = null;

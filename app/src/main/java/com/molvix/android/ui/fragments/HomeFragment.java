@@ -40,6 +40,8 @@ import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import io.objectbox.reactive.DataObserver;
+import io.objectbox.reactive.DataSubscription;
 import jp.wasabeef.recyclerview.animators.ScaleInAnimator;
 
 @SuppressWarnings("ConstantConditions")
@@ -62,11 +64,11 @@ public class HomeFragment extends BaseFragment {
 
     private List<Movie> movies = new ArrayList<>();
     private MoviesAdapter moviesAdapter;
-
     private Handler mUiHandler;
     private ContentPullOverTask contentPullOverTask;
     private TextView headerTextView;
     private String searchString;
+    private DataSubscription moviesSubScription;
 
     private void setSearchString(String searchString) {
         this.searchString = searchString;
@@ -99,7 +101,10 @@ public class HomeFragment extends BaseFragment {
     }
 
     private void removeMoviesChangeListener() {
-
+        if (moviesSubScription != null && !moviesSubScription.isCanceled()) {
+            moviesSubScription.cancel();
+            moviesSubScription = null;
+        }
     }
 
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -120,7 +125,8 @@ public class HomeFragment extends BaseFragment {
     }
 
     private void addMoviesChangeListener() {
-
+        DataObserver<List<Movie>> moviesObserver = this::loadChangedData;
+        moviesSubScription = MolvixDB.getMovieBox().query().build().subscribe().observer(moviesObserver);
     }
 
     private void loadChangedData(List<Movie> changedData) {

@@ -123,7 +123,7 @@ public class Movie {
             return false;
         }
         Movie another = (Movie) obj;
-        return this.movieId.equals(another.movieId);
+        return this.getMovieId().equals(another.getMovieId());
     }
 
 }

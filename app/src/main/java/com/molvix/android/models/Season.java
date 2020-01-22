@@ -88,7 +88,7 @@ public class Season {
             return false;
         }
         Season another = (Season) obj;
-        return this.seasonId.equals(another.seasonId);
+        return this.getSeasonId().equals(another.getSeasonId());
     }
 
 }

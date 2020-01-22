@@ -10,6 +10,12 @@
             android:summary="Enable Daily Movie Recommendation"
             android:title="Movie Recommendations" />
 
+        <SwitchPreferenceCompat
+            android:defaultValue="true"
+            android:key="@string/downloaded_movies_update_key"
+            android:summary="Notify me on updates to movies I downloaded"
+            android:title="Downloaded Movies Updates" />
+
     </PreferenceCategory>
 
     <PreferenceCategory android:title="Feedback &amp; Support">

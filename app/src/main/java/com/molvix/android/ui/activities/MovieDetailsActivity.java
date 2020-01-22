@@ -22,6 +22,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.molvix.android.R;
 import com.molvix.android.beans.MovieContentItem;
 import com.molvix.android.companions.AppConstants;
+import com.molvix.android.database.MolvixDB;
 import com.molvix.android.eventbuses.LoadEpisodesForSeason;
 import com.molvix.android.managers.ContentManager;
 import com.molvix.android.managers.EpisodesManager;
@@ -30,12 +31,12 @@ import com.molvix.android.managers.MovieManager;
 import com.molvix.android.models.DownloadableEpisode;
 import com.molvix.android.models.Episode;
 import com.molvix.android.models.Movie;
+import com.molvix.android.models.Movie_;
 import com.molvix.android.models.Season;
 import com.molvix.android.ui.adapters.EpisodesAdapter;
 import com.molvix.android.ui.adapters.SeasonsWithEpisodesAdapter;
 import com.molvix.android.utils.CryptoUtils;
 import com.molvix.android.utils.FileUtils;
-import com.molvix.android.database.MolvixDB;
 import com.molvix.android.utils.UiUtils;
 
 import org.apache.commons.lang3.text.WordUtils;
@@ -47,6 +48,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import im.delight.android.webview.AdvancedWebView;
+import io.objectbox.reactive.DataSubscription;
 
 public class MovieDetailsActivity extends BaseActivity {
 
@@ -75,6 +77,7 @@ public class MovieDetailsActivity extends BaseActivity {
     private String movieId;
     private List<MovieContentItem> movieContentItems = new ArrayList<>();
     private AtomicReference<String> currentEpisodeRef = new AtomicReference<>();
+    private DataSubscription movieSubscription, downloadableEpisodesSubscription;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -87,12 +90,16 @@ public class MovieDetailsActivity extends BaseActivity {
         cleanUpMovieContentItems();
         initMovieAdapter();
         addDownloadableEpisodesChangeListener();
+        initMovieFromId();
+    }
+
+    private void initMovieFromId() {
         if (movieId != null) {
             MovieManager.setMovieRefreshable(movieId);
             loadingLayoutProgressMsgView.setText(getString(R.string.please_wait));
             Movie movie = MolvixDB.getMovie(movieId);
-            initModelChangeListener();
             if (movie != null) {
+                addMovieChangeListener();
                 List<Season> movieSeasons = movie.getSeasons();
                 if (movieSeasons == null || movieSeasons.isEmpty()) {
                     spinMoviePullTask();
@@ -121,7 +128,14 @@ public class MovieDetailsActivity extends BaseActivity {
     }
 
     private void addDownloadableEpisodesChangeListener() {
+        downloadableEpisodesSubscription = MolvixDB.getDownloadableEpisodeBox().query().build().subscribe().observer(this::loadUpdatedDownloadableEpisodes);
+    }
 
+    private void removeDownloadableEpisodesChangeListener() {
+        if (downloadableEpisodesSubscription != null && !downloadableEpisodesSubscription.isCanceled()) {
+            downloadableEpisodesSubscription.cancel();
+            downloadableEpisodesSubscription = null;
+        }
     }
 
     private void loadUpdatedDownloadableEpisodes(List<DownloadableEpisode> changedData) {
@@ -233,23 +247,30 @@ public class MovieDetailsActivity extends BaseActivity {
         hackWebView.onPause();
     }
 
-    private void initModelChangeListener() {
-        addMovieChangeListener();
+    private void addMovieChangeListener() {
+        movieSubscription = MolvixDB.getMovieBox().query().equal(Movie_.movieId, movieId).build().subscribe().observer(data -> {
+            if (!data.isEmpty()) {
+                Movie firstUpdatedMovie = data.get(0);
+                if (firstUpdatedMovie != null && firstUpdatedMovie.getMovieId().equals(movieId)) {
+                    loadMovieDetails(firstUpdatedMovie);
+                }
+            }
+        });
     }
 
-    private void addMovieChangeListener() {
-
+    private void removeMovieChangeListener() {
+        if (movieSubscription != null && !movieSubscription.isCanceled()) {
+            movieSubscription.cancel();
+            movieSubscription = null;
+        }
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         removeMovieChangeListener();
+        removeDownloadableEpisodesChangeListener();
         unLockCaptchaChallenge();
-    }
-
-    private void removeMovieChangeListener() {
-
     }
 
     private void spinMoviePullTask() {

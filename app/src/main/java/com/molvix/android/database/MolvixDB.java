@@ -21,19 +21,19 @@ import io.objectbox.Box;
 
 public class MolvixDB {
 
-    private static Box<DownloadableEpisode> getDownloadableEpisodeBox() {
+    public static Box<DownloadableEpisode> getDownloadableEpisodeBox() {
         return ObjectBox.get().boxFor(DownloadableEpisode.class);
     }
 
-    private static Box<Episode> getEpisodeBox() {
+    public static Box<Episode> getEpisodeBox() {
         return ObjectBox.get().boxFor(Episode.class);
     }
 
-    private static Box<Season> getSeasonBox() {
+    public static Box<Season> getSeasonBox() {
         return ObjectBox.get().boxFor(Season.class);
     }
 
-    private static Box<Movie> getMovieBox() {
+    public static Box<Movie> getMovieBox() {
         return ObjectBox.get().boxFor(Movie.class);
     }
 

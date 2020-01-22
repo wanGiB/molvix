@@ -13,10 +13,12 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.molvix.android.R;
+import com.molvix.android.database.MolvixDB;
 import com.molvix.android.eventbuses.LoadEpisodesForSeason;
 import com.molvix.android.managers.ContentManager;
 import com.molvix.android.managers.SeasonsManager;
 import com.molvix.android.models.Season;
+import com.molvix.android.models.Season_;
 import com.molvix.android.utils.ConnectivityUtils;
 import com.molvix.android.utils.UiUtils;
 
@@ -26,6 +28,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import io.objectbox.reactive.DataSubscription;
 
 public class SeasonView extends FrameLayout {
 
@@ -43,6 +46,7 @@ public class SeasonView extends FrameLayout {
 
     private Season season;
     private AtomicBoolean pendingEpisodesLoadOperation = new AtomicBoolean();
+    private DataSubscription seasonSubscription;
 
     public SeasonView(@NonNull Context context) {
         super(context);
@@ -72,15 +76,30 @@ public class SeasonView extends FrameLayout {
         seasonNameView.setText(season.getSeasonName());
         loadSeasonEpisodes();
         initEventHandlers(season);
-        registerModelChangeListener(season);
+        addSeasonChangeListener(season);
     }
 
-    private void registerModelChangeListener(Season season) {
-
+    private void addSeasonChangeListener(Season season) {
+        MolvixDB.getSeasonBox()
+                .query()
+                .equal(Season_.seasonId, season.getSeasonId())
+                .build()
+                .subscribe()
+                .observer(data -> {
+                    if (!data.isEmpty()) {
+                        Season updatedSeason = data.get(0);
+                        if (updatedSeason != null && updatedSeason.equals(season)) {
+                            bindUpdatedSeason(updatedSeason);
+                        }
+                    }
+                });
     }
-    
-    private void unRegisterModelChangeListener() {
 
+    private void removeSeasonChangeListener() {
+        if (seasonSubscription != null && !seasonSubscription.isCanceled()) {
+            seasonSubscription.cancel();
+            seasonSubscription = null;
+        }
     }
 
     private void bindUpdatedSeason(Season newSeason) {
@@ -148,13 +167,13 @@ public class SeasonView extends FrameLayout {
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
         loadSeasonEpisodes();
-        registerModelChangeListener(season);
+        addSeasonChangeListener(season);
     }
 
     @Override
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
-        unRegisterModelChangeListener();
+        removeSeasonChangeListener();
     }
 
 }

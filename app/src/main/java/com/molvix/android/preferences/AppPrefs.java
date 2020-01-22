@@ -11,12 +11,11 @@ import com.molvix.android.components.ApplicationLoader;
 import java.util.HashSet;
 import java.util.Set;
 
-@SuppressWarnings("unused")
 public class AppPrefs {
 
     private static SharedPreferences appSharedPreferences;
 
-    public static SharedPreferences getAppPreferences() {
+    private static SharedPreferences getAppPreferences() {
         if (appSharedPreferences == null) {
             appSharedPreferences = ApplicationLoader.getInstance()
                     .getSharedPreferences(AppConstants.APP_PREFS_NAME, Context.MODE_PRIVATE);
@@ -35,27 +34,8 @@ public class AppPrefs {
     }
 
     @SuppressLint("ApplySharedPref")
-    public static void unLockCaptchaSolver(String episodeId) {
+    public static void unLockCaptchaSolver() {
         getAppPreferences().edit().putString(AppConstants.CAPTCHA_SOLVING, null).commit();
-    }
-
-    @SuppressLint("ApplySharedPref")
-    public static void prepareSeasonEpisodes(String seasonId, boolean prepare) {
-        getAppPreferences().edit().putBoolean(seasonId + AppConstants.EPISODES, prepare).commit();
-    }
-
-    public static boolean wasSeasonEpisodesUnderPreparation(String seasonId) {
-        return getAppPreferences().getBoolean(seasonId + AppConstants.EPISODES, false);
-    }
-
-    @SuppressLint("ApplySharedPref")
-    public static void fireSeasonUpdated(String seasonId, boolean value) {
-        getAppPreferences().edit().putBoolean(seasonId, value).commit();
-    }
-
-    @SuppressLint("ApplySharedPref")
-    public static void fireEpisodeUpdated(String episodeId, boolean value) {
-        getAppPreferences().edit().putBoolean(episodeId, value).commit();
     }
 
     @SuppressLint("ApplySharedPref")
@@ -65,6 +45,15 @@ public class AppPrefs {
 
     public static boolean canDailyMoviesBeRecommended() {
         return getAppPreferences().getBoolean(AppConstants.DAILY_MOVIES_RECOMMENDABILITY, true);
+    }
+
+    public static boolean canBeUpdatedOnDownloadedMovies() {
+        return getAppPreferences().getBoolean(AppConstants.DOWNLOADED_MOVIES_UPDATE, true);
+    }
+
+    @SuppressLint("ApplySharedPref")
+    public static void setDownloadedMoviesUpdatable(boolean newValue) {
+        getAppPreferences().edit().putBoolean(AppConstants.DOWNLOADED_MOVIES_UPDATE, newValue).commit();
     }
 
     public static boolean isAdAlreadyConsumed() {
@@ -137,28 +126,4 @@ public class AppPrefs {
         getAppPreferences().edit().putStringSet(AppConstants.REFRESHED_MOVIES, refreshedMovies).commit();
     }
 
-    @SuppressLint("ApplySharedPref")
-    public static void movieUpdated(String movieId) {
-        getAppPreferences().edit().putString(AppConstants.MOVIE + movieId, AppConstants.UPDATED).commit();
-    }
-
-    @SuppressLint("ApplySharedPref")
-    public static void seasonUpdated(String seasonId) {
-        getAppPreferences().edit().putString(AppConstants.SEASON + seasonId, AppConstants.UPDATED).commit();
-    }
-
-    @SuppressLint("ApplySharedPref")
-    public static void episodeUpdated(String episodeId) {
-        getAppPreferences().edit().putString(AppConstants.EPISODE + episodeId, AppConstants.UPDATED).commit();
-    }
-
-    @SuppressLint("ApplySharedPref")
-    public static void downloadableEpisodeUpdated(String episodeId) {
-        getAppPreferences().edit().putString(AppConstants.DOWNLOADABLE + episodeId, AppConstants.UPDATED).commit();
-    }
-
-    @SuppressLint("ApplySharedPref")
-    public static void notificationsUpdated(String notificationId) {
-        getAppPreferences().edit().putString(AppConstants.NOTIFICATION + notificationId, AppConstants.UPDATED).commit();
-    }
 }

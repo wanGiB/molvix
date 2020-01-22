@@ -22,7 +22,7 @@ public class EpisodesManager {
         DownloadableEpisode downloadableEpisode = MolvixDB.getDownloadableEpisode(episode.getEpisodeId());
         if (downloadableEpisode != null) {
             MolvixDB.deleteDownloadableEpisode(downloadableEpisode);
-            unLockCaptureSolver(episode.getEpisodeId());
+            unLockCaptureSolver();
         }
     }
 
@@ -30,8 +30,8 @@ public class EpisodesManager {
         AppPrefs.lockCaptchaSolver(episodeId);
     }
 
-    public static void unLockCaptureSolver(String episodeId) {
-        AppPrefs.unLockCaptchaSolver(episodeId);
+    public static void unLockCaptureSolver() {
+        AppPrefs.unLockCaptchaSolver();
     }
 
     public static boolean isCaptchaSolvable() {

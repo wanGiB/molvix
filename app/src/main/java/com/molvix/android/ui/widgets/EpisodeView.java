@@ -25,6 +25,7 @@ import com.molvix.android.companions.AppConstants;
 import com.molvix.android.managers.EpisodesManager;
 import com.molvix.android.managers.FileDownloadManager;
 import com.molvix.android.models.Episode;
+import com.molvix.android.models.Episode_;
 import com.molvix.android.models.Movie;
 import com.molvix.android.models.Season;
 import com.molvix.android.utils.ConnectivityUtils;
@@ -46,6 +47,8 @@ import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import io.objectbox.reactive.DataObserver;
+import io.objectbox.reactive.DataSubscription;
 
 public class EpisodeView extends FrameLayout {
 
@@ -76,6 +79,7 @@ public class EpisodeView extends FrameLayout {
     private Season season;
     private Movie movie;
     private Animation mFadeInFadeIn;
+    private DataSubscription episodeSubscription;
 
     public EpisodeView(@NonNull Context context) {
         super(context);
@@ -110,7 +114,7 @@ public class EpisodeView extends FrameLayout {
         initDownloadOrPlayButtonEventListener(episode, episodeName);
         checkEpisodeActiveDownloadStatus(episode);
         initCancelActiveDownloadButtonEventListener();
-        registerEpisodeChangeListener(episode);
+        addEpisodeChangeListener(episode);
     }
 
     private void initCancelActiveDownloadButtonEventListener() {
@@ -139,8 +143,22 @@ public class EpisodeView extends FrameLayout {
         return (dirPath + fileName).hashCode();
     }
 
-    private void registerEpisodeChangeListener(Episode episode) {
+    private void addEpisodeChangeListener(Episode episode) {
+        episodeSubscription = MolvixDB.getEpisodeBox().query().equal(Episode_.episodeId, episode.getEpisodeId()).build().subscribe().observer(data -> {
+            if (!data.isEmpty()) {
+                Episode firstEpisode = data.get(0);
+                if (firstEpisode != null && firstEpisode.equals(episode)) {
+                    bindUpdatedEpisode(firstEpisode);
+                }
+            }
+        });
+    }
 
+    private void removeEpisodeChangeListener() {
+        if (episodeSubscription != null && !episodeSubscription.isCanceled()) {
+            episodeSubscription.cancel();
+            episodeSubscription = null;
+        }
     }
 
     private void bindUpdatedEpisode(Episode updatedEpisode) {
@@ -161,20 +179,16 @@ public class EpisodeView extends FrameLayout {
         return episodeName;
     }
 
-    private void unregisterEpisodeChangeListener() {
-
-    }
-
     @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
-        registerEpisodeChangeListener(episode);
+        addEpisodeChangeListener(episode);
     }
 
     @Override
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
-        unregisterEpisodeChangeListener();
+        removeEpisodeChangeListener();
     }
 
     private void initDownloadOrPlayButtonEventListener(Episode episode, String episodeName) {

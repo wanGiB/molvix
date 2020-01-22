@@ -25,6 +25,8 @@ public class MoreContentsFragment extends PreferenceFragmentCompat implements Pr
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
         setPreferencesFromResource(R.xml.more_content, rootKey);
         SwitchPreferenceCompat dailyMovieRecommendationSwitch = findPreference(getString(R.string.daily_movie_recommendation_key));
+        SwitchPreferenceCompat downloadedMoviesUpdateSwitch = findPreference(getString(R.string.downloaded_movies_update_key));
+
         Preference bitcoinDonationsPref = findPreference(getString(R.string.donation_key));
         if (bitcoinDonationsPref != null) {
             bitcoinDonationsPref.setOnPreferenceClickListener(preference -> {
@@ -42,10 +44,17 @@ public class MoreContentsFragment extends PreferenceFragmentCompat implements Pr
                 return true;
             });
         }
+
+        if (downloadedMoviesUpdateSwitch != null) {
+            downloadedMoviesUpdateSwitch.setDefaultValue(AppPrefs.canBeUpdatedOnDownloadedMovies());
+            downloadedMoviesUpdateSwitch.setOnPreferenceChangeListener(this);
+        }
+
         if (dailyMovieRecommendationSwitch != null) {
             dailyMovieRecommendationSwitch.setDefaultValue(AppPrefs.canDailyMoviesBeRecommended());
             dailyMovieRecommendationSwitch.setOnPreferenceChangeListener(this);
         }
+
         Preference feedBackPref = findPreference(getString(R.string.feedback_key));
         if (feedBackPref != null) {
             feedBackPref.setOnPreferenceClickListener(preference -> {
@@ -91,6 +100,8 @@ public class MoreContentsFragment extends PreferenceFragmentCompat implements Pr
     public boolean onPreferenceChange(Preference preference, Object newValue) {
         if (preference.getKey().equals(getString(R.string.daily_movie_recommendation_key))) {
             AppPrefs.setDailyMoviesRecommendability((Boolean) newValue);
+        } else if (preference.getKey().equals(getString(R.string.downloaded_movies_update_key))) {
+            AppPrefs.setDownloadedMoviesUpdatable((Boolean) newValue);
         }
         return true;
     }

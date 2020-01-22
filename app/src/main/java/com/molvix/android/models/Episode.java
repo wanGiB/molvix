@@ -139,7 +139,7 @@ public class Episode {
             return false;
         }
         Episode another = (Episode) obj;
-        return this.episodeId.equals(another.episodeId);
+        return this.getEpisodeId().equals(another.getEpisodeId());
     }
 
 }
