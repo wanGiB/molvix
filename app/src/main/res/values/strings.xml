@@ -52,6 +52,7 @@
     <string name="key_voice_reply">extra_voice_reply</string>
     <string name="label_voice_reply">Reply</string>
     <string name="downloaded_movies_update_key">downloaded_movies_update_key</string>
+    <string name="season">Season</string>
     <string-array name="reply_choices">
         <item>Yes</item>
         <item>No</item>

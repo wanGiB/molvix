@@ -41,9 +41,6 @@ public class SeasonView extends FrameLayout {
     @BindView(R.id.root_view)
     View rootView;
 
-    @BindView(R.id.sub_root_view)
-    View subRootView;
-
     private Season season;
     private AtomicBoolean pendingEpisodesLoadOperation = new AtomicBoolean();
     private DataSubscription seasonSubscription;
@@ -118,8 +115,7 @@ public class SeasonView extends FrameLayout {
     }
 
     private void initEventHandlers(Season season) {
-        OnClickListener onClickListener = v -> {
-            UiUtils.blinkView(rootView);
+        rootView.setOnClickListener(v -> {
             if (season.getEpisodes() != null && !season.getEpisodes().isEmpty()) {
                 EventBus.getDefault().post(new LoadEpisodesForSeason(season.getSeasonId()));
             } else {
@@ -132,11 +128,10 @@ public class SeasonView extends FrameLayout {
                     UiUtils.showSafeToast("Please connect to the internet and try again.");
                 }
             }
-        };
-        rootView.setOnClickListener(onClickListener);
+        });
+        OnClickListener onClickListener = v -> rootView.performClick();
         seasonNameView.setOnClickListener(onClickListener);
         arrow.setOnClickListener(onClickListener);
-        subRootView.setOnClickListener(onClickListener);
     }
 
     private void loadSeasonEpisodes() {

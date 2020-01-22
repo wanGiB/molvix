@@ -110,16 +110,13 @@ public class MovieView extends FrameLayout {
     }
 
     private void initEventHandlers(Movie movie) {
-        OnClickListener onClickListener = v -> {
-            UiUtils.blinkView(parentCardView);
-            openMovieDetails(movie);
-        };
+        parentCardView.setOnClickListener(v -> openMovieDetails(movie));
+        OnClickListener onClickListener = v -> parentCardView.performClick();
         setOnClickListener(onClickListener);
         movieArtView.setOnClickListener(onClickListener);
         movieNameView.setOnClickListener(onClickListener);
         movieDescriptionView.setOnClickListener(onClickListener);
         movieSeasonsCountView.setOnClickListener(onClickListener);
-        parentCardView.setOnClickListener(onClickListener);
     }
 
     @SuppressLint("SetTextI18n")
