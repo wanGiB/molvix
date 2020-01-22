@@ -265,7 +265,7 @@ public class HomeFragment extends BaseFragment {
         } else {
             if (movies.isEmpty()) {
                 UiUtils.toggleViewVisibility(contentLoadingProgressBar, false);
-                contentLoadingProgressMessageView.setText("Network error\n.Please connect to the internet to download movies.");
+                contentLoadingProgressMessageView.setText("Network error.\nPlease connect to the internet to download movies.");
                 swipeRefreshLayout.setRefreshing(false);
             }
         }
