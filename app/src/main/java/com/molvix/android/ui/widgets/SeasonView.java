@@ -41,6 +41,9 @@ public class SeasonView extends FrameLayout {
     @BindView(R.id.root_view)
     View rootView;
 
+    @BindView(R.id.sub_root_view)
+    View subRootView;
+
     private Season season;
     private AtomicBoolean pendingEpisodesLoadOperation = new AtomicBoolean();
     private DataSubscription seasonSubscription;
@@ -132,6 +135,7 @@ public class SeasonView extends FrameLayout {
         OnClickListener onClickListener = v -> rootView.performClick();
         seasonNameView.setOnClickListener(onClickListener);
         arrow.setOnClickListener(onClickListener);
+        subRootView.setOnClickListener(onClickListener);
     }
 
     private void loadSeasonEpisodes() {

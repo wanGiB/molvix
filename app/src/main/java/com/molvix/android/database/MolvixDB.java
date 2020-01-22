@@ -1,7 +1,9 @@
 package com.molvix.android.database;
 
+import android.os.AsyncTask;
 import android.util.Pair;
 
+import com.molvix.android.beans.MoviesToSave;
 import com.molvix.android.contracts.DoneCallback;
 import com.molvix.android.models.DownloadableEpisode;
 import com.molvix.android.models.DownloadableEpisode_;
@@ -62,21 +64,11 @@ public class MolvixDB {
     }
 
     public static void fetchNotifications(DoneCallback<List<Notification>> notificationsFetchDoneCallBack) {
-        List<Notification> notifications = getNotificationBox()
-                .query()
-                .build()
-                .find();
-        notificationsFetchDoneCallBack.done(notifications, null);
+        new FetchNotificationsTask(notificationsFetchDoneCallBack).execute();
     }
 
     public static void searchMovies(String searchString, DoneCallback<List<Movie>> searchDoneCallBack) {
-        List<Movie> result = getMovieBox()
-                .query().contains(Movie_.movieName, searchString)
-                .or()
-                .contains(Movie_.movieDescription, searchString)
-                .build()
-                .find();
-        searchDoneCallBack.done(result, null);
+        new SearchMoviesTask(searchDoneCallBack).execute(searchString);
     }
 
     private static void saveMovie(Movie newMovie) {
@@ -88,22 +80,7 @@ public class MolvixDB {
     }
 
     public static void performBulkInsertionOfMovies(List<Pair<String, String>> movies) {
-        for (Pair<String, String> movieItem : movies) {
-            String movieName = movieItem.first;
-            String movieLink = movieItem.second;
-            String movieId = CryptoUtils.getSha256Digest(movieLink);
-            Movie existingMovie = getMovie(movieId);
-            if (existingMovie != null) {
-                return;
-            }
-            Movie newMovie = new Movie();
-            newMovie.setMovieId(movieId);
-            newMovie.setMovieName(movieName.toLowerCase());
-            newMovie.setMovieLink(movieLink);
-            newMovie.setRecommendedToUser(false);
-            newMovie.setSeenByUser(false);
-            saveMovie(newMovie);
-        }
+        new BulkSaveTask().execute(new MoviesToSave(movies));
     }
 
     public static void createNewSeason(Season season) {
@@ -144,13 +121,11 @@ public class MolvixDB {
     }
 
     public static void fetchAllAvailableMovies(DoneCallback<List<Movie>> fetchDoneCallBack) {
-        List<Movie> availableMovies = getMovieBox().query().build().find();
-        fetchDoneCallBack.done(availableMovies, null);
+        new FetchAvailableMoviesTask(fetchDoneCallBack).execute();
     }
 
     public static void fetchRecommendableMovies(DoneCallback<List<Movie>> fetchDoneCallBack) {
-        List<Movie> recommendableMovies = getMovieBox().query().equal(Movie_.recommendedToUser, false).build().find();
-        fetchDoneCallBack.done(recommendableMovies, null);
+        new FetchRecommendableMoviesTask(fetchDoneCallBack).execute();
     }
 
     public static void updateNotification(Notification notification) {
@@ -159,8 +134,144 @@ public class MolvixDB {
 
     @SuppressWarnings("unused")
     public static void fetchDownloadableEpisodes(DoneCallback<List<DownloadableEpisode>> downloadableEpisodeDoneCallback) {
-        List<DownloadableEpisode> downloadableEpisodes = getDownloadableEpisodeBox().query().build().find();
-        downloadableEpisodeDoneCallback.done(downloadableEpisodes, null);
+        new FetchDownloadableEpisodesTask(downloadableEpisodeDoneCallback).execute();
+    }
+
+    static class FetchDownloadableEpisodesTask extends AsyncTask<Void, Void, List<DownloadableEpisode>> {
+
+        private DoneCallback<List<DownloadableEpisode>> downloadableEpisodesFetchDoneCallBack;
+
+        FetchDownloadableEpisodesTask(DoneCallback<List<DownloadableEpisode>> downloadableEpisodesFetchDoneCallBack) {
+            this.downloadableEpisodesFetchDoneCallBack = downloadableEpisodesFetchDoneCallBack;
+        }
+
+        @Override
+        protected List<DownloadableEpisode> doInBackground(Void... voids) {
+            return getDownloadableEpisodeBox().query().build().find();
+        }
+
+        @Override
+        protected void onPostExecute(List<DownloadableEpisode> episodes) {
+            super.onPostExecute(episodes);
+            downloadableEpisodesFetchDoneCallBack.done(episodes, null);
+        }
+
+    }
+
+    static class SearchMoviesTask extends AsyncTask<String, Void, List<Movie>> {
+
+        private DoneCallback<List<Movie>> searchDoneCallBack;
+
+        SearchMoviesTask(DoneCallback<List<Movie>> searchDoneCallBack) {
+            this.searchDoneCallBack = searchDoneCallBack;
+        }
+
+        @Override
+        protected List<Movie> doInBackground(String... searchString) {
+            return getMovieBox()
+                    .query().contains(Movie_.movieName, searchString[0])
+                    .or()
+                    .contains(Movie_.movieDescription, searchString[0])
+                    .build()
+                    .find();
+        }
+
+        @Override
+        protected void onPostExecute(List<Movie> movies) {
+            super.onPostExecute(movies);
+            searchDoneCallBack.done(movies, null);
+        }
+    }
+
+    static class FetchRecommendableMoviesTask extends AsyncTask<Void, Void, List<Movie>> {
+
+        private DoneCallback<List<Movie>> moviesFetchDoneCallBack;
+
+        FetchRecommendableMoviesTask(DoneCallback<List<Movie>> moviesFetchDoneCallBack) {
+            this.moviesFetchDoneCallBack = moviesFetchDoneCallBack;
+        }
+
+        @Override
+        protected List<Movie> doInBackground(Void... voids) {
+            return getMovieBox().query().equal(Movie_.recommendedToUser, false).build().find();
+        }
+
+        @Override
+        protected void onPostExecute(List<Movie> movies) {
+            super.onPostExecute(movies);
+            moviesFetchDoneCallBack.done(movies, null);
+        }
+
+    }
+
+    static class FetchAvailableMoviesTask extends AsyncTask<Void, Void, List<Movie>> {
+
+        private DoneCallback<List<Movie>> moviesFetchDoneCallBack;
+
+        FetchAvailableMoviesTask(DoneCallback<List<Movie>> moviesFetchDoneCallBack) {
+            this.moviesFetchDoneCallBack = moviesFetchDoneCallBack;
+        }
+
+        @Override
+        protected List<Movie> doInBackground(Void... voids) {
+            return getMovieBox().query().build().find();
+        }
+
+        @Override
+        protected void onPostExecute(List<Movie> movies) {
+            super.onPostExecute(movies);
+            moviesFetchDoneCallBack.done(movies, null);
+        }
+
+    }
+
+    static class FetchNotificationsTask extends AsyncTask<Void, Void, List<Notification>> {
+
+        private DoneCallback<List<Notification>> notificationsFetchDoneCallBack;
+
+        FetchNotificationsTask(DoneCallback<List<Notification>> notificationsFetchDoneCallBack) {
+            this.notificationsFetchDoneCallBack = notificationsFetchDoneCallBack;
+        }
+
+        @Override
+        protected List<Notification> doInBackground(Void... voids) {
+            return getNotificationBox()
+                    .query()
+                    .build()
+                    .find();
+        }
+
+        @Override
+        protected void onPostExecute(List<Notification> results) {
+            super.onPostExecute(results);
+            notificationsFetchDoneCallBack.done(results, null);
+
+        }
+
+    }
+
+    static class BulkSaveTask extends AsyncTask<MoviesToSave, Void, Void> {
+
+        @Override
+        protected final Void doInBackground(MoviesToSave... moviesToSaves) {
+            List<Pair<String, String>> movies = moviesToSaves[0].getMovies();
+            for (Pair<String, String> movieItem : movies) {
+                String movieName = movieItem.first;
+                String movieLink = movieItem.second;
+                String movieId = CryptoUtils.getSha256Digest(movieLink);
+                Movie existingMovie = getMovie(movieId);
+                if (existingMovie == null) {
+                    Movie newMovie = new Movie();
+                    newMovie.setMovieId(movieId);
+                    newMovie.setMovieName(movieName.toLowerCase());
+                    newMovie.setMovieLink(movieLink);
+                    newMovie.setRecommendedToUser(false);
+                    newMovie.setSeenByUser(false);
+                    saveMovie(newMovie);
+                }
+            }
+            return null;
+        }
     }
 
 }

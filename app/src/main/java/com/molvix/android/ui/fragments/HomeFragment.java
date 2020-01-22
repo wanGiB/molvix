@@ -149,8 +149,12 @@ public class HomeFragment extends BaseFragment {
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         setupSwipeRefreshLayoutColorScheme();
-        initMoviesAdapter();
-        fetchAllAvailableMovies();
+        if (moviesAdapter == null) {
+            initMoviesAdapter();
+        }
+        if (movies.isEmpty()) {
+            fetchAllAvailableMovies();
+        }
     }
 
     @SuppressWarnings("ConstantConditions")
@@ -202,22 +206,29 @@ public class HomeFragment extends BaseFragment {
     }
 
     private void loadMovies(List<Movie> result) {
-        for (Movie movie : result) {
-            if (!movies.contains(movie)) {
-                movies.add(movie);
-                moviesAdapter.notifyItemInserted(movies.size() - 1);
+        mUiHandler.post(() -> {
+            if (movies.isEmpty()) {
+                movies.addAll(result);
+                moviesAdapter.setData(movies);
             } else {
-                int indexOfMovie = movies.indexOf(movie);
-                movies.set(indexOfMovie, movie);
-                moviesAdapter.notifyItemChanged(indexOfMovie);
+                for (Movie movie : result) {
+                    if (!movies.contains(movie)) {
+                        movies.add(movie);
+                        moviesAdapter.notifyItemInserted(movies.size() - 1);
+                    } else {
+                        int indexOfMovie = movies.indexOf(movie);
+                        movies.set(indexOfMovie, movie);
+                        moviesAdapter.notifyItemChanged(indexOfMovie);
+                    }
+                }
             }
-        }
-        postCreateUI();
-        if (getSearchString() == null) {
-            displayTotalNumberOfMoviesLoadedInHeader();
-        } else {
-            displayFoundResults(result);
-        }
+            postCreateUI();
+            if (getSearchString() == null) {
+                displayTotalNumberOfMoviesLoadedInHeader();
+            } else {
+                displayFoundResults(result);
+            }
+        });
     }
 
     @SuppressLint("SetTextI18n")
