@@ -175,7 +175,7 @@ public class HomeFragment extends BaseFragment {
 
     private void searchMovies(String searchString) {
         setSearchString(searchString);
-        MolvixDB.searchMovies(searchString, (result, e) -> {
+        MolvixDB.searchMovies(searchString.toLowerCase(), (result, e) -> {
             checkAndClearCurrentData(result);
             loadMovies(result);
         });

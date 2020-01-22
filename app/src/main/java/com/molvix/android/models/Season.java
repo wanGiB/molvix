@@ -16,18 +16,9 @@ public class Season {
     private String seasonLink;
     private String movieId;
     private List<Episode> episodes;
-    private long id;
 
     public Season() {
 
-    }
-
-    public void setId(long id) {
-        this.id = id;
-    }
-
-    public long getId() {
-        return id;
     }
 
     public String getSeasonId() {

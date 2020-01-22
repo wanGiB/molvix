@@ -21,18 +21,9 @@ public class Episode {
     private String episodeCaptchaSolverLink;
     private int downloadProgress = -1;
     private String progressDisplayText;
-    private long id;
 
     public Episode() {
 
-    }
-
-    public void setId(long id) {
-        this.id = id;
-    }
-
-    public long getId() {
-        return id;
     }
 
     public void setProgressDisplayText(@Nullable String progressDisplayText) {

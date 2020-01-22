@@ -2,6 +2,7 @@ package com.molvix.android.utils;
 
 import android.util.Pair;
 
+import com.molvix.android.companions.AppConstants;
 import com.molvix.android.contracts.DoneCallback;
 import com.molvix.android.models.DownloadableEpisode;
 import com.molvix.android.models.Episode;
@@ -10,23 +11,35 @@ import com.molvix.android.models.Notification;
 import com.molvix.android.models.Season;
 import com.molvix.android.preferences.AppPrefs;
 import com.orm.SugarRecord;
+import com.orm.query.Condition;
+import com.orm.query.Select;
 
 import java.util.List;
 
 public class MolvixDB {
 
     public static Movie getMovie(String movieId) {
-        return null;
+        return Select.from(Movie.class).where(Condition.prop(AppConstants.MOVIE_ID).eq(movieId)).first();
+    }
+
+    public static Season getSeason(String seasonId) {
+        return Select.from(Season.class).where(Condition.prop(AppConstants.SEASON_ID).eq(seasonId)).first();
+    }
+
+    public static Episode getEpisode(String episodeId) {
+        return Select.from(Episode.class).where(Condition.prop(AppConstants.EPISODE_ID).eq(episodeId)).first();
     }
 
     public static void searchMovies(String searchString, DoneCallback<List<Movie>> searchDoneCallBack) {
-
+        List<Movie> results = Select.from(Movie.class)
+                .where(Condition.prop(AppConstants.MOVIE_NAME).like("%" + searchString + "%"))
+                .or(Condition.prop(AppConstants.MOVIE_DESCRIPTION).like("%" + searchString + "%"))
+                .list();
+        searchDoneCallBack.done(results, null);
     }
 
     private static void saveMovie(Movie newMovie) {
-        long id = SugarRecord.save(newMovie);
-        newMovie.setId(id);
-        SugarRecord.update(newMovie);
+        SugarRecord.save(newMovie);
         AppPrefs.movieUpdated(newMovie.getMovieId());
     }
 
@@ -52,17 +65,9 @@ public class MolvixDB {
         }
     }
 
-    public static Season getSeason(String seasonId) {
-        return null;
-    }
-
     public static void createNewSeason(Season season) {
         SugarRecord.save(season);
         AppPrefs.seasonUpdated(season.getSeasonId());
-    }
-
-    public static Episode getEpisode(String episodeId) {
-        return null;
     }
 
     public static void createNewEpisode(Episode episode) {
@@ -76,7 +81,7 @@ public class MolvixDB {
     }
 
     public static DownloadableEpisode getDownloadableEpisode(String episodeId) {
-        return null;
+        return Select.from(DownloadableEpisode.class).where(Condition.prop(AppConstants.EPISODE_ID).eq(episodeId)).first();
     }
 
     public static void createNewDownloadableEpisode(DownloadableEpisode newDownloadableEpisode) {
@@ -99,15 +104,16 @@ public class MolvixDB {
     }
 
     public static void fetchAllAvailableMovies(DoneCallback<List<Movie>> fetchDoneCallBack) {
-
+        fetchDoneCallBack.done(Select.from(Movie.class).list(), null);
     }
 
     public static void fetchRecommendableMovies(DoneCallback<List<Movie>> fetchDoneCallBack) {
-
+        List<Movie> recommendableMovies = Select.from(Movie.class).where(Condition.prop(AppConstants.MOVIE_RECOMMENDED_TO_USER).eq(false)).list();
+        fetchDoneCallBack.done(recommendableMovies, null);
     }
 
     public static void fetchNotifications(DoneCallback<List<Notification>> notificationsFetchDoneCallBack) {
-
+        notificationsFetchDoneCallBack.done(Select.from(Notification.class).list(), null);
     }
 
     public static void updateNotification(Notification notification) {
@@ -115,13 +121,12 @@ public class MolvixDB {
         AppPrefs.notificationsUpdated(notification.getNotificationObjectId());
     }
 
-    public static Notification getNotification(String notificationKey) {
-        return null;
+    public static Notification getNotification(String notificationObjectId) {
+        return Select.from(Notification.class).where(Condition.prop(AppConstants.NOTIFICATION_OBJECT_ID).eq(notificationObjectId)).first();
     }
 
     public static void fetchDownloadableEpisodes(DoneCallback<List<DownloadableEpisode>> downloadableEpisodeDoneCallback) {
-
+        downloadableEpisodeDoneCallback.done(Select.from(DownloadableEpisode.class).list(), null);
     }
-
 
 }

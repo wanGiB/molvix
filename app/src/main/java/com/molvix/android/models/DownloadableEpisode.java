@@ -9,18 +9,9 @@ public class DownloadableEpisode {
     @Unique
     private String episodeId;
     private Episode downloadableEpisode;
-    private long id;
 
     public DownloadableEpisode() {
 
-    }
-
-    public void setId(long id) {
-        this.id = id;
-    }
-
-    public long getId() {
-        return id;
     }
 
     public String getEpisodeId() {

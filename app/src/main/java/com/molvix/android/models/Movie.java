@@ -20,7 +20,6 @@ public class Movie {
     private boolean ad;
     private boolean recommendedToUser;
     private boolean seenByUser;
-    private long id;
 
     public Movie() {
 
@@ -125,14 +124,6 @@ public class Movie {
         }
         Movie another = (Movie) obj;
         return this.getMovieId().equals(another.getMovieId());
-    }
-
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
     }
 
 }

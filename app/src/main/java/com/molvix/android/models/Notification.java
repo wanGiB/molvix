@@ -13,18 +13,9 @@ public class Notification {
     private String message;
     private long timeStamp;
     private boolean seen;
-    private long id;
 
     public Notification() {
 
-    }
-
-    public void setId(long id) {
-        this.id = id;
-    }
-
-    public long getId() {
-        return id;
     }
 
     public void setSeen(boolean seen) {
