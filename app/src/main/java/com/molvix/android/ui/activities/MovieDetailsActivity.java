@@ -326,7 +326,7 @@ public class MovieDetailsActivity extends BaseActivity {
     private void unLockCaptchaChallenge() {
         String currentEpisodeId = currentEpisodeRef.get();
         if (currentEpisodeId != null) {
-            EpisodesManager.unLockCaptureSolver(currentEpisodeId);
+            EpisodesManager.unLockCaptureSolver();
         }
     }
 
