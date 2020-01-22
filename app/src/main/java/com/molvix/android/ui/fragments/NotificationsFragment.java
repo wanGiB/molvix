@@ -15,13 +15,11 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.molvix.android.R;
-import com.molvix.android.contracts.OnContentChangedListener;
 import com.molvix.android.managers.ContentManager;
 import com.molvix.android.models.Notification;
-import com.molvix.android.observers.MolvixContentChangeObserver;
 import com.molvix.android.ui.adapters.NotificationsAdapter;
 import com.molvix.android.ui.rendering.StickyRecyclerHeadersDecoration;
-import com.molvix.android.utils.MolvixDB;
+import com.molvix.android.database.MolvixDB;
 import com.molvix.android.utils.UiUtils;
 
 import java.util.ArrayList;
@@ -55,32 +53,38 @@ public class NotificationsFragment extends Fragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        initNotificationChangeListener();
+        addNotificationsChangeListener();
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        initNotificationChangeListener();
+        addNotificationsChangeListener();
     }
 
-    private void initNotificationChangeListener() {
-        MolvixContentChangeObserver.addNotificationsChangeListener(changedData -> {
-            if (changedData != null) {
-                if (!notifications.contains(changedData)) {
-                    notifications.add(changedData);
-                    if (notificationsAdapter != null) {
-                        notificationsAdapter.notifyItemInserted(notifications.size() - 1);
-                    }
+    private void addNotificationsChangeListener() {
+
+    }
+
+    private void loadUpdatedNotifications(List<Notification> changedData) {
+        if (changedData != null) {
+            if (!notifications.containsAll(changedData)) {
+                notifications.addAll(changedData);
+                if (notificationsAdapter != null) {
+                    notificationsAdapter.notifyDataSetChanged();
                 }
             }
-        });
+        }
     }
 
     @Override
     public void onStop() {
         super.onStop();
-        MolvixContentChangeObserver.removeNotificationsChangeListener();
+        removeNotificationsChangeListener();
+    }
+
+    private void removeNotificationsChangeListener() {
+
     }
 
     public View onCreateView(@NonNull LayoutInflater inflater,

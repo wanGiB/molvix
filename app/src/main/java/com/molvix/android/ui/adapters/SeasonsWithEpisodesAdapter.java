@@ -139,7 +139,7 @@ public class SeasonsWithEpisodesAdapter extends RecyclerView.Adapter<RecyclerVie
             } else {
                 movieArtView.setImageDrawable(new ColorDrawable(ContextCompat.getColor(context, R.color.light_grey)));
             }
-            List<Season> movieSeasonsCount = movie.getMovieSeasons();
+            List<Season> movieSeasonsCount = movie.getSeasons();
             if (movieSeasonsCount != null && !movieSeasonsCount.isEmpty()) {
                 int seasonsCount = movieSeasonsCount.size();
                 String pluralizer = seasonsCount == 1 ? " Season" : " Seasons";

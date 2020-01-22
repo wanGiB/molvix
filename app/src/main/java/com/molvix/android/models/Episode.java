@@ -1,82 +1,33 @@
 package com.molvix.android.models;
 
-import androidx.annotation.Nullable;
+import io.objectbox.annotation.Entity;
+import io.objectbox.annotation.Id;
+import io.objectbox.relation.ToOne;
 
-import com.orm.dsl.Table;
-import com.orm.dsl.Unique;
-
-@Table
+@SuppressWarnings({"unused", "WeakerAccess"})
+@Entity
 public class Episode {
 
-    @Unique
-    private String episodeId;
-    private String movieId;
-    private String seasonId;
-    private String episodeName;
-    private String episodeLink;
-    private int episodeQuality;
-    private String highQualityDownloadLink;
-    private String standardQualityDownloadLink;
-    private String lowQualityDownloadLink;
-    private String episodeCaptchaSolverLink;
-    private int downloadProgress = -1;
-    private String progressDisplayText;
+    @Id
+    public long id;
+    public String episodeId;
+    public ToOne<Season> season;
+    public String episodeName;
+    public String episodeLink;
+    public int episodeQuality;
+    public String highQualityDownloadLink;
+    public String standardQualityDownloadLink;
+    public String lowQualityDownloadLink;
+    public String episodeCaptchaSolverLink;
+    public int downloadProgress = -1;
+    public String progressDisplayText;
 
-    public Episode() {
-
+    public long getId() {
+        return id;
     }
 
-    public void setProgressDisplayText(@Nullable String progressDisplayText) {
-        this.progressDisplayText = progressDisplayText;
-    }
-
-    @Nullable
-    public String getProgressDisplayText() {
-        return progressDisplayText;
-    }
-
-    public void setDownloadProgress(int downloadProgress) {
-        this.downloadProgress = downloadProgress;
-    }
-
-    public int getDownloadProgress() {
-        return downloadProgress;
-    }
-
-    public void setEpisodeCaptchaSolverLink(@Nullable String episodeCaptchaSolverLink) {
-        this.episodeCaptchaSolverLink = episodeCaptchaSolverLink;
-    }
-
-    @Nullable
-    public String getEpisodeCaptchaSolverLink() {
-        return episodeCaptchaSolverLink;
-    }
-
-    @Nullable
-    public String getHighQualityDownloadLink() {
-        return highQualityDownloadLink;
-    }
-
-    public void setHighQualityDownloadLink(@Nullable String highQualityDownloadLink) {
-        this.highQualityDownloadLink = highQualityDownloadLink;
-    }
-
-    @Nullable
-    public String getStandardQualityDownloadLink() {
-        return standardQualityDownloadLink;
-    }
-
-    public void setStandardQualityDownloadLink(@Nullable String standardQualityDownloadLink) {
-        this.standardQualityDownloadLink = standardQualityDownloadLink;
-    }
-
-    @Nullable
-    public String getLowQualityDownloadLink() {
-        return lowQualityDownloadLink;
-    }
-
-    public void setLowQualityDownloadLink(@Nullable String lowQualityDownloadLink) {
-        this.lowQualityDownloadLink = lowQualityDownloadLink;
+    public void setId(long id) {
+        this.id = id;
     }
 
     public String getEpisodeId() {
@@ -87,12 +38,12 @@ public class Episode {
         this.episodeId = episodeId;
     }
 
-    public String getMovieId() {
-        return movieId;
+    public Season getSeason() {
+        return season.getTarget();
     }
 
-    public void setMovieId(String movieId) {
-        this.movieId = movieId;
+    public void setSeason(ToOne<Season> season) {
+        this.season = season;
     }
 
     public String getEpisodeName() {
@@ -111,20 +62,60 @@ public class Episode {
         this.episodeLink = episodeLink;
     }
 
-    public void setSeasonId(String seasonId) {
-        this.seasonId = seasonId;
-    }
-
-    public String getSeasonId() {
-        return seasonId;
-    }
-
     public int getEpisodeQuality() {
         return episodeQuality;
     }
 
     public void setEpisodeQuality(int episodeQuality) {
         this.episodeQuality = episodeQuality;
+    }
+
+    public String getHighQualityDownloadLink() {
+        return highQualityDownloadLink;
+    }
+
+    public void setHighQualityDownloadLink(String highQualityDownloadLink) {
+        this.highQualityDownloadLink = highQualityDownloadLink;
+    }
+
+    public String getStandardQualityDownloadLink() {
+        return standardQualityDownloadLink;
+    }
+
+    public void setStandardQualityDownloadLink(String standardQualityDownloadLink) {
+        this.standardQualityDownloadLink = standardQualityDownloadLink;
+    }
+
+    public String getLowQualityDownloadLink() {
+        return lowQualityDownloadLink;
+    }
+
+    public void setLowQualityDownloadLink(String lowQualityDownloadLink) {
+        this.lowQualityDownloadLink = lowQualityDownloadLink;
+    }
+
+    public String getEpisodeCaptchaSolverLink() {
+        return episodeCaptchaSolverLink;
+    }
+
+    public void setEpisodeCaptchaSolverLink(String episodeCaptchaSolverLink) {
+        this.episodeCaptchaSolverLink = episodeCaptchaSolverLink;
+    }
+
+    public int getDownloadProgress() {
+        return downloadProgress;
+    }
+
+    public void setDownloadProgress(int downloadProgress) {
+        this.downloadProgress = downloadProgress;
+    }
+
+    public String getProgressDisplayText() {
+        return progressDisplayText;
+    }
+
+    public void setProgressDisplayText(String progressDisplayText) {
+        this.progressDisplayText = progressDisplayText;
     }
 
     @Override
@@ -148,7 +139,7 @@ public class Episode {
             return false;
         }
         Episode another = (Episode) obj;
-        return this.getEpisodeId().equals(another.getEpisodeId());
+        return this.episodeId.equals(another.episodeId);
     }
 
 }

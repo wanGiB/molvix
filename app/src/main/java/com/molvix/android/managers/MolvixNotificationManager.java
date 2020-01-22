@@ -17,7 +17,7 @@ import com.molvix.android.ui.activities.MainActivity;
 import com.molvix.android.ui.activities.MovieDetailsActivity;
 import com.molvix.android.ui.notifications.notification.Load;
 import com.molvix.android.ui.notifications.notification.MolvixNotification;
-import com.molvix.android.utils.MolvixDB;
+import com.molvix.android.database.MolvixDB;
 
 import org.apache.commons.lang3.text.WordUtils;
 

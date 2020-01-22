@@ -17,7 +17,6 @@ import com.molvix.android.eventbuses.LoadEpisodesForSeason;
 import com.molvix.android.managers.ContentManager;
 import com.molvix.android.managers.SeasonsManager;
 import com.molvix.android.models.Season;
-import com.molvix.android.observers.MolvixContentChangeObserver;
 import com.molvix.android.utils.ConnectivityUtils;
 import com.molvix.android.utils.UiUtils;
 
@@ -77,24 +76,26 @@ public class SeasonView extends FrameLayout {
     }
 
     private void registerModelChangeListener(Season season) {
-        MolvixContentChangeObserver.addSeasonChangeListener(season, newSeason -> {
-            if (newSeason.getEpisodes() != null && !newSeason.getEpisodes().isEmpty()) {
-                setNewSeason(newSeason);
-                seasonNameView.setText(newSeason.getSeasonName());
-                if (pendingEpisodesLoadOperation.get()) {
-                    EventBus.getDefault().post(new LoadEpisodesForSeason(newSeason.getSeasonId()));
-                    pendingEpisodesLoadOperation.set(false);
-                }
+
+    }
+    
+    private void unRegisterModelChangeListener() {
+
+    }
+
+    private void bindUpdatedSeason(Season newSeason) {
+        if (newSeason.getEpisodes() != null && !newSeason.getEpisodes().isEmpty()) {
+            setNewSeason(newSeason);
+            seasonNameView.setText(newSeason.getSeasonName());
+            if (pendingEpisodesLoadOperation.get()) {
+                EventBus.getDefault().post(new LoadEpisodesForSeason(newSeason.getSeasonId()));
+                pendingEpisodesLoadOperation.set(false);
             }
-        });
+        }
     }
 
     private void setNewSeason(Season newSeason) {
         this.season = newSeason;
-    }
-
-    private void unRegisterModelChangeListener() {
-        MolvixContentChangeObserver.removeSeasonChangeListener(season);
     }
 
     private void initEventHandlers(Season season) {

@@ -31,12 +31,11 @@ import com.molvix.android.models.DownloadableEpisode;
 import com.molvix.android.models.Episode;
 import com.molvix.android.models.Movie;
 import com.molvix.android.models.Season;
-import com.molvix.android.observers.MolvixContentChangeObserver;
 import com.molvix.android.ui.adapters.EpisodesAdapter;
 import com.molvix.android.ui.adapters.SeasonsWithEpisodesAdapter;
 import com.molvix.android.utils.CryptoUtils;
 import com.molvix.android.utils.FileUtils;
-import com.molvix.android.utils.MolvixDB;
+import com.molvix.android.database.MolvixDB;
 import com.molvix.android.utils.UiUtils;
 
 import org.apache.commons.lang3.text.WordUtils;
@@ -87,14 +86,14 @@ public class MovieDetailsActivity extends BaseActivity {
         movieId = getIntent().getStringExtra(AppConstants.MOVIE_ID);
         cleanUpMovieContentItems();
         initMovieAdapter();
-        listenToIncomingDownloadableEpisodes();
+        addDownloadableEpisodesChangeListener();
         if (movieId != null) {
             MovieManager.setMovieRefreshable(movieId);
             loadingLayoutProgressMsgView.setText(getString(R.string.please_wait));
             Movie movie = MolvixDB.getMovie(movieId);
             initModelChangeListener();
             if (movie != null) {
-                List<Season> movieSeasons = movie.getMovieSeasons();
+                List<Season> movieSeasons = movie.getSeasons();
                 if (movieSeasons == null || movieSeasons.isEmpty()) {
                     spinMoviePullTask();
                 } else {
@@ -121,16 +120,18 @@ public class MovieDetailsActivity extends BaseActivity {
         backButton.setOnClickListener(v -> finish());
     }
 
-    private void listenToIncomingDownloadableEpisodes() {
-        MolvixContentChangeObserver.addDownloadableEpisodesChangeListener(changedData -> {
-            if (!changedData.isEmpty()) {
-                if (EpisodesManager.isCaptchaSolvable()) {
-                    DownloadableEpisode downloadableEpisode = changedData.get(0);
-                    currentEpisodeRef.set(downloadableEpisode.getEpisodeId());
-                    solveEpisodeCaptchaChallenge(downloadableEpisode.getDownloadableEpisode());
-                }
+    private void addDownloadableEpisodesChangeListener() {
+
+    }
+
+    private void loadUpdatedDownloadableEpisodes(List<DownloadableEpisode> changedData) {
+        if (!changedData.isEmpty()) {
+            if (EpisodesManager.isCaptchaSolvable()) {
+                DownloadableEpisode downloadableEpisode = changedData.get(0);
+                currentEpisodeRef.set(downloadableEpisode.getDownloadableEpisodeId());
+                solveEpisodeCaptchaChallenge(downloadableEpisode.getEpisode());
             }
-        });
+        }
     }
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -188,7 +189,7 @@ public class MovieDetailsActivity extends BaseActivity {
     private void loadMovieDetails(Movie movie) {
         runOnUiThread(() -> {
             addMovieHeaderView(movie, movieContentItems);
-            List<Season> movieSeasons = movie.getMovieSeasons();
+            List<Season> movieSeasons = movie.getSeasons();
             loadInMovieSeasons(movieContentItems, movieSeasons);
             UiUtils.toggleViewVisibility(loadingLayout, false);
             movie.setRecommendedToUser(true);
@@ -233,14 +234,22 @@ public class MovieDetailsActivity extends BaseActivity {
     }
 
     private void initModelChangeListener() {
-        MolvixContentChangeObserver.addMovieChangedListener(movieId, this::loadMovieDetails);
+        addMovieChangeListener();
+    }
+
+    private void addMovieChangeListener() {
+
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        MolvixContentChangeObserver.removeMovieChangeListener(movieId);
+        removeMovieChangeListener();
         unLockCaptchaChallenge();
+    }
+
+    private void removeMovieChangeListener() {
+
     }
 
     private void spinMoviePullTask() {

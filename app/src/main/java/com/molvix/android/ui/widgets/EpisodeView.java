@@ -27,10 +27,9 @@ import com.molvix.android.managers.FileDownloadManager;
 import com.molvix.android.models.Episode;
 import com.molvix.android.models.Movie;
 import com.molvix.android.models.Season;
-import com.molvix.android.observers.MolvixContentChangeObserver;
 import com.molvix.android.utils.ConnectivityUtils;
 import com.molvix.android.utils.FileUtils;
-import com.molvix.android.utils.MolvixDB;
+import com.molvix.android.database.MolvixDB;
 import com.molvix.android.utils.UiUtils;
 
 import org.apache.commons.lang3.StringUtils;
@@ -104,14 +103,14 @@ public class EpisodeView extends FrameLayout {
 
     public void bindEpisode(Episode episode) {
         this.episode = episode;
-        season = MolvixDB.getSeason(episode.getSeasonId());
-        movie = MolvixDB.getMovie(episode.getMovieId());
+        season = episode.getSeason();
+        movie = season.getMovie();
         String episodeName = setupEpisodeName(episode);
         initSpinner(episode);
         initDownloadOrPlayButtonEventListener(episode, episodeName);
         checkEpisodeActiveDownloadStatus(episode);
         initCancelActiveDownloadButtonEventListener();
-        listenToChangesOnEpisode(episode);
+        registerEpisodeChangeListener(episode);
     }
 
     private void initCancelActiveDownloadButtonEventListener() {
@@ -140,12 +139,14 @@ public class EpisodeView extends FrameLayout {
         return (dirPath + fileName).hashCode();
     }
 
-    private void listenToChangesOnEpisode(Episode episode) {
-        MolvixContentChangeObserver.addEpisodeChangeListener(episode, updatedEpisode -> {
-            resetEpisode(updatedEpisode);
-            setupEpisodeName(updatedEpisode);
-            checkEpisodeActiveDownloadStatus(updatedEpisode);
-        });
+    private void registerEpisodeChangeListener(Episode episode) {
+
+    }
+
+    private void bindUpdatedEpisode(Episode updatedEpisode) {
+        resetEpisode(updatedEpisode);
+        setupEpisodeName(updatedEpisode);
+        checkEpisodeActiveDownloadStatus(updatedEpisode);
     }
 
     private void resetEpisode(Episode updatedEpisode) {
@@ -160,16 +161,20 @@ public class EpisodeView extends FrameLayout {
         return episodeName;
     }
 
+    private void unregisterEpisodeChangeListener() {
+
+    }
+
     @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
-        listenToChangesOnEpisode(episode);
+        registerEpisodeChangeListener(episode);
     }
 
     @Override
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
-        MolvixContentChangeObserver.removeEpisodeChangeListener(episode);
+        unregisterEpisodeChangeListener();
     }
 
     private void initDownloadOrPlayButtonEventListener(Episode episode, String episodeName) {

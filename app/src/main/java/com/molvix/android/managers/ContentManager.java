@@ -8,7 +8,7 @@ import com.molvix.android.models.Episode;
 import com.molvix.android.models.Movie;
 import com.molvix.android.models.Season;
 import com.molvix.android.utils.CryptoUtils;
-import com.molvix.android.utils.MolvixDB;
+import com.molvix.android.database.MolvixDB;
 
 import org.apache.commons.lang3.StringUtils;
 import org.greenrobot.eventbus.EventBus;
@@ -127,10 +127,8 @@ public class ContentManager {
                 String seasonAtI = generateSeasonFromMovieLink(movieLink, i + 1);
                 String seasonName = generateSeasonValue(i + 1);
                 Season season = generateNewSeason(updatableMovie, seasonAtI, seasonName);
-                List<Season> existingSeasons = updatableMovie.getMovieSeasons();
-                if (!existingSeasons.contains(season)) {
-                    existingSeasons.add(season);
-                    updatableMovie.setMovieSeasons(existingSeasons);
+                if (!updatableMovie.seasons.contains(season)) {
+                    updatableMovie.seasons.add(season);
                 }
             }
             MolvixDB.updateMovie(updatableMovie);
@@ -145,7 +143,7 @@ public class ContentManager {
             season = new Season();
             season.setSeasonId(seasonId);
             season.setSeasonName(seasonName);
-            season.setMovieId(movie.getMovieId());
+            season.movie.setTarget(movie);
             season.setSeasonLink(seasonAtI);
             MolvixDB.createNewSeason(season);
         }
@@ -161,8 +159,7 @@ public class ContentManager {
             episode.setEpisodeLink(episodeLink);
             episode.setEpisodeName(episodeName);
             episode.setDownloadProgress(-1);
-            episode.setMovieId(season.getMovieId());
-            episode.setSeasonId(season.getSeasonId());
+            episode.season.setTarget(season);
             MolvixDB.createNewEpisode(episode);
         }
         return episode;
@@ -188,10 +185,8 @@ public class ContentManager {
                             episodeName = generateEpisodeValue(i + 1) + getSeasonFinaleSuffix();
                         }
                         Episode newEpisode = generateNewEpisode(updatableSeason, episodeLink, episodeName);
-                        List<Episode> existingEpisodes = updatableSeason.getEpisodes();
-                        if (!existingEpisodes.contains(newEpisode)) {
-                            existingEpisodes.add(newEpisode);
-                            updatableSeason.setEpisodes(existingEpisodes);
+                        if (!updatableSeason.episodes.contains(newEpisode)) {
+                            updatableSeason.episodes.add(newEpisode);
                         }
                     }
                     MolvixDB.updateSeason(updatableSeason);

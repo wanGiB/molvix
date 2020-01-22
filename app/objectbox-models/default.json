@@ -1,0 +1,260 @@
+{
+  "_note1": "KEEP THIS FILE! Check it into a version control system (VCS) like git.",
+  "_note2": "ObjectBox manages crucial IDs for your object model. See docs for details.",
+  "_note3": "If you have VCS merge conflicts, you must resolve them according to ObjectBox docs.",
+  "entities": [
+    {
+      "id": "1:5452236617357676312",
+      "lastPropertyId": "3:5181085439327703503",
+      "name": "DownloadableEpisode",
+      "properties": [
+        {
+          "id": "1:7330405436532389115",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:4138245559904873312",
+          "name": "downloadableEpisodeId",
+          "type": 9
+        },
+        {
+          "id": "3:5181085439327703503",
+          "name": "episodeId",
+          "indexId": "1:4422291963201398484",
+          "type": 11,
+          "flags": 1548,
+          "relationTarget": "Episode"
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "2:7659881534459433955",
+      "lastPropertyId": "12:7846286150654063499",
+      "name": "Episode",
+      "properties": [
+        {
+          "id": "1:8682209184135118422",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:5144267359582383917",
+          "name": "episodeId",
+          "type": 9
+        },
+        {
+          "id": "3:134130324722152727",
+          "name": "episodeName",
+          "type": 9
+        },
+        {
+          "id": "4:1739837330201601935",
+          "name": "episodeLink",
+          "type": 9
+        },
+        {
+          "id": "5:1148494892479957780",
+          "name": "episodeQuality",
+          "type": 5,
+          "flags": 4
+        },
+        {
+          "id": "6:8810989396495945545",
+          "name": "highQualityDownloadLink",
+          "type": 9
+        },
+        {
+          "id": "7:2221645901921835266",
+          "name": "standardQualityDownloadLink",
+          "type": 9
+        },
+        {
+          "id": "8:6388025835863731781",
+          "name": "lowQualityDownloadLink",
+          "type": 9
+        },
+        {
+          "id": "9:444111832810967737",
+          "name": "episodeCaptchaSolverLink",
+          "type": 9
+        },
+        {
+          "id": "10:586679988816434631",
+          "name": "downloadProgress",
+          "type": 5,
+          "flags": 4
+        },
+        {
+          "id": "11:3792279184963286681",
+          "name": "progressDisplayText",
+          "type": 9
+        },
+        {
+          "id": "12:7846286150654063499",
+          "name": "seasonId",
+          "indexId": "2:5343677043282199646",
+          "type": 11,
+          "flags": 1548,
+          "relationTarget": "Season"
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "3:2054597738161452834",
+      "lastPropertyId": "9:7144334086883533221",
+      "name": "Movie",
+      "properties": [
+        {
+          "id": "1:9075655192381043630",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:6060311424749469962",
+          "name": "movieId",
+          "type": 9
+        },
+        {
+          "id": "3:1361359013756587658",
+          "name": "movieName",
+          "type": 9
+        },
+        {
+          "id": "4:4633016216392413046",
+          "name": "movieLink",
+          "type": 9
+        },
+        {
+          "id": "5:6581847072523354325",
+          "name": "movieDescription",
+          "type": 9
+        },
+        {
+          "id": "6:6551264459415745508",
+          "name": "movieArtUrl",
+          "type": 9
+        },
+        {
+          "id": "7:6687552063638007177",
+          "name": "ad",
+          "type": 1,
+          "flags": 4
+        },
+        {
+          "id": "8:840207622058410787",
+          "name": "recommendedToUser",
+          "type": 1,
+          "flags": 4
+        },
+        {
+          "id": "9:7144334086883533221",
+          "name": "seenByUser",
+          "type": 1,
+          "flags": 4
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "4:3395809171401919465",
+      "lastPropertyId": "7:8934738158625377746",
+      "name": "Notification",
+      "properties": [
+        {
+          "id": "1:1899276659363071734",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:7423422798632656643",
+          "name": "notificationObjectId",
+          "type": 9
+        },
+        {
+          "id": "3:6237784652973301431",
+          "name": "destinationKey",
+          "type": 9
+        },
+        {
+          "id": "4:7174184992000924214",
+          "name": "destination",
+          "type": 5,
+          "flags": 4
+        },
+        {
+          "id": "5:5939125178855476404",
+          "name": "message",
+          "type": 9
+        },
+        {
+          "id": "6:3642489396942574892",
+          "name": "timeStamp",
+          "type": 6,
+          "flags": 4
+        },
+        {
+          "id": "7:8934738158625377746",
+          "name": "seen",
+          "type": 1,
+          "flags": 4
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "5:355236262991127556",
+      "lastPropertyId": "5:9049067615623432509",
+      "name": "Season",
+      "properties": [
+        {
+          "id": "1:2651407286283475732",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:8221169356671952227",
+          "name": "seasonId",
+          "type": 9
+        },
+        {
+          "id": "3:1588763614152127968",
+          "name": "seasonName",
+          "type": 9
+        },
+        {
+          "id": "4:7701732733856790475",
+          "name": "seasonLink",
+          "type": 9
+        },
+        {
+          "id": "5:9049067615623432509",
+          "name": "movieId",
+          "indexId": "3:7312547583525139379",
+          "type": 11,
+          "flags": 1548,
+          "relationTarget": "Movie"
+        }
+      ],
+      "relations": []
+    }
+  ],
+  "lastEntityId": "5:355236262991127556",
+  "lastIndexId": "3:7312547583525139379",
+  "lastRelationId": "0:0",
+  "lastSequenceId": "0:0",
+  "modelVersion": 5,
+  "modelVersionParserMinimum": 5,
+  "retiredEntityUids": [],
+  "retiredIndexUids": [],
+  "retiredPropertyUids": [],
+  "retiredRelationUids": [],
+  "version": 1
+}

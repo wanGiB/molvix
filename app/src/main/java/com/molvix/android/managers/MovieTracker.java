@@ -19,13 +19,11 @@ import com.molvix.android.models.Episode;
 import com.molvix.android.models.Movie;
 import com.molvix.android.models.Notification;
 import com.molvix.android.models.Season;
-import com.molvix.android.observers.MolvixContentChangeObserver;
 import com.molvix.android.preferences.AppPrefs;
 import com.molvix.android.utils.CryptoUtils;
 import com.molvix.android.utils.DateUtils;
-import com.molvix.android.utils.MolvixDB;
+import com.molvix.android.database.MolvixDB;
 import com.molvix.android.utils.UiUtils;
-import com.orm.SugarRecord;
 
 import java.security.SecureRandom;
 import java.util.Collections;
@@ -37,14 +35,12 @@ public class MovieTracker {
 
     private static BitmapLoadTask bitmapLoadTask;
 
-    @SuppressWarnings("ConstantConditions")
-    static void recordEpisodeAsDownloaded(String episodeId) {
+    static void recordEpisodeAsDownloaded(Episode episode) {
         //Add to user notifications pane
-        Episode episode = MolvixDB.getEpisode(episodeId);
-        Movie movie = MolvixDB.getMovie(episode.getMovieId());
-        Season season = MolvixDB.getSeason(episode.getSeasonId());
+        Season season = episode.getSeason();
+        Movie movie = season.getMovie();
         String notificationId = CryptoUtils.getSha256Digest(String.valueOf(System.currentTimeMillis() + new Random().nextInt(256)));
-        Notification existingNotification = SugarRecord.findById(Notification.class, notificationId.hashCode());
+        Notification existingNotification = MolvixDB.getNotification(notificationId);
         if (existingNotification != null) {
             return;
         }
@@ -52,7 +48,7 @@ public class MovieTracker {
         newNotification.setNotificationObjectId(notificationId);
         newNotification.setDestination(AppConstants.DESTINATION_EPISODE);
         newNotification.setMessage("<b>" + episode.getEpisodeName() + "</b>/<b>" + season.getSeasonName() + "</b> of <b>" + movie.getMovieName() + "</b> successfully downloaded");
-        newNotification.setDestinationKey(episodeId);
+        newNotification.setDestinationKey(episode.getEpisodeId());
         newNotification.setTimeStamp(System.currentTimeMillis());
         MolvixDB.createNewNotification(newNotification);
     }
@@ -73,12 +69,12 @@ public class MovieTracker {
                     String movieArtUrl = firstMovie.getMovieArtUrl();
                     String movieId = firstMovie.getMovieId();
                     String movieLink = firstMovie.getMovieLink();
-                    List<Season> movieSeasons = firstMovie.getMovieSeasons();
+                    List<Season> movieSeasons = firstMovie.getSeasons();
                     if (movieArtUrl == null || movieSeasons.isEmpty()) {
-                        MolvixContentChangeObserver.addMovieChangedListener(firstMovie.getMovieId(), changedData -> {
-                            loadBitmapAndRecommendVideo(changedData.getMovieId(), changedData.getMovieArtUrl());
-                            MolvixContentChangeObserver.removeMovieChangeListener(firstMovie.getMovieId());
-                        });
+//                        MolvixContentChangeObserver.addMovieChangedListener(firstMovie.getMovieId(), changedData -> {
+//                            loadBitmapAndRecommendVideo(changedData.getMovieId(), changedData.getMovieArtUrl());
+//                            MolvixContentChangeObserver.removeMovieChangeListener(firstMovie.getMovieId());
+//                        });
                         new MovieContentsExtractionTask().execute(movieLink, movieId);
                     } else {
                         loadBitmapAndRecommendVideo(firstMovie.getMovieId(), firstMovie.getMovieArtUrl());

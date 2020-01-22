@@ -1,4 +1,5 @@
 apply plugin: 'com.android.application'
+apply plugin: 'io.objectbox'
 apply plugin: 'com.google.android.gms.oss-licenses-plugin'
 
 android {
@@ -68,7 +69,8 @@ dependencies {
     implementation 'androidx.preference:preference:1.1.0'
     implementation 'com.morsebyte.shailesh.twostagerating:TwoStageRate:2.0'
     implementation 'com.google.android.gms:play-services-oss-licenses:17.0.0'
-    implementation 'com.github.satyan:sugar:1.5'
+//    implementation 'com.getkeepsafe.relinker:relinker:1.3.1'
+//    implementation 'com.google.android.play:core:1.6.1'
 }
 
 apply plugin: 'com.google.gms.google-services'

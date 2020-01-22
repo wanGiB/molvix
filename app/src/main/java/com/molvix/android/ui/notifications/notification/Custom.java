@@ -3,17 +3,14 @@ package com.molvix.android.ui.notifications.notification;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.graphics.Bitmap;
-import android.graphics.drawable.Icon;
 import android.os.Looper;
 import android.text.Spanned;
-import android.util.Log;
 import android.widget.RemoteViews;
 
 import androidx.annotation.DrawableRes;
 import androidx.core.app.NotificationCompat;
 
 import com.molvix.android.R;
-import com.molvix.android.managers.MovieTracker;
 
 @TargetApi(android.os.Build.VERSION_CODES.JELLY_BEAN)
 public class Custom extends Builder {

@@ -23,7 +23,7 @@ import com.molvix.android.models.Movie;
 import com.molvix.android.models.Notification;
 import com.molvix.android.models.Season;
 import com.molvix.android.utils.FileUtils;
-import com.molvix.android.utils.MolvixDB;
+import com.molvix.android.database.MolvixDB;
 import com.molvix.android.utils.UiUtils;
 
 import org.apache.commons.lang3.StringUtils;
@@ -90,8 +90,8 @@ public class NotificationView extends FrameLayout {
             UiUtils.blinkView(notificationRootView);
             if (notificationDestination == AppConstants.DESTINATION_EPISODE) {
                 Episode episode = MolvixDB.getEpisode(notification.getDestinationKey());
-                Movie movie = MolvixDB.getMovie(episode.getMovieId());
-                Season season = MolvixDB.getSeason(episode.getSeasonId());
+                Movie movie = episode.getSeason().getMovie();
+                Season season = episode.getSeason();
                 if (episode != null) {
                     String episodeName = episode.getEpisodeName();
                     //Open the download movie file

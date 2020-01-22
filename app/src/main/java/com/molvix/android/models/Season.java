@@ -1,24 +1,30 @@
 package com.molvix.android.models;
 
-import com.molvix.android.utils.MolvixDB;
-import com.orm.dsl.Table;
-import com.orm.dsl.Unique;
+import io.objectbox.annotation.Backlink;
+import io.objectbox.annotation.Entity;
+import io.objectbox.annotation.Id;
+import io.objectbox.relation.ToMany;
+import io.objectbox.relation.ToOne;
 
-import java.util.ArrayList;
-import java.util.List;
-
-@Table
+@SuppressWarnings({"unused", "WeakerAccess"})
+@Entity
 public class Season {
 
-    @Unique
-    private String seasonId;
-    private String seasonName;
-    private String seasonLink;
-    private String movieId;
-    private List<Episode> episodes;
+    @Id
+    public long id;
+    public String seasonId;
+    public String seasonName;
+    public String seasonLink;
+    public ToOne<Movie> movie;
+    @Backlink(to = "season")
+    public ToMany<Episode> episodes;
 
-    public Season() {
+    public long getId() {
+        return id;
+    }
 
+    public void setId(long id) {
+        this.id = id;
     }
 
     public String getSeasonId() {
@@ -45,24 +51,19 @@ public class Season {
         this.seasonLink = seasonLink;
     }
 
-    public String getMovieId() {
-        return movieId;
+    public Movie getMovie() {
+        return movie.getTarget();
     }
 
-    public void setMovieId(String movieId) {
-        this.movieId = movieId;
+    public void setMovie(ToOne<Movie> movie) {
+        this.movie = movie;
     }
 
-    public List<Episode> getEpisodes() {
-        List<Episode> episodes = new ArrayList<>();
-        for (Episode e : episodes) {
-            Episode updatedEpisode = MolvixDB.getEpisode(e.getEpisodeId());
-            episodes.add(updatedEpisode);
-        }
+    public ToMany<Episode> getEpisodes() {
         return episodes;
     }
 
-    public void setEpisodes(List<Episode> episodes) {
+    public void setEpisodes(ToMany<Episode> episodes) {
         this.episodes = episodes;
     }
 
@@ -87,7 +88,7 @@ public class Season {
             return false;
         }
         Season another = (Season) obj;
-        return this.getSeasonId().equals(another.getSeasonId());
+        return this.seasonId.equals(another.seasonId);
     }
 
 }

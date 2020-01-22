@@ -12,7 +12,7 @@ import com.molvix.android.models.Movie;
 import com.molvix.android.models.Season;
 import com.molvix.android.ui.notifications.notification.MolvixNotification;
 import com.molvix.android.utils.FileUtils;
-import com.molvix.android.utils.MolvixDB;
+import com.molvix.android.database.MolvixDB;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.text.WordUtils;
@@ -23,8 +23,8 @@ public class FileDownloadManager {
     public static void startNewEpisodeDownload(Episode episode) {
         String episodeId = episode.getEpisodeId();
         String episodeName = episode.getEpisodeName();
-        Movie movie = MolvixDB.getMovie(episode.getMovieId());
-        Season season = MolvixDB.getSeason(episode.getSeasonId());
+        Season season = episode.getSeason();
+        Movie movie = season.getMovie();
         if (season != null) {
             String movieName = WordUtils.capitalize(movie.getMovieName());
             String movieDescription = movie.getMovieDescription();
@@ -78,7 +78,7 @@ public class FileDownloadManager {
                                 DownloadableEpisode downloadableEpisode = MolvixDB.getDownloadableEpisode(episodeId);
                                 if (downloadableEpisode != null) {
                                     MolvixDB.deleteDownloadableEpisode(downloadableEpisode);
-                                    MovieTracker.recordEpisodeAsDownloaded(episodeId);
+                                    MovieTracker.recordEpisodeAsDownloaded(episode);
                                 }
                             }
 

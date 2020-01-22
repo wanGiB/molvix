@@ -10,7 +10,7 @@ import com.downloader.PRDownloader;
 import com.downloader.PRDownloaderConfig;
 import com.google.android.gms.ads.MobileAds;
 import com.molvix.android.R;
-import com.orm.SugarContext;
+import com.molvix.android.database.ObjectBox;
 
 public class ApplicationLoader extends MultiDexApplication {
 
@@ -20,17 +20,15 @@ public class ApplicationLoader extends MultiDexApplication {
     @Override
     public void onCreate() {
         super.onCreate();
-        SugarContext.init(this);
+        initDataBase();
         initPRDownloadManager();
         initAdMob();
         initContext();
         MultiDex.install(getBaseContext());
     }
 
-    @Override
-    public void onTerminate() {
-        super.onTerminate();
-        SugarContext.terminate();
+    private void initDataBase() {
+        ObjectBox.init(this);
     }
 
     private void initPRDownloadManager() {

@@ -24,10 +24,9 @@ import com.molvix.android.eventbuses.SearchEvent;
 import com.molvix.android.managers.ContentManager;
 import com.molvix.android.managers.MovieManager;
 import com.molvix.android.models.Movie;
-import com.molvix.android.observers.MolvixContentChangeObserver;
 import com.molvix.android.ui.adapters.MoviesAdapter;
 import com.molvix.android.utils.ConnectivityUtils;
-import com.molvix.android.utils.MolvixDB;
+import com.molvix.android.database.MolvixDB;
 import com.molvix.android.utils.UiUtils;
 
 import org.apache.commons.lang3.StringUtils;
@@ -84,19 +83,23 @@ public class HomeFragment extends BaseFragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         MovieManager.clearAllRefreshedMovies();
-        listenToChangesInLocalMoviesDatabase();
+        addMoviesChangeListener();
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        listenToChangesInLocalMoviesDatabase();
+        addMoviesChangeListener();
     }
 
     @Override
     public void onStop() {
         super.onStop();
-        MolvixContentChangeObserver.removeMoviesChangeListener();
+        removeMoviesChangeListener();
+    }
+
+    private void removeMoviesChangeListener() {
+
     }
 
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -116,12 +119,14 @@ public class HomeFragment extends BaseFragment {
         });
     }
 
-    private void listenToChangesInLocalMoviesDatabase() {
-        MolvixContentChangeObserver.addMoviesChangedListener(changedData -> {
-            if (!changedData.isEmpty()) {
-                loadMovies(changedData);
-            }
-        });
+    private void addMoviesChangeListener() {
+
+    }
+
+    private void loadChangedData(List<Movie> changedData) {
+        if (!changedData.isEmpty()) {
+            loadMovies(changedData);
+        }
     }
 
     private void postCreateUI() {

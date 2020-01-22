@@ -10,7 +10,7 @@ import com.molvix.android.companions.AppConstants;
 import com.molvix.android.models.DownloadableEpisode;
 import com.molvix.android.models.Episode;
 import com.molvix.android.ui.notifications.notification.MolvixNotification;
-import com.molvix.android.utils.MolvixDB;
+import com.molvix.android.database.MolvixDB;
 
 public class EmptyContentActivity extends AppCompatActivity {
 

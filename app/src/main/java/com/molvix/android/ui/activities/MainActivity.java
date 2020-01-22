@@ -30,14 +30,16 @@ import com.molvix.android.eventbuses.SearchEvent;
 import com.molvix.android.managers.AdsLoadManager;
 import com.molvix.android.managers.EpisodesManager;
 import com.molvix.android.managers.FileDownloadManager;
+import com.molvix.android.models.DownloadableEpisode;
 import com.molvix.android.models.Episode;
-import com.molvix.android.observers.MolvixContentChangeObserver;
 import com.molvix.android.utils.FileUtils;
-import com.molvix.android.utils.MolvixDB;
+import com.molvix.android.database.MolvixDB;
 import com.molvix.android.utils.UiUtils;
 
 import org.apache.commons.lang3.StringUtils;
 import org.greenrobot.eventbus.EventBus;
+
+import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -74,7 +76,7 @@ public class MainActivity extends BaseActivity {
         NavigationUI.setupWithNavController(bottomNavView, navController);
         initEventHandlers();
         checkForNewIntent();
-        listenToIncomingDownloadableEpisodes();
+        addChangeListenerForDownloadableEpisodes();
         AdsLoadManager.loadAds();
     }
 
@@ -93,14 +95,16 @@ public class MainActivity extends BaseActivity {
         hackWebView.setThirdPartyCookiesEnabled(true);
     }
 
-    private void listenToIncomingDownloadableEpisodes() {
-        MolvixContentChangeObserver.addDownloadableEpisodesChangeListener(changedData -> {
-            if (!changedData.isEmpty()) {
-                if (EpisodesManager.isCaptchaSolvable()) {
-                    solveEpisodeCaptchaChallenge(changedData.get(0).getDownloadableEpisode());
-                }
+    private void addChangeListenerForDownloadableEpisodes() {
+
+    }
+
+    private void updatedDownloadableEpisodes(List<DownloadableEpisode> changedData) {
+        if (!changedData.isEmpty()) {
+            if (EpisodesManager.isCaptchaSolvable()) {
+                solveEpisodeCaptchaChallenge(changedData.get(0).getEpisode());
             }
-        });
+        }
     }
 
     private void injectMagicScript() {
@@ -156,7 +160,7 @@ public class MainActivity extends BaseActivity {
     @Override
     public void onResume() {
         super.onResume();
-        listenToIncomingDownloadableEpisodes();
+        addChangeListenerForDownloadableEpisodes();
     }
 
     @Override

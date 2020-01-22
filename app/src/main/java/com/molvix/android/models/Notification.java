@@ -1,37 +1,27 @@
 package com.molvix.android.models;
 
-import com.orm.dsl.Table;
-import com.orm.dsl.Unique;
+import io.objectbox.annotation.Entity;
+import io.objectbox.annotation.Id;
 
-@Table
+@SuppressWarnings({"unused", "WeakerAccess"})
+@Entity
 public class Notification {
 
-    @Unique
-    private String notificationObjectId;
-    private String destinationKey;
-    private int destination;
-    private String message;
-    private long timeStamp;
-    private boolean seen;
+    @Id
+    public long id;
+    public String notificationObjectId;
+    public String destinationKey;
+    public int destination;
+    public String message;
+    public long timeStamp;
+    public boolean seen;
 
-    public Notification() {
-
+    public long getId() {
+        return id;
     }
 
-    public void setSeen(boolean seen) {
-        this.seen = seen;
-    }
-
-    public boolean isSeen() {
-        return seen;
-    }
-
-    public void setTimeStamp(long timeStamp) {
-        this.timeStamp = timeStamp;
-    }
-
-    public long getTimeStamp() {
-        return timeStamp;
+    public void setId(long id) {
+        this.id = id;
     }
 
     public String getNotificationObjectId() {
@@ -46,8 +36,8 @@ public class Notification {
         return destinationKey;
     }
 
-    public void setDestinationKey(String resolutionKey) {
-        this.destinationKey = resolutionKey;
+    public void setDestinationKey(String destinationKey) {
+        this.destinationKey = destinationKey;
     }
 
     public int getDestination() {
@@ -66,4 +56,19 @@ public class Notification {
         this.message = message;
     }
 
+    public long getTimeStamp() {
+        return timeStamp;
+    }
+
+    public void setTimeStamp(long timeStamp) {
+        this.timeStamp = timeStamp;
+    }
+
+    public boolean isSeen() {
+        return seen;
+    }
+
+    public void setSeen(boolean seen) {
+        this.seen = seen;
+    }
 }

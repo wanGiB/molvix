@@ -1,28 +1,33 @@
 package com.molvix.android.models;
 
-import com.molvix.android.utils.MolvixDB;
-import com.orm.dsl.Table;
-import com.orm.dsl.Unique;
+import io.objectbox.annotation.Backlink;
+import io.objectbox.annotation.Entity;
+import io.objectbox.annotation.Id;
+import io.objectbox.relation.ToMany;
 
-import java.util.ArrayList;
-import java.util.List;
-
-@Table
+@SuppressWarnings({"unused", "WeakerAccess"})
+@Entity
 public class Movie {
 
-    @Unique
-    private String movieId;
-    private String movieName;
-    private String movieLink;
-    private String movieDescription;
-    private String movieArtUrl;
-    private List<Season> movieSeasons;
-    private boolean ad;
-    private boolean recommendedToUser;
-    private boolean seenByUser;
+    @Id
+    public long id;
+    public String movieId;
+    public String movieName;
+    public String movieLink;
+    public String movieDescription;
+    public String movieArtUrl;
+    @Backlink(to = "movie")
+    public ToMany<Season> seasons;
+    public boolean ad;
+    public boolean recommendedToUser;
+    public boolean seenByUser;
 
-    public Movie() {
+    public long getId() {
+        return id;
+    }
 
+    public void setId(long id) {
+        this.id = id;
     }
 
     public String getMovieId() {
@@ -65,17 +70,12 @@ public class Movie {
         this.movieArtUrl = movieArtUrl;
     }
 
-    public List<Season> getMovieSeasons() {
-        List<Season> updatedSeasons = new ArrayList<>();
-        for (Season s : movieSeasons) {
-            Season newSeason = MolvixDB.getSeason(s.getSeasonId());
-            updatedSeasons.add(newSeason);
-        }
-        return updatedSeasons;
+    public ToMany<Season> getSeasons() {
+        return seasons;
     }
 
-    public void setMovieSeasons(List<Season> movieSeasons) {
-        this.movieSeasons = movieSeasons;
+    public void setSeasons(ToMany<Season> seasons) {
+        this.seasons = seasons;
     }
 
     public boolean isAd() {
@@ -123,7 +123,7 @@ public class Movie {
             return false;
         }
         Movie another = (Movie) obj;
-        return this.getMovieId().equals(another.getMovieId());
+        return this.movieId.equals(another.movieId);
     }
 
 }

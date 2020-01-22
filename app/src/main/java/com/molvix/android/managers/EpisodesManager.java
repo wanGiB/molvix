@@ -3,7 +3,7 @@ package com.molvix.android.managers;
 import com.molvix.android.models.DownloadableEpisode;
 import com.molvix.android.models.Episode;
 import com.molvix.android.preferences.AppPrefs;
-import com.molvix.android.utils.MolvixDB;
+import com.molvix.android.database.MolvixDB;
 
 public class EpisodesManager {
 
@@ -13,8 +13,8 @@ public class EpisodesManager {
             return;
         }
         DownloadableEpisode newDownloadableEpisode = new DownloadableEpisode();
-        newDownloadableEpisode.setEpisodeId(episode.getEpisodeId());
-        newDownloadableEpisode.setDownloadableEpisode(episode);
+        newDownloadableEpisode.setDownloadableEpisodeId(episode.getEpisodeId());
+        newDownloadableEpisode.episode.setTarget(episode);
         MolvixDB.createNewDownloadableEpisode(newDownloadableEpisode);
     }
 

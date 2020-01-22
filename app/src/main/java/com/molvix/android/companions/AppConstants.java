@@ -30,7 +30,7 @@ public class AppConstants {
     public static final String MOVIE_NAME = "movieName";
     public static final String MOVIE_DESCRIPTION = "movieDescription";
     public static final String MOVIE_ART_URL = "movieArtUrl";
-    public static final String MOVIE_SEASONS = "movieSeasons";
+    public static final String MOVIE_SEASONS = "seasons";
     public static final String MOVIE_RECOMMENDED_TO_USER = "recommendedToUser";
     public static final String MOVIE_SEEN_BY_USER = "seenByUser";
 

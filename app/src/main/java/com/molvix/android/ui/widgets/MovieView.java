@@ -127,7 +127,7 @@ public class MovieView extends FrameLayout {
         String movieName = movie.getMovieName();
         String movieDescription = movie.getMovieDescription();
         String movieArtUrl = movie.getMovieArtUrl();
-        List<Season> movieSeasonsCount = movie.getMovieSeasons();
+        List<Season> movieSeasonsCount = movie.getSeasons();
         if (StringUtils.isNotEmpty(getSearchString())) {
             movieNameView.setText(UiUtils.highlightTextIfNecessary(getSearchString(), WordUtils.capitalize(movieName), ContextCompat.getColor(getContext(), R.color.colorAccentDark)));
         } else {

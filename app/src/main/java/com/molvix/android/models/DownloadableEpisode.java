@@ -1,33 +1,39 @@
 package com.molvix.android.models;
 
-import com.orm.dsl.Table;
-import com.orm.dsl.Unique;
+import io.objectbox.annotation.Entity;
+import io.objectbox.annotation.Id;
+import io.objectbox.relation.ToOne;
 
-@Table
+@SuppressWarnings({"unused", "WeakerAccess"})
+@Entity
 public class DownloadableEpisode {
 
-    @Unique
-    private String episodeId;
-    private Episode downloadableEpisode;
+    @Id
+    public long id;
+    public String downloadableEpisodeId;
+    public ToOne<Episode> episode;
 
-    public DownloadableEpisode() {
-
+    public long getId() {
+        return id;
     }
 
-    public String getEpisodeId() {
-        return episodeId;
+    public void setId(long id) {
+        this.id = id;
     }
 
-    public void setEpisodeId(String episodeId) {
-        this.episodeId = episodeId;
+    public String getDownloadableEpisodeId() {
+        return downloadableEpisodeId;
     }
 
-    public Episode getDownloadableEpisode() {
-        return downloadableEpisode;
+    public void setDownloadableEpisodeId(String downloadableEpisodeId) {
+        this.downloadableEpisodeId = downloadableEpisodeId;
     }
 
-    public void setDownloadableEpisode(Episode downloadableEpisode) {
-        this.downloadableEpisode = downloadableEpisode;
+    public Episode getEpisode() {
+        return episode.getTarget();
     }
 
+    public void setEpisode(ToOne<Episode> episode) {
+        this.episode = episode;
+    }
 }
