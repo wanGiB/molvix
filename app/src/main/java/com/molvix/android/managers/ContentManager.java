@@ -8,10 +8,10 @@ import com.molvix.android.database.MolvixDB;
 import com.molvix.android.models.Episode;
 import com.molvix.android.models.Movie;
 import com.molvix.android.models.Season;
-import com.molvix.android.ui.viewmodels.ExceptionViewModel;
 import com.molvix.android.utils.CryptoUtils;
 
 import org.apache.commons.lang3.StringUtils;
+import org.greenrobot.eventbus.EventBus;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -106,9 +106,8 @@ public class ContentManager {
         }
     }
 
-    private static void spitException(IOException e) {
-        ExceptionViewModel exceptionViewModel = new ExceptionViewModel();
-        exceptionViewModel.updateException(e);
+    private static void spitException(Exception e) {
+        EventBus.getDefault().post(e);
     }
 
     private static void extractOtherMovieDataParts(String movieLink, Document movieDoc, Movie updatableMovie) {
@@ -205,8 +204,7 @@ public class ContentManager {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            ExceptionViewModel exceptionViewModel = new ExceptionViewModel();
-            exceptionViewModel.updateException(e);
+           spitException(e);
         }
     }
 

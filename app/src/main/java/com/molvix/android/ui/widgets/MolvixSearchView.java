@@ -16,10 +16,11 @@ import androidx.annotation.Nullable;
 import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat;
 
 import com.molvix.android.R;
-import com.molvix.android.ui.viewmodels.SearchViewModel;
+import com.molvix.android.eventbuses.SearchEvent;
 import com.molvix.android.utils.UiUtils;
 
 import org.apache.commons.lang3.StringUtils;
+import org.greenrobot.eventbus.EventBus;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -86,8 +87,7 @@ public class MolvixSearchView extends FrameLayout {
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 String searchedString = s.toString();
-                SearchViewModel searchViewModel = new SearchViewModel();
-                searchViewModel.updateSearch(searchedString);
+                EventBus.getDefault().post(new SearchEvent(searchedString));
                 UiUtils.toggleViewVisibility(closeSearchView, StringUtils.isNotEmpty(searchedString));
             }
 

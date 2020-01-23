@@ -13,7 +13,6 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
-import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
@@ -22,13 +21,13 @@ import com.liucanwen.app.headerfooterrecyclerview.HeaderAndFooterRecyclerViewAda
 import com.liucanwen.app.headerfooterrecyclerview.RecyclerViewUtils;
 import com.molvix.android.R;
 import com.molvix.android.database.MolvixDB;
+import com.molvix.android.eventbuses.ConnectivityChangedEvent;
+import com.molvix.android.eventbuses.SearchEvent;
 import com.molvix.android.managers.ContentManager;
 import com.molvix.android.managers.MovieManager;
 import com.molvix.android.models.Movie;
+import com.molvix.android.models.Movie_;
 import com.molvix.android.ui.adapters.MoviesAdapter;
-import com.molvix.android.ui.viewmodels.ConnectivityChangedModel;
-import com.molvix.android.ui.viewmodels.ExceptionViewModel;
-import com.molvix.android.ui.viewmodels.SearchViewModel;
 import com.molvix.android.utils.ConnectivityUtils;
 import com.molvix.android.utils.UiUtils;
 
@@ -71,7 +70,8 @@ public class HomeFragment extends BaseFragment {
     private ContentPullOverTask contentPullOverTask;
     private TextView headerTextView;
     private String searchString;
-    private DataSubscription moviesSubScription;
+    private DataSubscription moviesSubscription;
+    private DataSubscription searchSubscription;
 
     private void setSearchString(String searchString) {
         this.searchString = searchString;
@@ -97,9 +97,9 @@ public class HomeFragment extends BaseFragment {
     }
 
     private void removeMoviesChangeListener() {
-        if (moviesSubScription != null && !moviesSubScription.isCanceled()) {
-            moviesSubScription.cancel();
-            moviesSubScription = null;
+        if (moviesSubscription != null && !moviesSubscription.isCanceled()) {
+            moviesSubscription.cancel();
+            moviesSubscription = null;
         }
     }
 
@@ -108,34 +108,34 @@ public class HomeFragment extends BaseFragment {
         View root = inflater.inflate(R.layout.fragment_home, container, false);
         ButterKnife.bind(this, root);
         mUiHandler = new Handler();
-        initViewModels();
         return root;
     }
 
-    private void initViewModels() {
-        SearchViewModel searchViewModel = ViewModelProviders.of(this).get(SearchViewModel.class);
-        searchViewModel.getSearchData().observe(this, searchString -> {
-            UiUtils.showSafeToast(searchString);
-            if (StringUtils.isNotEmpty(searchString)) {
-                mUiHandler.post(() -> searchMovies(searchString.toLowerCase()));
-            } else {
-                mUiHandler.post(this::fetchMovies);
-            }
-        });
-        ExceptionViewModel exceptionViewModel = ViewModelProviders.of(this).get(ExceptionViewModel.class);
-        exceptionViewModel.getExceptionData().observe(this, e -> mUiHandler.post(() -> {
-            if (movies.isEmpty()) {
-                UiUtils.toggleViewVisibility(contentLoadingProgressBar, false);
-                contentLoadingProgressMessageView.setText(getString(R.string.network_error_msg));
-                swipeRefreshLayout.setRefreshing(false);
-            }
-        }));
-        ConnectivityChangedModel connectivityChangedModel = ViewModelProviders.of(this).get(ConnectivityChangedModel.class);
-        connectivityChangedModel.getConnectivityData().observe(this, aBoolean -> {
-            if (movies.isEmpty()) {
-                UiUtils.toggleViewVisibility(contentLoadingProgressBar, true);
-                contentLoadingProgressMessageView.setText(getString(R.string.loading_msg));
-                spinMoviesDownloadJob();
+    @Override
+    public void onEvent(Object event) {
+        super.onEvent(event);
+        mUiHandler.post(() -> {
+            if (event instanceof SearchEvent) {
+                SearchEvent searchEvent = (SearchEvent) event;
+                String searchString = searchEvent.getSearchString();
+                UiUtils.showSafeToast(searchString);
+                if (StringUtils.isNotEmpty(searchString)) {
+                    searchMovies(searchString.toLowerCase());
+                } else {
+                    fetchMovies();
+                }
+            } else if (event instanceof Exception) {
+                if (movies.isEmpty()) {
+                    UiUtils.toggleViewVisibility(contentLoadingProgressBar, false);
+                    contentLoadingProgressMessageView.setText(getString(R.string.network_error_msg));
+                    swipeRefreshLayout.setRefreshing(false);
+                }
+            } else if (event instanceof ConnectivityChangedEvent) {
+                if (movies.isEmpty()) {
+                    UiUtils.toggleViewVisibility(contentLoadingProgressBar, true);
+                    contentLoadingProgressMessageView.setText(getString(R.string.loading_msg));
+                    spinMoviesDownloadJob();
+                }
             }
         });
     }
@@ -150,6 +150,7 @@ public class HomeFragment extends BaseFragment {
     }
 
     private void fetchMovies() {
+        removeSearchSubscription();
         removeMoviesChangeListener();
         DataObserver<List<Movie>> moviesObserver = data -> {
             nullifySearch();
@@ -157,7 +158,7 @@ public class HomeFragment extends BaseFragment {
             loadChangedData(data);
             swipeRefreshLayout.setRefreshing(false);
         };
-        moviesSubScription = MolvixDB.getMovieBox().query().build().subscribe().observer(moviesObserver);
+        moviesSubscription = MolvixDB.getMovieBox().query().build().subscribe().observer(moviesObserver);
         spinMoviesDownloadJob();
     }
 
@@ -208,10 +209,22 @@ public class HomeFragment extends BaseFragment {
 
     private void searchMovies(String searchString) {
         setSearchString(searchString);
-        MolvixDB.searchMovies(searchString.toLowerCase(), (result, e) -> {
-            checkAndClearCurrentData(result);
-            loadMovies(result);
-        });
+        removeSearchSubscription();
+        searchSubscription = MolvixDB.getMovieBox()
+                .query().contains(Movie_.movieName, searchString)
+                .or()
+                .contains(Movie_.movieDescription, searchString)
+                .build().subscribe().observer(data -> {
+                    checkAndClearCurrentData(data);
+                    loadMovies(data);
+                });
+    }
+
+    private void removeSearchSubscription() {
+        if (searchSubscription != null && !searchSubscription.isCanceled()) {
+            searchSubscription.cancel();
+            searchSubscription = null;
+        }
     }
 
     private void checkAndClearCurrentData(List<Movie> result) {

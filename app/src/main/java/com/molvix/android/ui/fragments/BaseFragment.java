@@ -1,7 +1,9 @@
 package com.molvix.android.ui.fragments;
 
 import android.os.Bundle;
+import android.view.View;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
@@ -32,6 +34,18 @@ abstract class BaseFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
+        checkAndRegisterEventBus();
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        checkAndRegisterEventBus();
+    }
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
         checkAndRegisterEventBus();
     }
 

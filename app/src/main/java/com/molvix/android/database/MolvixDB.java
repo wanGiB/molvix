@@ -65,10 +65,6 @@ public class MolvixDB {
                 .findFirst();
     }
 
-    public static void searchMovies(String searchString, DoneCallback<List<Movie>> searchDoneCallBack) {
-        new SearchMoviesTask(searchDoneCallBack).execute(searchString);
-    }
-
     public static void updateMovie(Movie updatableMovie) {
         getMovieBox().put(updatableMovie);
     }
@@ -121,57 +117,6 @@ public class MolvixDB {
 
     public static void updateNotification(Notification notification) {
         getNotificationBox().put(notification);
-    }
-
-    @SuppressWarnings("unused")
-    public static void fetchDownloadableEpisodes(DoneCallback<List<DownloadableEpisode>> downloadableEpisodeDoneCallback) {
-        new FetchDownloadableEpisodesTask(downloadableEpisodeDoneCallback).execute();
-    }
-
-    static class FetchDownloadableEpisodesTask extends AsyncTask<Void, Void, List<DownloadableEpisode>> {
-
-        private DoneCallback<List<DownloadableEpisode>> downloadableEpisodesFetchDoneCallBack;
-
-        FetchDownloadableEpisodesTask(DoneCallback<List<DownloadableEpisode>> downloadableEpisodesFetchDoneCallBack) {
-            this.downloadableEpisodesFetchDoneCallBack = downloadableEpisodesFetchDoneCallBack;
-        }
-
-        @Override
-        protected List<DownloadableEpisode> doInBackground(Void... voids) {
-            return getDownloadableEpisodeBox().query().build().find();
-        }
-
-        @Override
-        protected void onPostExecute(List<DownloadableEpisode> episodes) {
-            super.onPostExecute(episodes);
-            downloadableEpisodesFetchDoneCallBack.done(episodes, null);
-        }
-
-    }
-
-    static class SearchMoviesTask extends AsyncTask<String, Void, List<Movie>> {
-
-        private DoneCallback<List<Movie>> searchDoneCallBack;
-
-        SearchMoviesTask(DoneCallback<List<Movie>> searchDoneCallBack) {
-            this.searchDoneCallBack = searchDoneCallBack;
-        }
-
-        @Override
-        protected List<Movie> doInBackground(String... searchString) {
-            return getMovieBox()
-                    .query().contains(Movie_.movieName, searchString[0])
-                    .or()
-                    .contains(Movie_.movieDescription, searchString[0])
-                    .build()
-                    .find();
-        }
-
-        @Override
-        protected void onPostExecute(List<Movie> movies) {
-            super.onPostExecute(movies);
-            searchDoneCallBack.done(movies, null);
-        }
     }
 
     static class FetchRecommendableMoviesTask extends AsyncTask<Void, Void, List<Movie>> {

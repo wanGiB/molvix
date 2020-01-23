@@ -14,13 +14,15 @@ import androidx.annotation.Nullable;
 
 import com.molvix.android.R;
 import com.molvix.android.database.MolvixDB;
+import com.molvix.android.eventbuses.LoadEpisodesForSeason;
 import com.molvix.android.managers.ContentManager;
 import com.molvix.android.managers.SeasonsManager;
 import com.molvix.android.models.Season;
 import com.molvix.android.models.Season_;
-import com.molvix.android.ui.viewmodels.LoadEpisodeViewModel;
 import com.molvix.android.utils.ConnectivityUtils;
 import com.molvix.android.utils.UiUtils;
+
+import org.greenrobot.eventbus.EventBus;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -105,8 +107,7 @@ public class SeasonView extends FrameLayout {
             setNewSeason(newSeason);
             seasonNameView.setText(newSeason.getSeasonName());
             if (pendingEpisodesLoadOperation.get()) {
-                LoadEpisodeViewModel loadEpisodeViewModel = new LoadEpisodeViewModel();
-                loadEpisodeViewModel.loadEpisodesFor(newSeason);
+                EventBus.getDefault().post(new LoadEpisodesForSeason(newSeason));
                 pendingEpisodesLoadOperation.set(false);
             }
         }
@@ -120,9 +121,8 @@ public class SeasonView extends FrameLayout {
         rootView.setOnClickListener(v -> {
             UiUtils.blinkView(rootView);
             if (season.getEpisodes() != null && !season.getEpisodes().isEmpty()) {
-                LoadEpisodeViewModel loadEpisodeViewModel = new LoadEpisodeViewModel();
-                loadEpisodeViewModel.loadEpisodesFor(season);
-            } else {
+                EventBus.getDefault().post(new LoadEpisodesForSeason(season));
+                } else {
                 if (ConnectivityUtils.isDeviceConnectedToTheInternet()) {
                     SeasonsManager.setSeasonRefreshable(season.getSeasonId());
                     UiUtils.showSafeToast("Please wait...");

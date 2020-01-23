@@ -6,11 +6,13 @@ import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.os.AsyncTask;
 
+import com.molvix.android.eventbuses.ConnectivityChangedEvent;
 import com.molvix.android.managers.ContentManager;
 import com.molvix.android.managers.MovieTracker;
 import com.molvix.android.preferences.AppPrefs;
-import com.molvix.android.ui.viewmodels.ConnectivityChangedModel;
 import com.molvix.android.utils.ConnectivityUtils;
+
+import org.greenrobot.eventbus.EventBus;
 
 public class ConnectivityChangeReceiver extends BroadcastReceiver {
     private NotificationsPullTask notificationsPullTask;
@@ -21,8 +23,7 @@ public class ConnectivityChangeReceiver extends BroadcastReceiver {
             return;
         }
         if (intent.getAction().equals(ConnectivityManager.CONNECTIVITY_ACTION) && ConnectivityUtils.isDeviceConnectedToTheInternet()) {
-            ConnectivityChangedModel connectivityChangedModel = new ConnectivityChangedModel();
-            connectivityChangedModel.updateConnectivity(true);
+            EventBus.getDefault().post(new ConnectivityChangedEvent());
             fetchNotifications();
             if (AppPrefs.canDailyMoviesBeRecommended()) {
                 MovieTracker.recommendUnWatchedMoviesToUser();

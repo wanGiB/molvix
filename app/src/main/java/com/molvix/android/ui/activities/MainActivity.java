@@ -15,23 +15,23 @@ import android.widget.FrameLayout;
 
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModelProviders;
 import androidx.viewpager.widget.ViewPager;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.molvix.android.R;
 import com.molvix.android.companions.AppConstants;
 import com.molvix.android.database.MolvixDB;
+import com.molvix.android.eventbuses.LoadEpisodesForSeason;
+import com.molvix.android.eventbuses.SearchEvent;
 import com.molvix.android.managers.EpisodesManager;
 import com.molvix.android.managers.FileDownloadManager;
 import com.molvix.android.models.DownloadableEpisode;
 import com.molvix.android.models.Episode;
+import com.molvix.android.models.Season;
 import com.molvix.android.ui.adapters.MainActivityPagerAdapter;
 import com.molvix.android.ui.fragments.HomeFragment;
 import com.molvix.android.ui.fragments.MoreContentsFragment;
 import com.molvix.android.ui.fragments.NotificationsFragment;
-import com.molvix.android.ui.viewmodels.LoadEpisodeViewModel;
-import com.molvix.android.ui.viewmodels.SearchViewModel;
 import com.molvix.android.ui.widgets.MolvixSearchView;
 import com.molvix.android.ui.widgets.MovieDetailsView;
 import com.molvix.android.utils.FileUtils;
@@ -69,7 +69,6 @@ public class MainActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
-        initViewModels();
         initSearchBox();
         initNavBarTints();
         initPager();
@@ -77,17 +76,20 @@ public class MainActivity extends BaseActivity {
         observeDownloadableEpisodes();
     }
 
-    private void initViewModels() {
-        SearchViewModel searchViewModel = ViewModelProviders.of(this).get(SearchViewModel.class);
-        searchViewModel.getSearchData().observe(this, searchString -> {
-            if (fragmentsPager.getCurrentItem() != 0) {
-                fragmentsPager.setCurrentItem(0);
-            }
-        });
-        LoadEpisodeViewModel loadEpisodeViewModel = ViewModelProviders.of(this).get(LoadEpisodeViewModel.class);
-        loadEpisodeViewModel.getSeasonMutableLiveData().observe(this, seasonToLoad -> {
-            if (seasonToLoad != null && movieDetailsView != null) {
-                movieDetailsView.loadEpisodesForSeason(seasonToLoad);
+    @Override
+    public void onEventMainThread(Object event) {
+        super.onEventMainThread(event);
+        runOnUiThread(() -> {
+            if (event instanceof SearchEvent) {
+                if (fragmentsPager.getCurrentItem() != 0) {
+                    fragmentsPager.setCurrentItem(0);
+                }
+            } else if (event instanceof LoadEpisodesForSeason) {
+                LoadEpisodesForSeason loadEpisodesForSeason = (LoadEpisodesForSeason) event;
+                Season seasonToLoad = loadEpisodesForSeason.getSeason();
+                if (seasonToLoad != null && movieDetailsView != null) {
+                    movieDetailsView.loadEpisodesForSeason(seasonToLoad);
+                }
             }
         });
     }
