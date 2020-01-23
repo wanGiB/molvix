@@ -12,7 +12,6 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.RequestOptions;
 import com.bumptech.glide.request.target.CustomTarget;
 import com.bumptech.glide.request.transition.Transition;
-import com.molvix.android.R;
 import com.molvix.android.companions.AppConstants;
 import com.molvix.android.components.ApplicationLoader;
 import com.molvix.android.database.MolvixDB;
@@ -23,14 +22,13 @@ import com.molvix.android.models.Notification;
 import com.molvix.android.models.Season;
 import com.molvix.android.preferences.AppPrefs;
 import com.molvix.android.utils.CryptoUtils;
-import com.molvix.android.utils.DateUtils;
 import com.molvix.android.utils.UiUtils;
 
 import java.security.SecureRandom;
 import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 import io.objectbox.reactive.DataSubscription;
 
@@ -60,8 +58,8 @@ public class MovieTracker {
     public static void recommendUnWatchedMoviesToUser() {
         long lastRecommendationTimeStamp = AppPrefs.getLastMovieRecommendationTime();
         if (lastRecommendationTimeStamp != -1) {
-            String lastTime = DateUtils.getRelativeDate(ApplicationLoader.getInstance(), Locale.getDefault(), lastRecommendationTimeStamp);
-            if (lastTime.equals(ApplicationLoader.getInstance().getString(R.string.DateUtils_today))) {
+            long timeDiff = TimeUnit.MILLISECONDS.toDays(System.currentTimeMillis()) - TimeUnit.MILLISECONDS.toDays(lastRecommendationTimeStamp);
+            if (timeDiff < 1) {
                 return;
             }
         }

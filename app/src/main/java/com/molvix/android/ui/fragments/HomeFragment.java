@@ -115,6 +115,7 @@ public class HomeFragment extends BaseFragment {
     private void initViewModels() {
         SearchViewModel searchViewModel = ViewModelProviders.of(this).get(SearchViewModel.class);
         searchViewModel.getSearchData().observe(this, searchString -> {
+            UiUtils.showSafeToast(searchString);
             if (StringUtils.isNotEmpty(searchString)) {
                 mUiHandler.post(() -> searchMovies(searchString.toLowerCase()));
             } else {
