@@ -283,6 +283,7 @@ public class MainActivity extends BaseActivity {
                 if (movieDetailsView.isBottomSheetDialogShowing()) {
                     movieDetailsView.closeBottomSheetDialog();
                 } else {
+                    movieDetailsView.removeMovieChangeListener();
                     rootContainer.removeView(movieDetailsView);
                     movieDetailsView = null;
                 }

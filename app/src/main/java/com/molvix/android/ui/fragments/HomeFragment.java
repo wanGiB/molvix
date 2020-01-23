@@ -200,10 +200,6 @@ public class HomeFragment extends BaseFragment {
                     if (!movies.contains(movie)) {
                         movies.add(movie);
                         moviesAdapter.notifyItemInserted(movies.size() - 1);
-                    } else {
-                        int indexOfMovie = movies.indexOf(movie);
-                        movies.set(indexOfMovie, movie);
-                        moviesAdapter.notifyItemChanged(indexOfMovie);
                     }
                 }
             }

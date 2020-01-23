@@ -19,8 +19,9 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.liucanwen.app.headerfooterrecyclerview.HeaderAndFooterRecyclerViewAdapter;
+import com.liucanwen.app.headerfooterrecyclerview.RecyclerViewUtils;
 import com.molvix.android.R;
-import com.molvix.android.beans.MovieContentItem;
 import com.molvix.android.database.MolvixDB;
 import com.molvix.android.managers.ContentManager;
 import com.molvix.android.managers.MovieManager;
@@ -28,13 +29,11 @@ import com.molvix.android.models.Movie;
 import com.molvix.android.models.Movie_;
 import com.molvix.android.models.Season;
 import com.molvix.android.ui.adapters.EpisodesAdapter;
-import com.molvix.android.ui.adapters.SeasonsWithEpisodesAdapter;
-import com.molvix.android.utils.CryptoUtils;
+import com.molvix.android.ui.adapters.SeasonsAdapter;
 import com.molvix.android.utils.UiUtils;
 
 import org.apache.commons.lang3.text.WordUtils;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.BindView;
@@ -44,7 +43,7 @@ import io.objectbox.reactive.DataSubscription;
 public class MovieDetailsView extends FrameLayout {
 
     @BindView(R.id.seasons_and_episodes_recycler_view)
-    RecyclerView seasonsAndEpisodesRecyclerView;
+    RecyclerView seasonsRecyclerView;
 
     @BindView(R.id.content_loading_layout)
     View loadingLayout;
@@ -59,11 +58,11 @@ public class MovieDetailsView extends FrameLayout {
     @BindView(R.id.back_button)
     ImageView backButton;
 
+    private View headerView;
+
     private MoviePullTask moviePullTask;
 
-    private SeasonsWithEpisodesAdapter seasonsWithEpisodesAdapter;
     private String movieId;
-    private List<MovieContentItem> movieContentItems = new ArrayList<>();
     private DataSubscription movieSubscription;
     private Handler mUIHandler = new Handler();
     private BottomSheetDialog bottomSheetDialog;
@@ -94,8 +93,7 @@ public class MovieDetailsView extends FrameLayout {
     public void loadMovieDetails(String movieId) {
         this.movieId = movieId;
         initBackButton();
-        cleanUpMovieContentItems();
-        initMovieAdapter();
+        loadMovieHeader();
         if (movieId != null) {
             MovieManager.setMovieRefreshable(movieId);
             loadingLayoutProgressMsgView.setText(getContext().getString(R.string.please_wait));
@@ -110,6 +108,11 @@ public class MovieDetailsView extends FrameLayout {
                 }
             }
         }
+    }
+
+    @SuppressLint("InflateParams")
+    private void loadMovieHeader() {
+        headerView = LayoutInflater.from(getContext()).inflate(R.layout.movie_details_header, null);
     }
 
     public void loadEpisodesForSeason(Season season) {
@@ -131,44 +134,10 @@ public class MovieDetailsView extends FrameLayout {
         bottomSheetRecyclerView.setAdapter(bottomSheetRecyclerViewAdapter);
     }
 
-    private void addMovieHeaderView(Movie movie, List<MovieContentItem> movieContentItems) {
-        MovieContentItem movieHeaderItem = new MovieContentItem();
-        movieHeaderItem.setMovie(movie);
-        movieHeaderItem.setContentId(CryptoUtils.getSha256Digest("MovieHeader"));
-        movieHeaderItem.setContentType(MovieContentItem.ContentType.MOVIE_HEADER);
-        if (!movieContentItems.contains(movieHeaderItem)) {
-            movieContentItems.add(movieHeaderItem);
-            seasonsWithEpisodesAdapter.notifyItemInserted(movieContentItems.size() - 1);
-        }
-    }
-
-    private void loadInMovieSeasons(List<MovieContentItem> movieContentItems, List<Season> movieSeasons) {
-        if (movieSeasons != null && !movieSeasons.isEmpty()) {
-            for (Season season : movieSeasons) {
-                MovieContentItem movieContentItem = new MovieContentItem();
-                movieContentItem.setSeason(season);
-                movieContentItem.setContentId(CryptoUtils.getSha256Digest(season.getSeasonName()));
-                movieContentItem.setContentType(MovieContentItem.ContentType.GROUP_HEADER);
-                if (!movieContentItems.contains(movieContentItem)) {
-                    movieContentItems.add(movieContentItem);
-                    seasonsWithEpisodesAdapter.notifyItemInserted(movieContentItems.size() - 1);
-                } else {
-                    int indexOfItem = movieContentItems.indexOf(movieContentItem);
-                    movieContentItems.set(indexOfItem, movieContentItem);
-                    seasonsWithEpisodesAdapter.notifyItemChanged(indexOfItem);
-                }
-            }
-        }
-    }
-
     private void loadMovieDetails(Movie movie) {
         mUIHandler.post(() -> {
-            addMovieHeaderView(movie, movieContentItems);
-            List<Season> movieSeasons = movie.getSeasons();
-            loadInMovieSeasons(movieContentItems, movieSeasons);
+            initMovieAdapter(movie);
             UiUtils.toggleViewVisibility(loadingLayout, false);
-            movie.setRecommendedToUser(true);
-            MolvixDB.updateMovie(movie);
         });
     }
 
@@ -181,12 +150,6 @@ public class MovieDetailsView extends FrameLayout {
         moviePullTask.execute();
     }
 
-    private void cleanUpMovieContentItems() {
-        if (!movieContentItems.isEmpty()) {
-            movieContentItems.clear();
-        }
-    }
-
     public boolean isBottomSheetDialogShowing() {
         return bottomSheetDialog != null && bottomSheetDialog.isShowing();
     }
@@ -197,15 +160,22 @@ public class MovieDetailsView extends FrameLayout {
         bottomSheetDialog = null;
     }
 
-    private void initMovieAdapter() {
-        seasonsWithEpisodesAdapter = new SeasonsWithEpisodesAdapter(getContext(), movieContentItems);
-        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext(), RecyclerView.VERTICAL, false);
-        seasonsAndEpisodesRecyclerView.setLayoutManager(linearLayoutManager);
-        seasonsAndEpisodesRecyclerView.setAdapter(seasonsWithEpisodesAdapter);
+    private void initMovieAdapter(Movie movie) {
+        SeasonsAdapter seasonsAdapter = new SeasonsAdapter(getContext(), movie.getSeasons());
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
+        seasonsRecyclerView.setLayoutManager(linearLayoutManager);
+        HeaderAndFooterRecyclerViewAdapter headerAndFooterRecyclerViewAdapter = new HeaderAndFooterRecyclerViewAdapter(seasonsAdapter);
+        seasonsRecyclerView.setAdapter(headerAndFooterRecyclerViewAdapter);
+        MovieDetailsHeaderView movieDetailsHeaderView = headerView.findViewById(R.id.movie_details_header_view);
+        movieDetailsHeaderView.bindMovieHeader(movie);
+        RecyclerViewUtils.setHeaderView(seasonsRecyclerView, headerView);
     }
 
     private void initBackButton() {
-        backButton.setOnClickListener(v -> ((ViewGroup) getParent()).removeView(MovieDetailsView.this));
+        backButton.setOnClickListener(v -> {
+            removeMovieChangeListener();
+            ((ViewGroup) getParent()).removeView(MovieDetailsView.this);
+        });
     }
 
     private void addMovieChangeListener() {
@@ -220,7 +190,7 @@ public class MovieDetailsView extends FrameLayout {
         });
     }
 
-    private void removeMovieChangeListener() {
+    public void removeMovieChangeListener() {
         if (movieSubscription != null && !movieSubscription.isCanceled()) {
             movieSubscription.cancel();
             movieSubscription = null;
