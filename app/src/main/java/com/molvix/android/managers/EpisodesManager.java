@@ -7,7 +7,7 @@ import com.molvix.android.database.MolvixDB;
 
 public class EpisodesManager {
 
-    public static void enqueEpisodeForDownload(Episode episode) {
+    public static void enqueDownloadableEpisode(Episode episode) {
         DownloadableEpisode existingDownloadableEpisode = MolvixDB.getDownloadableEpisode(episode.getEpisodeId());
         if (existingDownloadableEpisode != null) {
             return;
@@ -18,7 +18,7 @@ public class EpisodesManager {
         MolvixDB.createNewDownloadableEpisode(newDownloadableEpisode);
     }
 
-    public static void popEpisode(Episode episode) {
+    public static void popDownloadableEpisode(Episode episode) {
         DownloadableEpisode downloadableEpisode = MolvixDB.getDownloadableEpisode(episode.getEpisodeId());
         if (downloadableEpisode != null) {
             MolvixDB.deleteDownloadableEpisode(downloadableEpisode);
@@ -30,7 +30,7 @@ public class EpisodesManager {
         AppPrefs.lockCaptchaSolver(episodeId);
     }
 
-    public static void unLockCaptureSolver() {
+    private static void unLockCaptureSolver() {
         AppPrefs.unLockCaptchaSolver();
     }
 

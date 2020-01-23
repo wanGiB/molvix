@@ -357,7 +357,7 @@ public class EpisodeView extends FrameLayout {
                             if (finalEpisodeCaptchaSolverLink != null) {
                                 episode.setEpisodeCaptchaSolverLink(finalEpisodeCaptchaSolverLink);
                                 MolvixDB.updateEpisode(episode);
-                                EpisodesManager.enqueEpisodeForDownload(episode);
+                                EpisodesManager.enqueDownloadableEpisode(episode);
                             } else {
                                 UiUtils.showSafeToast("Sorry, failed to download " + episode.getEpisodeName() + ".Please try again.");
                                 episode.setDownloadProgress(-1);

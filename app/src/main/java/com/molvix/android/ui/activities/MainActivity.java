@@ -143,7 +143,6 @@ public class MainActivity extends BaseActivity {
         hackWebView.setThirdPartyCookiesEnabled(true);
         if (rootContainer.getChildAt(0) instanceof AdvancedWebView) {
             rootContainer.removeViewAt(0);
-            rootContainer.invalidate();
         }
         rootContainer.addView(hackWebView, 0);
         solveEpisodeCaptchaChallenge(hackWebView, episode);
@@ -196,7 +195,6 @@ public class MainActivity extends BaseActivity {
                 String mimeTypeOfUrl = FileUtils.getMimeType(url);
                 if (mimeTypeOfUrl.toLowerCase().contains("video")) {
                     hackWebView.stopLoading();
-                    FileDownloadManager.startNewEpisodeDownload(episode);
                     if (episode.getEpisodeQuality() == AppConstants.STANDARD_QUALITY) {
                         episode.setStandardQualityDownloadLink(url);
                     } else if (episode.getEpisodeQuality() == AppConstants.HIGH_QUALITY) {
@@ -204,10 +202,11 @@ public class MainActivity extends BaseActivity {
                     } else {
                         episode.setLowQualityDownloadLink(url);
                     }
+                    FileDownloadManager.startNewEpisodeDownload(episode);
                     MolvixDB.updateEpisode(episode);
                     hackWebView.onDestroy();
                     rootContainer.removeView(hackWebView);
-                    EpisodesManager.popEpisode(episode);
+                    EpisodesManager.popDownloadableEpisode(episode);
                 }
             }
 
@@ -254,14 +253,12 @@ public class MainActivity extends BaseActivity {
 
     private void addNewMovieDetailsViewAndLoad(String movieId, FrameLayout.LayoutParams layoutParams) {
         rootContainer.addView(movieDetailsView, layoutParams);
-        rootContainer.invalidate();
         movieDetailsView.loadMovieDetails(movieId);
     }
 
     private void checkAndRemovePreviousMovieDetailsView() {
         if (rootContainer.getChildAt(rootContainer.getChildCount() - 1) instanceof MovieDetailsView) {
             rootContainer.removeViewAt(rootContainer.getChildCount() - 1);
-            rootContainer.invalidate();
         }
     }
 
