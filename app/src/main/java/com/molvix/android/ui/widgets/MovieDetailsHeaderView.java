@@ -6,6 +6,7 @@ import android.graphics.drawable.ColorDrawable;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 
@@ -58,7 +59,7 @@ public class MovieDetailsHeaderView extends FrameLayout {
         @SuppressLint("InflateParams") View headerView = LayoutInflater.from(context).inflate(R.layout.full_movie_detals, null);
         ButterKnife.bind(this, headerView);
         removeAllViews();
-        addView(headerView);
+        addView(headerView, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         requestLayout();
     }
 

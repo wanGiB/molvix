@@ -15,26 +15,23 @@ import android.widget.FrameLayout;
 
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProviders;
 import androidx.viewpager.widget.ViewPager;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.molvix.android.R;
 import com.molvix.android.companions.AppConstants;
 import com.molvix.android.database.MolvixDB;
-import com.molvix.android.eventbuses.LoadAds;
-import com.molvix.android.eventbuses.LoadEpisodesForSeason;
-import com.molvix.android.eventbuses.LoadMovieEvent;
-import com.molvix.android.eventbuses.SearchEvent;
-import com.molvix.android.managers.AdsLoadManager;
 import com.molvix.android.managers.EpisodesManager;
 import com.molvix.android.managers.FileDownloadManager;
 import com.molvix.android.models.DownloadableEpisode;
 import com.molvix.android.models.Episode;
-import com.molvix.android.models.Season;
 import com.molvix.android.ui.adapters.MainActivityPagerAdapter;
 import com.molvix.android.ui.fragments.HomeFragment;
 import com.molvix.android.ui.fragments.MoreContentsFragment;
 import com.molvix.android.ui.fragments.NotificationsFragment;
+import com.molvix.android.ui.viewmodels.LoadEpisodeViewModel;
+import com.molvix.android.ui.viewmodels.SearchViewModel;
 import com.molvix.android.ui.widgets.MolvixSearchView;
 import com.molvix.android.ui.widgets.MovieDetailsView;
 import com.molvix.android.utils.FileUtils;
@@ -72,11 +69,27 @@ public class MainActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
+        initViewModels();
         initSearchBox();
         initNavBarTints();
         initPager();
         observeNewIntent(getIntent());
         observeDownloadableEpisodes();
+    }
+
+    private void initViewModels() {
+        SearchViewModel searchViewModel = ViewModelProviders.of(this).get(SearchViewModel.class);
+        searchViewModel.getSearchData().observe(this, searchString -> {
+            if (fragmentsPager.getCurrentItem() != 0) {
+                fragmentsPager.setCurrentItem(0);
+            }
+        });
+        LoadEpisodeViewModel loadEpisodeViewModel = ViewModelProviders.of(this).get(LoadEpisodeViewModel.class);
+        loadEpisodeViewModel.getSeasonMutableLiveData().observe(this, seasonToLoad -> {
+            if (seasonToLoad != null && movieDetailsView != null) {
+                movieDetailsView.loadEpisodesForSeason(seasonToLoad);
+            }
+        });
     }
 
     private void initPager() {
@@ -119,31 +132,6 @@ public class MainActivity extends BaseActivity {
             }
             return true;
         });
-    }
-
-    @Override
-    public void onEventMainThread(Object event) {
-        if (event instanceof LoadAds) {
-            AdsLoadManager.loadAds();
-        } else if (event instanceof SearchEvent) {
-            runOnUiThread(() -> {
-                if (fragmentsPager.getCurrentItem() != 0) {
-                    fragmentsPager.setCurrentItem(0);
-                }
-            });
-        } else if (event instanceof LoadMovieEvent) {
-            LoadMovieEvent loadMovieEvent = (LoadMovieEvent) event;
-            runOnUiThread(() -> loadMovieDetails(loadMovieEvent.getMovieId()));
-        } else if (event instanceof LoadEpisodesForSeason) {
-            runOnUiThread(() -> {
-                LoadEpisodesForSeason seasonData = (LoadEpisodesForSeason) event;
-                String seasonId = seasonData.getSeasonId();
-                Season seasonToLoad = MolvixDB.getSeason(seasonId);
-                if (seasonToLoad != null && movieDetailsView != null) {
-                    movieDetailsView.loadEpisodesForSeason(seasonToLoad);
-                }
-            });
-        }
     }
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -257,13 +245,15 @@ public class MainActivity extends BaseActivity {
         }
     }
 
-    private void loadMovieDetails(String movieId) {
+    public void loadMovieDetails(String movieId) {
         movieDetailsView = new MovieDetailsView(this);
         if (rootContainer.getChildAt(rootContainer.getChildCount() - 1) instanceof MovieDetailsView) {
-            movieDetailsView.removeViewAt(rootContainer.getChildCount() - 1);
+            rootContainer.removeViewAt(rootContainer.getChildCount() - 1);
+            rootContainer.invalidate();
         }
         FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
         rootContainer.addView(movieDetailsView, layoutParams);
+        rootContainer.invalidate();
         movieDetailsView.loadMovieDetails(movieId);
     }
 

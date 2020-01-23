@@ -12,9 +12,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:paddingStart="5dp"
         android:paddingTop="10dp"
-        android:paddingEnd="5dp"
         android:paddingBottom="10dp">
 
         <com.molvix.android.ui.widgets.MolvixTextView
@@ -24,6 +22,8 @@
             android:layout_gravity="center_vertical"
             android:layout_weight="1"
             android:gravity="center_vertical"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
             android:text="@string/season"
             android:textColor="@color/colorAccent"
             android:textSize="18sp"
@@ -34,7 +34,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
-            android:layout_marginEnd="@dimen/horizontal_margin"
+            android:layout_marginEnd="5dp"
             app:srcCompat="@drawable/ic_chevron_right_accent_24dp" />
 
     </LinearLayout>

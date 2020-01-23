@@ -10,17 +10,17 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.bottomsheet.BottomSheetDialog;
-import com.liucanwen.app.headerfooterrecyclerview.HeaderAndFooterRecyclerViewAdapter;
-import com.liucanwen.app.headerfooterrecyclerview.RecyclerViewUtils;
 import com.molvix.android.R;
 import com.molvix.android.database.MolvixDB;
 import com.molvix.android.managers.ContentManager;
@@ -29,7 +29,6 @@ import com.molvix.android.models.Movie;
 import com.molvix.android.models.Movie_;
 import com.molvix.android.models.Season;
 import com.molvix.android.ui.adapters.EpisodesAdapter;
-import com.molvix.android.ui.adapters.SeasonsAdapter;
 import com.molvix.android.utils.UiUtils;
 
 import org.apache.commons.lang3.text.WordUtils;
@@ -41,9 +40,6 @@ import butterknife.ButterKnife;
 import io.objectbox.reactive.DataSubscription;
 
 public class MovieDetailsView extends FrameLayout {
-
-    @BindView(R.id.seasons_and_episodes_recycler_view)
-    RecyclerView seasonsRecyclerView;
 
     @BindView(R.id.content_loading_layout)
     View loadingLayout;
@@ -58,7 +54,8 @@ public class MovieDetailsView extends FrameLayout {
     @BindView(R.id.back_button)
     ImageView backButton;
 
-    private View headerView;
+    @BindView(R.id.seasons_container)
+    LinearLayout seasonsContainer;
 
     private MoviePullTask moviePullTask;
 
@@ -93,7 +90,6 @@ public class MovieDetailsView extends FrameLayout {
     public void loadMovieDetails(String movieId) {
         this.movieId = movieId;
         initBackButton();
-        loadMovieHeader();
         if (movieId != null) {
             MovieManager.setMovieRefreshable(movieId);
             loadingLayoutProgressMsgView.setText(getContext().getString(R.string.please_wait));
@@ -108,11 +104,6 @@ public class MovieDetailsView extends FrameLayout {
                 }
             }
         }
-    }
-
-    @SuppressLint("InflateParams")
-    private void loadMovieHeader() {
-        headerView = LayoutInflater.from(getContext()).inflate(R.layout.movie_details_header, null);
     }
 
     public void loadEpisodesForSeason(Season season) {
@@ -136,8 +127,12 @@ public class MovieDetailsView extends FrameLayout {
 
     private void loadMovieDetails(Movie movie) {
         mUIHandler.post(() -> {
-            initMovieAdapter(movie);
+            loadInMovie(movie);
             UiUtils.toggleViewVisibility(loadingLayout, false);
+            if (!movie.isRecommendedToUser() && movie.getSeasons() != null && !movie.getSeasons().isEmpty()) {
+                movie.setRecommendedToUser(true);
+                MolvixDB.updateMovie(movie);
+            }
         });
     }
 
@@ -160,15 +155,18 @@ public class MovieDetailsView extends FrameLayout {
         bottomSheetDialog = null;
     }
 
-    private void initMovieAdapter(Movie movie) {
-        SeasonsAdapter seasonsAdapter = new SeasonsAdapter(getContext(), movie.getSeasons());
-        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
-        seasonsRecyclerView.setLayoutManager(linearLayoutManager);
-        HeaderAndFooterRecyclerViewAdapter headerAndFooterRecyclerViewAdapter = new HeaderAndFooterRecyclerViewAdapter(seasonsAdapter);
-        seasonsRecyclerView.setAdapter(headerAndFooterRecyclerViewAdapter);
-        MovieDetailsHeaderView movieDetailsHeaderView = headerView.findViewById(R.id.movie_details_header_view);
+    private void loadInMovie(Movie movie) {
+        seasonsContainer.setBackgroundColor(ContextCompat.getColor(getContext(), R.color.light_grey));
+        seasonsContainer.removeAllViews();
+        MovieDetailsHeaderView movieDetailsHeaderView = new MovieDetailsHeaderView(getContext());
         movieDetailsHeaderView.bindMovieHeader(movie);
-        RecyclerViewUtils.setHeaderView(seasonsRecyclerView, headerView);
+        seasonsContainer.addView(movieDetailsHeaderView, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        List<Season> movieSeasons = movie.getSeasons();
+        for (Season season : movieSeasons) {
+            SeasonView seasonView = new SeasonView(getContext());
+            seasonView.bindSeason(season);
+            seasonsContainer.addView(seasonView, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        }
     }
 
     private void initBackButton() {

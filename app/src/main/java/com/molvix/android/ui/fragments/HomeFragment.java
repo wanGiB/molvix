@@ -13,6 +13,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
+import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
@@ -20,14 +21,15 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.liucanwen.app.headerfooterrecyclerview.HeaderAndFooterRecyclerViewAdapter;
 import com.liucanwen.app.headerfooterrecyclerview.RecyclerViewUtils;
 import com.molvix.android.R;
-import com.molvix.android.eventbuses.ConnectivityChanged;
-import com.molvix.android.eventbuses.SearchEvent;
+import com.molvix.android.database.MolvixDB;
 import com.molvix.android.managers.ContentManager;
 import com.molvix.android.managers.MovieManager;
 import com.molvix.android.models.Movie;
 import com.molvix.android.ui.adapters.MoviesAdapter;
+import com.molvix.android.ui.viewmodels.ConnectivityChangedModel;
+import com.molvix.android.ui.viewmodels.ExceptionViewModel;
+import com.molvix.android.ui.viewmodels.SearchViewModel;
 import com.molvix.android.utils.ConnectivityUtils;
-import com.molvix.android.database.MolvixDB;
 import com.molvix.android.utils.UiUtils;
 
 import org.apache.commons.lang3.StringUtils;
@@ -106,7 +108,36 @@ public class HomeFragment extends BaseFragment {
         View root = inflater.inflate(R.layout.fragment_home, container, false);
         ButterKnife.bind(this, root);
         mUiHandler = new Handler();
+        initViewModels();
         return root;
+    }
+
+    private void initViewModels() {
+        SearchViewModel searchViewModel = ViewModelProviders.of(this).get(SearchViewModel.class);
+        searchViewModel.getSearchData().observe(this, searchString -> {
+            if (StringUtils.isNotEmpty(searchString)) {
+                mUiHandler.post(() -> searchMovies(searchString.toLowerCase()));
+            } else {
+                mUiHandler.post(this::fetchMovies);
+            }
+        });
+        ExceptionViewModel exceptionViewModel = ViewModelProviders.of(this).get(ExceptionViewModel.class);
+        exceptionViewModel.getExceptionData().observe(this, e -> mUiHandler.post(() -> {
+            //Most likely a network error
+            if (movies.isEmpty()) {
+                UiUtils.toggleViewVisibility(contentLoadingProgressBar, false);
+                contentLoadingProgressMessageView.setText(getString(R.string.network_error_msg));
+                swipeRefreshLayout.setRefreshing(false);
+            }
+        }));
+        ConnectivityChangedModel connectivityChangedModel = ViewModelProviders.of(this).get(ConnectivityChangedModel.class);
+        connectivityChangedModel.getConnectivityData().observe(this, aBoolean -> {
+            if (movies.isEmpty()) {
+                UiUtils.toggleViewVisibility(contentLoadingProgressBar, true);
+                contentLoadingProgressMessageView.setText(getString(R.string.loading_msg));
+                spinMoviesDownloadJob();
+            }
+        });
     }
 
     @Override
@@ -200,6 +231,10 @@ public class HomeFragment extends BaseFragment {
                     if (!movies.contains(movie)) {
                         movies.add(movie);
                         moviesAdapter.notifyItemInserted(movies.size() - 1);
+                    } else {
+                        int indexOfMovie = movies.indexOf(movie);
+                        movies.set(indexOfMovie, movie);
+                        moviesAdapter.notifyItemChanged(indexOfMovie);
                     }
                 }
             }
@@ -262,35 +297,6 @@ public class HomeFragment extends BaseFragment {
         });
     }
 
-    @SuppressLint("SetTextI18n")
-    @Override
-    public void onEvent(Object event) {
-        super.onEvent(event);
-        if (event instanceof SearchEvent) {
-            SearchEvent searchEvent = (SearchEvent) event;
-            String searchString = searchEvent.getSearchString();
-            if (StringUtils.isNotEmpty(searchString)) {
-                mUiHandler.post(() -> searchMovies(searchEvent.getSearchString().toLowerCase()));
-            } else {
-                mUiHandler.post(this::fetchMovies);
-            }
-        } else if (event instanceof Exception) {
-            mUiHandler.post(() -> {
-                //Most likely a network error
-                if (movies.isEmpty()) {
-                    UiUtils.toggleViewVisibility(contentLoadingProgressBar, false);
-                    contentLoadingProgressMessageView.setText("Network error.Please review your data connection and tap here to try again.");
-                    swipeRefreshLayout.setRefreshing(false);
-                }
-            });
-        } else if (event instanceof ConnectivityChanged) {
-            if (movies.isEmpty()) {
-                UiUtils.toggleViewVisibility(contentLoadingProgressBar, true);
-                contentLoadingProgressMessageView.setText("Loading...");
-                spinMoviesDownloadJob();
-            }
-        }
-    }
 
     private void nullifySearch() {
         if (moviesAdapter != null) {

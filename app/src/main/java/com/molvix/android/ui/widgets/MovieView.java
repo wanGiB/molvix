@@ -16,26 +16,22 @@ import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 
 import com.molvix.android.R;
-import com.molvix.android.database.MolvixDB;
-import com.molvix.android.eventbuses.LoadMovieEvent;
 import com.molvix.android.managers.AdsLoadManager;
 import com.molvix.android.managers.ContentManager;
 import com.molvix.android.managers.MovieManager;
 import com.molvix.android.models.Movie;
-import com.molvix.android.models.Movie_;
 import com.molvix.android.models.Season;
+import com.molvix.android.ui.activities.MainActivity;
 import com.molvix.android.utils.ConnectivityUtils;
 import com.molvix.android.utils.UiUtils;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.text.WordUtils;
-import org.greenrobot.eventbus.EventBus;
 
 import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import io.objectbox.reactive.DataSubscription;
 
 @SuppressWarnings("unused")
 public class MovieView extends FrameLayout {
@@ -59,8 +55,8 @@ public class MovieView extends FrameLayout {
     AdMobNativeAdView adMobNativeAdView;
 
     private Movie movie;
+
     private String searchString;
-    private DataSubscription movieSubscription;
 
     public MovieView(Context context) {
         super(context);
@@ -97,29 +93,9 @@ public class MovieView extends FrameLayout {
     public void setupMovie(Movie movie) {
         this.movie = movie;
         setupMovieCoreData(movie);
-        addMovieSubscription();
         initEventHandlers(movie);
         checkAndLoadAd();
         refreshMovieDetails(movie);
-    }
-
-    private void addMovieSubscription() {
-        removeMovieSubscription();
-        movieSubscription = MolvixDB.getMovieBox().query().equal(Movie_.movieId, movie.getMovieId()).build().subscribe().observer(data -> {
-            if (!data.isEmpty()) {
-                Movie updatedMovie = data.get(0);
-                if (updatedMovie.equals(movie)) {
-                    setupMovieCoreData(updatedMovie);
-                }
-            }
-        });
-    }
-
-    private void removeMovieSubscription() {
-        if (movieSubscription != null && !movieSubscription.isCanceled()) {
-            movieSubscription.cancel();
-            movieSubscription = null;
-        }
     }
 
     private void checkAndLoadAd() {
@@ -180,9 +156,10 @@ public class MovieView extends FrameLayout {
     }
 
     private void openMovieDetails(Movie movie) {
-        movie.setRecommendedToUser(true);
-        MolvixDB.updateMovie(movie);
-        EventBus.getDefault().post(new LoadMovieEvent(movie.getMovieId()));
+        if (getContext() instanceof MainActivity) {
+            MainActivity mainActivity = (MainActivity) getContext();
+            mainActivity.loadMovieDetails(movie.getMovieId());
+        }
     }
 
     private void refreshMovieDetails(Movie movie) {
@@ -195,14 +172,12 @@ public class MovieView extends FrameLayout {
     @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
-        addMovieSubscription();
         refreshMovieDetails(movie);
     }
 
     @Override
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
-        removeMovieSubscription();
         Log.d(ContentManager.class.getSimpleName(), movie.getMovieName() + " Detached");
         AdsLoadManager.destroyAds();
     }

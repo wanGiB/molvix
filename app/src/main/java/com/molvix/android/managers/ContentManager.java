@@ -4,14 +4,14 @@ import android.util.Log;
 import android.util.Pair;
 
 import com.molvix.android.companions.AppConstants;
+import com.molvix.android.database.MolvixDB;
 import com.molvix.android.models.Episode;
 import com.molvix.android.models.Movie;
 import com.molvix.android.models.Season;
+import com.molvix.android.ui.viewmodels.ExceptionViewModel;
 import com.molvix.android.utils.CryptoUtils;
-import com.molvix.android.database.MolvixDB;
 
 import org.apache.commons.lang3.StringUtils;
-import org.greenrobot.eventbus.EventBus;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -70,7 +70,7 @@ public class ContentManager {
             }
         } catch (IOException e) {
             e.printStackTrace();
-            EventBus.getDefault().post(e);
+            spitException(e);
         }
     }
 
@@ -102,8 +102,13 @@ public class ContentManager {
             }
         } catch (IOException e) {
             e.printStackTrace();
-            EventBus.getDefault().post(e);
+            spitException(e);
         }
+    }
+
+    private static void spitException(IOException e) {
+        ExceptionViewModel exceptionViewModel = new ExceptionViewModel();
+        exceptionViewModel.updateException(e);
     }
 
     private static void extractOtherMovieDataParts(String movieLink, Document movieDoc, Movie updatableMovie) {
@@ -200,7 +205,8 @@ public class ContentManager {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            EventBus.getDefault().post(e);
+            ExceptionViewModel exceptionViewModel = new ExceptionViewModel();
+            exceptionViewModel.updateException(e);
         }
     }
 
