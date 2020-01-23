@@ -78,7 +78,7 @@ public class SeasonView extends FrameLayout {
     }
 
     private void addSeasonChangeListener(Season season) {
-        MolvixDB.getSeasonBox()
+        seasonSubscription = MolvixDB.getSeasonBox()
                 .query()
                 .equal(Season_.seasonId, season.getSeasonId())
                 .build()

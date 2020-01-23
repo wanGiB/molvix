@@ -21,11 +21,14 @@ import static android.content.Context.CLIPBOARD_SERVICE;
 
 public class MoreContentsFragment extends PreferenceFragmentCompat implements Preference.OnPreferenceChangeListener {
 
+    private SwitchPreferenceCompat dailyMovieRecommendationSwitch;
+    private SwitchPreferenceCompat downloadedMoviesUpdateSwitch;
+
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
         setPreferencesFromResource(R.xml.more_content, rootKey);
-        SwitchPreferenceCompat dailyMovieRecommendationSwitch = findPreference(getString(R.string.daily_movie_recommendation_key));
-        SwitchPreferenceCompat downloadedMoviesUpdateSwitch = findPreference(getString(R.string.downloaded_movies_update_key));
+        dailyMovieRecommendationSwitch = findPreference(getString(R.string.daily_movie_recommendation_key));
+        downloadedMoviesUpdateSwitch = findPreference(getString(R.string.downloaded_movies_update_key));
 
         Preference bitcoinDonationsPref = findPreference(getString(R.string.donation_key));
         if (bitcoinDonationsPref != null) {
@@ -100,8 +103,10 @@ public class MoreContentsFragment extends PreferenceFragmentCompat implements Pr
     public boolean onPreferenceChange(Preference preference, Object newValue) {
         if (preference.getKey().equals(getString(R.string.daily_movie_recommendation_key))) {
             AppPrefs.setDailyMoviesRecommendability((Boolean) newValue);
+            dailyMovieRecommendationSwitch.setDefaultValue(newValue);
         } else if (preference.getKey().equals(getString(R.string.downloaded_movies_update_key))) {
             AppPrefs.setDownloadedMoviesUpdatable((Boolean) newValue);
+            downloadedMoviesUpdateSwitch.setDefaultValue(newValue);
         }
         return true;
     }

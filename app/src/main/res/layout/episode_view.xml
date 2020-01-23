@@ -13,7 +13,7 @@
         android:layout_height="wrap_content"
         android:padding="8dp"
         android:text="Episode"
-        android:textColor="@color/gray95"
+        android:textColor="@color/blue_grey_active"
         android:textSize="15sp"
         app:textStyle="medium" />
 
@@ -40,7 +40,7 @@
             android:paddingStart="8dp"
             android:paddingEnd="16dp"
             android:text="@string/download"
-            android:textColor="@color/linked_in"
+            android:textColor="@color/colorAccent"
             android:textSize="14sp"
             app:textStyle="medium"
             tools:ignore="RelativeOverlap" />
@@ -77,6 +77,7 @@
                 android:layout_margin="2dp"
                 android:layout_weight="1"
                 android:textAlignment="center"
+                android:textColor="@color/blue_grey_active"
                 app:textStyle="regular" />
 
             <Button
@@ -85,7 +86,8 @@
                 android:layout_height="wrap_content"
                 android:layout_margin="4dp"
                 android:layout_weight="1"
-                android:text="@string/cancel" />
+                android:text="@string/cancel"
+                android:textColor="@color/blue_grey_active" />
 
         </LinearLayout>
 

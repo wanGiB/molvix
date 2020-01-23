@@ -247,14 +247,22 @@ public class MainActivity extends BaseActivity {
 
     public void loadMovieDetails(String movieId) {
         movieDetailsView = new MovieDetailsView(this);
+        checkAndRemovePreviousMovieDetailsView();
+        FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+        addNewMovieDetailsViewAndLoad(movieId, layoutParams);
+    }
+
+    private void addNewMovieDetailsViewAndLoad(String movieId, FrameLayout.LayoutParams layoutParams) {
+        rootContainer.addView(movieDetailsView, layoutParams);
+        rootContainer.invalidate();
+        movieDetailsView.loadMovieDetails(movieId);
+    }
+
+    private void checkAndRemovePreviousMovieDetailsView() {
         if (rootContainer.getChildAt(rootContainer.getChildCount() - 1) instanceof MovieDetailsView) {
             rootContainer.removeViewAt(rootContainer.getChildCount() - 1);
             rootContainer.invalidate();
         }
-        FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
-        rootContainer.addView(movieDetailsView, layoutParams);
-        rootContainer.invalidate();
-        movieDetailsView.loadMovieDetails(movieId);
     }
 
     @Override

@@ -29,7 +29,7 @@ public class MolvixDB {
         return ObjectBox.get().boxFor(DownloadableEpisode.class);
     }
 
-    public static Box<Episode> getEpisodeBox() {
+    private static Box<Episode> getEpisodeBox() {
         return ObjectBox.get().boxFor(Episode.class);
     }
 
@@ -65,16 +65,8 @@ public class MolvixDB {
                 .findFirst();
     }
 
-    public static void fetchNotifications(DoneCallback<List<Notification>> notificationsFetchDoneCallBack) {
-        new FetchNotificationsTask(notificationsFetchDoneCallBack).execute();
-    }
-
     public static void searchMovies(String searchString, DoneCallback<List<Movie>> searchDoneCallBack) {
         new SearchMoviesTask(searchDoneCallBack).execute(searchString);
-    }
-
-    private static void saveMovie(Movie newMovie) {
-        getMovieBox().put(newMovie);
     }
 
     public static void updateMovie(Movie updatableMovie) {
@@ -116,14 +108,11 @@ public class MolvixDB {
 
     public static void updateEpisode(Episode episode) {
         getEpisodeBox().put(episode);
+        AppPrefs.setEpisodeUpdated(episode.getEpisodeId());
     }
 
     public static void createNewNotification(Notification newNotification) {
         getNotificationBox().put(newNotification);
-    }
-
-    public static void fetchAllAvailableMovies(DoneCallback<List<Movie>> fetchDoneCallBack) {
-        new FetchAvailableMoviesTask(fetchDoneCallBack).execute();
     }
 
     public static void fetchRecommendableMovies(DoneCallback<List<Movie>> fetchDoneCallBack) {
@@ -202,52 +191,6 @@ public class MolvixDB {
         protected void onPostExecute(List<Movie> movies) {
             super.onPostExecute(movies);
             moviesFetchDoneCallBack.done(movies, null);
-        }
-
-    }
-
-    static class FetchAvailableMoviesTask extends AsyncTask<Void, Void, List<Movie>> {
-
-        private DoneCallback<List<Movie>> moviesFetchDoneCallBack;
-
-        FetchAvailableMoviesTask(DoneCallback<List<Movie>> moviesFetchDoneCallBack) {
-            this.moviesFetchDoneCallBack = moviesFetchDoneCallBack;
-        }
-
-        @Override
-        protected List<Movie> doInBackground(Void... voids) {
-            return getMovieBox().query().build().find();
-        }
-
-        @Override
-        protected void onPostExecute(List<Movie> movies) {
-            super.onPostExecute(movies);
-            moviesFetchDoneCallBack.done(movies, null);
-        }
-
-    }
-
-    static class FetchNotificationsTask extends AsyncTask<Void, Void, List<Notification>> {
-
-        private DoneCallback<List<Notification>> notificationsFetchDoneCallBack;
-
-        FetchNotificationsTask(DoneCallback<List<Notification>> notificationsFetchDoneCallBack) {
-            this.notificationsFetchDoneCallBack = notificationsFetchDoneCallBack;
-        }
-
-        @Override
-        protected List<Notification> doInBackground(Void... voids) {
-            return getNotificationBox()
-                    .query()
-                    .build()
-                    .find();
-        }
-
-        @Override
-        protected void onPostExecute(List<Notification> results) {
-            super.onPostExecute(results);
-            notificationsFetchDoneCallBack.done(results, null);
-
         }
 
     }

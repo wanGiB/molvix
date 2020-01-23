@@ -2,6 +2,7 @@ package com.molvix.android.ui.widgets;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.util.AttributeSet;
@@ -22,12 +23,15 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.molvix.android.R;
+import com.molvix.android.companions.AppConstants;
 import com.molvix.android.database.MolvixDB;
 import com.molvix.android.managers.ContentManager;
 import com.molvix.android.managers.MovieManager;
+import com.molvix.android.models.Episode;
 import com.molvix.android.models.Movie;
 import com.molvix.android.models.Movie_;
 import com.molvix.android.models.Season;
+import com.molvix.android.preferences.AppPrefs;
 import com.molvix.android.ui.adapters.EpisodesAdapter;
 import com.molvix.android.utils.UiUtils;
 
@@ -63,6 +67,7 @@ public class MovieDetailsView extends FrameLayout {
     private DataSubscription movieSubscription;
     private Handler mUIHandler = new Handler();
     private BottomSheetDialog bottomSheetDialog;
+    private SharedPreferences.OnSharedPreferenceChangeListener onSharedPreferenceChangeListener;
 
     public MovieDetailsView(@NonNull Context context) {
         super(context);
@@ -119,10 +124,21 @@ public class MovieDetailsView extends FrameLayout {
         TextView bottomSheetTitleView = rootView.findViewById(R.id.bottom_sheet_title_view);
         RecyclerView bottomSheetRecyclerView = rootView.findViewById(R.id.bottom_sheet_recycler_view);
         bottomSheetTitleView.setText(WordUtils.capitalize(season.getSeasonName()));
-        bottomSheetRecyclerViewAdapter = new EpisodesAdapter(getContext(), season.getEpisodes());
+        List<Episode> seasonEpisodes = season.getEpisodes();
+        bottomSheetRecyclerViewAdapter = new EpisodesAdapter(getContext(), seasonEpisodes);
         LinearLayoutManager bottomSheetLinearLayoutManager = new LinearLayoutManager(getContext());
         bottomSheetRecyclerView.setLayoutManager(bottomSheetLinearLayoutManager);
         bottomSheetRecyclerView.setAdapter(bottomSheetRecyclerViewAdapter);
+        onSharedPreferenceChangeListener = (sharedPreferences, key) -> {
+            String changedKey = key.split("_")[1];
+            Episode updatedEpisode = MolvixDB.getEpisode(changedKey);
+            if (updatedEpisode != null && seasonEpisodes.contains(updatedEpisode)) {
+                int indexOfEpisode = seasonEpisodes.indexOf(updatedEpisode);
+                seasonEpisodes.set(indexOfEpisode, updatedEpisode);
+                bottomSheetRecyclerViewAdapter.notifyItemChanged(indexOfEpisode);
+            }
+        };
+        AppPrefs.getAppPreferences().registerOnSharedPreferenceChangeListener(onSharedPreferenceChangeListener);
     }
 
     private void loadMovieDetails(Movie movie) {
@@ -199,6 +215,10 @@ public class MovieDetailsView extends FrameLayout {
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
         removeMovieChangeListener();
+        if (onSharedPreferenceChangeListener != null) {
+            AppPrefs.getAppPreferences().unregisterOnSharedPreferenceChangeListener(onSharedPreferenceChangeListener);
+            onSharedPreferenceChangeListener = null;
+        }
     }
 
     static class MoviePullTask extends AsyncTask<Void, Void, Void> {

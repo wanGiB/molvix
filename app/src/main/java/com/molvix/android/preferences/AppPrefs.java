@@ -3,7 +3,6 @@ package com.molvix.android.preferences;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.util.Log;
 
 import com.molvix.android.companions.AppConstants;
 import com.molvix.android.components.ApplicationLoader;
@@ -15,7 +14,7 @@ public class AppPrefs {
 
     private static SharedPreferences appSharedPreferences;
 
-    private static SharedPreferences getAppPreferences() {
+    public static SharedPreferences getAppPreferences() {
         if (appSharedPreferences == null) {
             appSharedPreferences = ApplicationLoader.getInstance()
                     .getSharedPreferences(AppConstants.APP_PREFS_NAME, Context.MODE_PRIVATE);
@@ -127,10 +126,17 @@ public class AppPrefs {
     }
 
     public static long getLastMoviesSize() {
-        return getAppPreferences().getLong(AppConstants.LAST_MOVIES_SIZE,0L);
+        return getAppPreferences().getLong(AppConstants.LAST_MOVIES_SIZE, 0L);
     }
 
-    public static void setLastMoviesSize(long newSize){
-        getAppPreferences().edit().putLong(AppConstants.LAST_MOVIES_SIZE,newSize).commit();
+    @SuppressLint("ApplySharedPref")
+    public static void setLastMoviesSize(long newSize) {
+        getAppPreferences().edit().putLong(AppConstants.LAST_MOVIES_SIZE, newSize).commit();
     }
+
+    @SuppressLint("ApplySharedPref")
+    public static void setEpisodeUpdated(String episodeId) {
+        getAppPreferences().edit().putString(AppConstants.EPISODE + episodeId, AppConstants.UPDATED).commit();
+    }
+
 }

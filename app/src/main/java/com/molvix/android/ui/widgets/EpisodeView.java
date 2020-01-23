@@ -18,19 +18,19 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat;
 
 import com.molvix.android.R;
 import com.molvix.android.companions.AppConstants;
+import com.molvix.android.database.MolvixDB;
 import com.molvix.android.managers.EpisodesManager;
 import com.molvix.android.managers.FileDownloadManager;
 import com.molvix.android.models.Episode;
-import com.molvix.android.models.Episode_;
 import com.molvix.android.models.Movie;
 import com.molvix.android.models.Season;
 import com.molvix.android.utils.ConnectivityUtils;
 import com.molvix.android.utils.FileUtils;
-import com.molvix.android.database.MolvixDB;
 import com.molvix.android.utils.UiUtils;
 
 import org.apache.commons.lang3.StringUtils;
@@ -47,8 +47,6 @@ import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import io.objectbox.reactive.DataObserver;
-import io.objectbox.reactive.DataSubscription;
 
 public class EpisodeView extends FrameLayout {
 
@@ -79,7 +77,6 @@ public class EpisodeView extends FrameLayout {
     private Season season;
     private Movie movie;
     private Animation mFadeInFadeIn;
-    private DataSubscription episodeSubscription;
 
     public EpisodeView(@NonNull Context context) {
         super(context);
@@ -114,7 +111,6 @@ public class EpisodeView extends FrameLayout {
         initDownloadOrPlayButtonEventListener(episode, episodeName);
         checkEpisodeActiveDownloadStatus(episode);
         initCancelActiveDownloadButtonEventListener();
-        addEpisodeChangeListener(episode);
     }
 
     private void initCancelActiveDownloadButtonEventListener() {
@@ -143,52 +139,12 @@ public class EpisodeView extends FrameLayout {
         return (dirPath + fileName).hashCode();
     }
 
-    private void addEpisodeChangeListener(Episode episode) {
-        episodeSubscription = MolvixDB.getEpisodeBox().query().equal(Episode_.episodeId, episode.getEpisodeId()).build().subscribe().observer(data -> {
-            if (!data.isEmpty()) {
-                Episode firstEpisode = data.get(0);
-                if (firstEpisode != null && firstEpisode.equals(episode)) {
-                    bindUpdatedEpisode(firstEpisode);
-                }
-            }
-        });
-    }
-
-    private void removeEpisodeChangeListener() {
-        if (episodeSubscription != null && !episodeSubscription.isCanceled()) {
-            episodeSubscription.cancel();
-            episodeSubscription = null;
-        }
-    }
-
-    private void bindUpdatedEpisode(Episode updatedEpisode) {
-        resetEpisode(updatedEpisode);
-        setupEpisodeName(updatedEpisode);
-        checkEpisodeActiveDownloadStatus(updatedEpisode);
-    }
-
-    private void resetEpisode(Episode updatedEpisode) {
-        this.episode = updatedEpisode;
-    }
-
     private String setupEpisodeName(Episode episode) {
         String episodeName = episode.getEpisodeName();
         if (StringUtils.isNotEmpty(episodeName)) {
             episodeNameView.setText(episodeName);
         }
         return episodeName;
-    }
-
-    @Override
-    protected void onAttachedToWindow() {
-        super.onAttachedToWindow();
-        addEpisodeChangeListener(episode);
-    }
-
-    @Override
-    protected void onDetachedFromWindow() {
-        super.onDetachedFromWindow();
-        removeEpisodeChangeListener();
     }
 
     private void initDownloadOrPlayButtonEventListener(Episode episode, String episodeName) {
@@ -289,6 +245,7 @@ public class EpisodeView extends FrameLayout {
                 UiUtils.showSafeToast("FileName=" + fileName);
                 File existingFile = FileUtils.getFilePath(fileName, WordUtils.capitalize(movie.getMovieName()), WordUtils.capitalize(season.getSeasonName()));
                 if (existingFile.exists()) {
+                    episodeNameView.setTextColor(ContextCompat.getColor(getContext(), R.color.colorGoogle));
                     downloadButtonOrPlayButton.setText(getContext().getString(R.string.play));
                     setToPlayable();
                 } else {
@@ -322,6 +279,7 @@ public class EpisodeView extends FrameLayout {
     }
 
     private void setToDownloadable() {
+        episodeNameView.setTextColor(ContextCompat.getColor(getContext(), R.color.blue_grey_active));
         VectorDrawableCompat downloadIcon = VectorDrawableCompat.create(getResources(), R.drawable.ic_file_download_white_24dp, null);
         downloadButtonOrPlayButton.setText(getContext().getString(R.string.download));
         downloadButtonOrPlayButton.setCompoundDrawablesWithIntrinsicBounds(downloadIcon, null, null, null);

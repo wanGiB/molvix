@@ -123,7 +123,6 @@ public class HomeFragment extends BaseFragment {
         });
         ExceptionViewModel exceptionViewModel = ViewModelProviders.of(this).get(ExceptionViewModel.class);
         exceptionViewModel.getExceptionData().observe(this, e -> mUiHandler.post(() -> {
-            //Most likely a network error
             if (movies.isEmpty()) {
                 UiUtils.toggleViewVisibility(contentLoadingProgressBar, false);
                 contentLoadingProgressMessageView.setText(getString(R.string.network_error_msg));
