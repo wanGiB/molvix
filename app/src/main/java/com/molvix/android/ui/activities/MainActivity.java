@@ -6,66 +6,66 @@ import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.text.Editable;
-import android.text.TextWatcher;
-import android.view.View;
+import android.view.ViewGroup;
 import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.widget.EditText;
-import android.widget.ImageView;
+import android.widget.FrameLayout;
 
 import androidx.core.content.ContextCompat;
-import androidx.navigation.NavController;
-import androidx.navigation.Navigation;
-import androidx.navigation.ui.NavigationUI;
-import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat;
+import androidx.fragment.app.Fragment;
+import androidx.viewpager.widget.ViewPager;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.molvix.android.R;
 import com.molvix.android.companions.AppConstants;
+import com.molvix.android.database.MolvixDB;
 import com.molvix.android.eventbuses.LoadAds;
+import com.molvix.android.eventbuses.LoadEpisodesForSeason;
+import com.molvix.android.eventbuses.LoadMovieEvent;
 import com.molvix.android.eventbuses.SearchEvent;
 import com.molvix.android.managers.AdsLoadManager;
 import com.molvix.android.managers.EpisodesManager;
 import com.molvix.android.managers.FileDownloadManager;
 import com.molvix.android.models.DownloadableEpisode;
 import com.molvix.android.models.Episode;
+import com.molvix.android.models.Season;
+import com.molvix.android.ui.adapters.MainActivityPagerAdapter;
+import com.molvix.android.ui.fragments.HomeFragment;
+import com.molvix.android.ui.fragments.MoreContentsFragment;
+import com.molvix.android.ui.fragments.NotificationsFragment;
+import com.molvix.android.ui.widgets.MolvixSearchView;
+import com.molvix.android.ui.widgets.MovieDetailsView;
 import com.molvix.android.utils.FileUtils;
-import com.molvix.android.database.MolvixDB;
 import com.molvix.android.utils.UiUtils;
 
 import org.apache.commons.lang3.StringUtils;
-import org.greenrobot.eventbus.EventBus;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import im.delight.android.webview.AdvancedWebView;
-import io.objectbox.reactive.DataObserver;
 import io.objectbox.reactive.DataSubscription;
 
 public class MainActivity extends BaseActivity {
 
-    @BindView(R.id.search_box_outer_container)
-    View searchBoxOuterContainer;
+    @BindView(R.id.search_view)
+    MolvixSearchView searchView;
 
-    @BindView(R.id.search_box)
-    EditText searchBox;
-
-    @BindView(R.id.close_search)
-    ImageView closeSearchView;
+    @BindView(R.id.fragment_pager)
+    ViewPager fragmentsPager;
 
     @BindView(R.id.bottom_navigation_view)
     BottomNavigationView bottomNavView;
 
-    @BindView(R.id.hack_web_view)
-    AdvancedWebView hackWebView;
+    @BindView(R.id.container)
+    FrameLayout rootContainer;
 
-    private NavController navController;
     private DataSubscription downloadableEpisodesSubscription;
+    private MovieDetailsView movieDetailsView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,35 +74,99 @@ public class MainActivity extends BaseActivity {
         ButterKnife.bind(this);
         initSearchBox();
         initNavBarTints();
-        initWebView();
-        navController = Navigation.findNavController(this, R.id.nav_host_fragment);
-        NavigationUI.setupWithNavController(bottomNavView, navController);
-        initEventHandlers();
-        checkForNewIntent();
-        addChangeListenerForDownloadableEpisodes();
-        AdsLoadManager.loadAds();
+        initPager();
+        observeNewIntent(getIntent());
+        observeDownloadableEpisodes();
+    }
+
+    private void initPager() {
+        List<Fragment> fragments = new ArrayList<>();
+        fragments.add(new HomeFragment());
+        fragments.add(new NotificationsFragment());
+        fragments.add(new MoreContentsFragment());
+        MainActivityPagerAdapter fragmentsPagerAdapter = new MainActivityPagerAdapter(getSupportFragmentManager(), fragments);
+        fragmentsPager.setAdapter(fragmentsPagerAdapter);
+        fragmentsPager.setOffscreenPageLimit(fragments.size());
+        fragmentsPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            @Override
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+
+            }
+
+            @Override
+            public void onPageSelected(int position) {
+                if (position == 0) {
+                    bottomNavView.setSelectedItemId(R.id.navigation_home);
+                } else if (position == 1) {
+                    bottomNavView.setSelectedItemId(R.id.navigation_notification);
+                } else {
+                    bottomNavView.setSelectedItemId(R.id.navigation_more);
+                }
+            }
+
+            @Override
+            public void onPageScrollStateChanged(int state) {
+
+            }
+        });
+        bottomNavView.setOnNavigationItemSelectedListener(menuItem -> {
+            if (menuItem.getItemId() == R.id.navigation_home) {
+                fragmentsPager.setCurrentItem(0);
+            } else if (menuItem.getItemId() == R.id.navigation_notification) {
+                fragmentsPager.setCurrentItem(1);
+            } else {
+                fragmentsPager.setCurrentItem(2);
+            }
+            return true;
+        });
     }
 
     @Override
     public void onEventMainThread(Object event) {
         if (event instanceof LoadAds) {
             AdsLoadManager.loadAds();
+        } else if (event instanceof SearchEvent) {
+            runOnUiThread(() -> {
+                if (fragmentsPager.getCurrentItem() != 0) {
+                    fragmentsPager.setCurrentItem(0);
+                }
+            });
+        } else if (event instanceof LoadMovieEvent) {
+            LoadMovieEvent loadMovieEvent = (LoadMovieEvent) event;
+            runOnUiThread(() -> loadMovieDetails(loadMovieEvent.getMovieId()));
+        } else if (event instanceof LoadEpisodesForSeason) {
+            runOnUiThread(() -> {
+                LoadEpisodesForSeason seasonData = (LoadEpisodesForSeason) event;
+                String seasonId = seasonData.getSeasonId();
+                Season seasonToLoad = MolvixDB.getSeason(seasonId);
+                if (seasonToLoad != null && movieDetailsView != null) {
+                    movieDetailsView.loadEpisodesForSeason(seasonToLoad);
+                }
+            });
         }
     }
 
     @SuppressLint("SetJavaScriptEnabled")
-    private void initWebView() {
+    private void hackPage(Episode episode) {
+        AdvancedWebView hackWebView = new AdvancedWebView(this);
         hackWebView.getSettings().setJavaScriptEnabled(true);
         hackWebView.setCookiesEnabled(true);
         hackWebView.setMixedContentAllowed(true);
         hackWebView.setThirdPartyCookiesEnabled(true);
+        if (rootContainer.getChildAt(0) instanceof AdvancedWebView) {
+            rootContainer.removeViewAt(0);
+            rootContainer.invalidate();
+        }
+        rootContainer.addView(hackWebView, 0);
+        solveEpisodeCaptchaChallenge(hackWebView, episode);
     }
 
-    private void addChangeListenerForDownloadableEpisodes() {
+    private void observeDownloadableEpisodes() {
+        stopObservingDownloadableEpisodes();
         downloadableEpisodesSubscription = MolvixDB.getDownloadableEpisodeBox().query().build().subscribe().observer(this::updatedDownloadableEpisodes);
     }
 
-    private void removeChangeListenerForDownloadableEpisodes() {
+    private void stopObservingDownloadableEpisodes() {
         if (downloadableEpisodesSubscription != null && !downloadableEpisodesSubscription.isCanceled()) {
             downloadableEpisodesSubscription.cancel();
             downloadableEpisodesSubscription = null;
@@ -112,12 +176,12 @@ public class MainActivity extends BaseActivity {
     private void updatedDownloadableEpisodes(List<DownloadableEpisode> changedData) {
         if (!changedData.isEmpty()) {
             if (EpisodesManager.isCaptchaSolvable()) {
-                solveEpisodeCaptchaChallenge(changedData.get(0).getEpisode());
+                hackPage(changedData.get(0).getEpisode());
             }
         }
     }
 
-    private void injectMagicScript() {
+    private void injectMagicScript(AdvancedWebView hackWebView) {
         String javascriptCodeInjection =
                 "javascript:function clickCaptchaButton(){\n" +
                         "    document.getElementsByTagName('input')[0].click();\n" +
@@ -126,7 +190,7 @@ public class MainActivity extends BaseActivity {
         hackWebView.loadUrl(javascriptCodeInjection);
     }
 
-    private void solveEpisodeCaptchaChallenge(Episode episode) {
+    private void solveEpisodeCaptchaChallenge(AdvancedWebView hackWebView, Episode episode) {
         EpisodesManager.lockCaptchaSolver(episode.getEpisodeId());
         hackWebView.setWebViewClient(new WebViewClient() {
             @Override
@@ -134,7 +198,7 @@ public class MainActivity extends BaseActivity {
                 super.onPageFinished(view, url);
                 String mimeTypeOfUrl = FileUtils.getMimeType(url);
                 if (!mimeTypeOfUrl.toLowerCase().contains("video")) {
-                    injectMagicScript();
+                    injectMagicScript(hackWebView);
                 }
             }
 
@@ -153,6 +217,8 @@ public class MainActivity extends BaseActivity {
                         episode.setLowQualityDownloadLink(url);
                     }
                     MolvixDB.updateEpisode(episode);
+                    hackWebView.onDestroy();
+                    rootContainer.removeView(hackWebView);
                     EpisodesManager.popEpisode(episode);
                 }
             }
@@ -170,92 +236,68 @@ public class MainActivity extends BaseActivity {
     @Override
     public void onResume() {
         super.onResume();
-        addChangeListenerForDownloadableEpisodes();
+        observeDownloadableEpisodes();
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        removeChangeListenerForDownloadableEpisodes();
-        hackWebView.onDestroy();
+        stopObservingDownloadableEpisodes();
     }
 
-    @Override
-    public void onPause() {
-        super.onPause();
-        hackWebView.onPause();
-    }
-
-    private void checkForNewIntent() {
-        String invocationType = getIntent().getStringExtra(AppConstants.INVOCATION_TYPE);
-        if (invocationType != null && invocationType.equals(AppConstants.NAVIGATE_TO_SECOND_FRAGMENT)) {
-            navController.navigate(R.id.navigation_notification);
+    private void observeNewIntent(Intent intent) {
+        String invocationType = intent.getStringExtra(AppConstants.INVOCATION_TYPE);
+        if (invocationType != null) {
+            if (invocationType.equals(AppConstants.NAVIGATE_TO_SECOND_FRAGMENT)) {
+                fragmentsPager.setCurrentItem(1);
+            } else if (invocationType.equals(AppConstants.DISPLAY_MOVIE)) {
+                String movieId = intent.getStringExtra(AppConstants.MOVIE_ID);
+                loadMovieDetails(movieId);
+            }
         }
+    }
+
+    private void loadMovieDetails(String movieId) {
+        movieDetailsView = new MovieDetailsView(this);
+        if (rootContainer.getChildAt(rootContainer.getChildCount() - 1) instanceof MovieDetailsView) {
+            movieDetailsView.removeViewAt(rootContainer.getChildCount() - 1);
+        }
+        FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+        rootContainer.addView(movieDetailsView, layoutParams);
+        movieDetailsView.loadMovieDetails(movieId);
     }
 
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
-        String invocationType = intent.getStringExtra(AppConstants.INVOCATION_TYPE);
-        if (invocationType != null && invocationType.equals(AppConstants.NAVIGATE_TO_SECOND_FRAGMENT)) {
-            navController.navigate(R.id.navigation_notification);
-        }
-    }
-
-    @SuppressLint("ClickableViewAccessibility")
-    private void initEventHandlers() {
-        searchBox.setOnClickListener(v -> searchBox.setCursorVisible(true));
-        searchBox.setOnTouchListener((v, event) -> {
-            if (!searchBox.isCursorVisible()) {
-                searchBox.setCursorVisible(true);
-            }
-            return false;
-        });
-        searchBoxOuterContainer.setOnClickListener(v -> searchBox.performClick());
-        searchBox.setOnFocusChangeListener((v, hasFocus) -> {
-            if (!hasFocus) {
-                searchBox.setCursorVisible(false);
-            }
-        });
-        searchBox.addTextChangedListener(new TextWatcher() {
-
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
-            }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                if (navController.getCurrentDestination() != null && navController.getCurrentDestination().getId() != R.id.navigation_home) {
-                    navController.navigate(R.id.navigation_home);
-                }
-                String searchedString = s.toString();
-                EventBus.getDefault().post(new SearchEvent(searchedString));
-                UiUtils.toggleViewVisibility(closeSearchView, StringUtils.isNotEmpty(searchedString));
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-
-            }
-
-        });
-        closeSearchView.setOnClickListener(v -> searchBox.setText(""));
+        observeNewIntent(intent);
     }
 
     @Override
     public void onBackPressed() {
-        String searchString = searchBox.getText().toString().trim();
+        String searchString = searchView.getText();
         if (StringUtils.isNotEmpty(searchString)) {
-            searchBox.setText("");
+            searchView.setText("");
         } else {
-            super.onBackPressed();
+            if (movieDetailsView != null) {
+                if (movieDetailsView.isBottomSheetDialogShowing()) {
+                    movieDetailsView.closeBottomSheetDialog();
+                } else {
+                    rootContainer.removeView(movieDetailsView);
+                    movieDetailsView = null;
+                }
+            } else {
+                if (fragmentsPager.getCurrentItem() != 0) {
+                    fragmentsPager.setCurrentItem(0);
+                } else {
+                    super.onBackPressed();
+                }
+            }
         }
     }
 
     private void initSearchBox() {
-        VectorDrawableCompat searchIcon = VectorDrawableCompat.create(getResources(), R.drawable.ic_search_fair_white_24dp, null);
-        searchBox.setCompoundDrawablesWithIntrinsicBounds(searchIcon, null, null, null);
+        searchView.setup();
     }
 
     private void initNavBarTints() {

@@ -41,7 +41,7 @@ public class SeasonsWithEpisodesAdapter extends RecyclerView.Adapter<RecyclerVie
     private Context context;
     private List<MovieContentItem> contentItems;
 
-    public SeasonsWithEpisodesAdapter(FragmentActivity context, List<MovieContentItem> contentItems) {
+    public SeasonsWithEpisodesAdapter(Context context, List<MovieContentItem> contentItems) {
         this.context = context;
         this.contentItems = contentItems;
     }

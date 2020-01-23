@@ -4,9 +4,7 @@
     android:id="@+id/root_view"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/layout_bg_selector"
-    android:clickable="true"
-    android:focusable="true"
+    android:background="@color/white"
     android:orientation="vertical">
 
     <LinearLayout

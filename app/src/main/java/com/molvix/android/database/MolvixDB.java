@@ -15,8 +15,10 @@ import com.molvix.android.models.Notification;
 import com.molvix.android.models.Notification_;
 import com.molvix.android.models.Season;
 import com.molvix.android.models.Season_;
+import com.molvix.android.preferences.AppPrefs;
 import com.molvix.android.utils.CryptoUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import io.objectbox.Box;
@@ -39,7 +41,7 @@ public class MolvixDB {
         return ObjectBox.get().boxFor(Movie.class);
     }
 
-    private static Box<Notification> getNotificationBox() {
+    public static Box<Notification> getNotificationBox() {
         return ObjectBox.get().boxFor(Notification.class);
     }
 
@@ -255,20 +257,24 @@ public class MolvixDB {
         @Override
         protected final Void doInBackground(MoviesToSave... moviesToSaves) {
             List<Pair<String, String>> movies = moviesToSaves[0].getMovies();
+            List<Movie> moviesList = new ArrayList<>();
             for (Pair<String, String> movieItem : movies) {
                 String movieName = movieItem.first;
                 String movieLink = movieItem.second;
                 String movieId = CryptoUtils.getSha256Digest(movieLink);
-                Movie existingMovie = getMovie(movieId);
-                if (existingMovie == null) {
-                    Movie newMovie = new Movie();
-                    newMovie.setMovieId(movieId);
-                    newMovie.setMovieName(movieName.toLowerCase());
-                    newMovie.setMovieLink(movieLink);
-                    newMovie.setRecommendedToUser(false);
-                    newMovie.setSeenByUser(false);
-                    saveMovie(newMovie);
-                }
+                Movie newMovie = new Movie();
+                newMovie.setMovieId(movieId);
+                newMovie.setMovieName(movieName.toLowerCase());
+                newMovie.setMovieLink(movieLink);
+                newMovie.setRecommendedToUser(false);
+                newMovie.setSeenByUser(false);
+                moviesList.add(newMovie);
+            }
+            long lastMoviesSize = AppPrefs.getLastMoviesSize();
+            if (lastMoviesSize < moviesList.size()) {
+                getMovieBox().removeAll();
+                getMovieBox().put(moviesList);
+                AppPrefs.setLastMoviesSize(moviesList.size());
             }
             return null;
         }

@@ -119,6 +119,7 @@ public class SeasonView extends FrameLayout {
 
     private void initEventHandlers(Season season) {
         rootView.setOnClickListener(v -> {
+            UiUtils.blinkView(rootView);
             if (season.getEpisodes() != null && !season.getEpisodes().isEmpty()) {
                 EventBus.getDefault().post(new LoadEpisodesForSeason(season.getSeasonId()));
             } else {

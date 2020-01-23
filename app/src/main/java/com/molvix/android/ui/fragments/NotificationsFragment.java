@@ -15,11 +15,11 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.molvix.android.R;
+import com.molvix.android.database.MolvixDB;
 import com.molvix.android.managers.ContentManager;
 import com.molvix.android.models.Notification;
 import com.molvix.android.ui.adapters.NotificationsAdapter;
 import com.molvix.android.ui.rendering.StickyRecyclerHeadersDecoration;
-import com.molvix.android.database.MolvixDB;
 import com.molvix.android.utils.UiUtils;
 
 import java.util.ArrayList;
@@ -27,6 +27,7 @@ import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import io.objectbox.reactive.DataSubscription;
 
 public class NotificationsFragment extends Fragment {
 
@@ -49,43 +50,7 @@ public class NotificationsFragment extends Fragment {
     private NotificationsAdapter notificationsAdapter;
     private StickyRecyclerHeadersDecoration stickyRecyclerHeadersDecoration;
     private NotificationsFetchTask notificationsFetchTask;
-
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        addNotificationsChangeListener();
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        addNotificationsChangeListener();
-    }
-
-    private void addNotificationsChangeListener() {
-
-    }
-
-    private void loadUpdatedNotifications(List<Notification> changedData) {
-        if (changedData != null) {
-            if (!notifications.containsAll(changedData)) {
-                notifications.addAll(changedData);
-                if (notificationsAdapter != null) {
-                    notificationsAdapter.notifyDataSetChanged();
-                }
-            }
-        }
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
-        removeNotificationsChangeListener();
-    }
-
-    private void removeNotificationsChangeListener() {
-
-    }
+    private DataSubscription notificationsSubScription;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -109,7 +74,25 @@ public class NotificationsFragment extends Fragment {
         setupSwipeRefreshLayoutColorScheme();
         setupAdapter();
         fetchNotifications();
-        fetchNotificationsFromRemoteResource();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        fetchNotifications();
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        removeNotificationsChangeListener();
+    }
+
+    private void removeNotificationsChangeListener() {
+        if (notificationsSubScription != null && !notificationsSubScription.isCanceled()) {
+            notificationsSubScription.cancel();
+            notificationsSubScription = null;
+        }
     }
 
     private void fetchNotificationsFromRemoteResource() {
@@ -123,6 +106,7 @@ public class NotificationsFragment extends Fragment {
 
     private void setupAdapter() {
         notificationsAdapter = new NotificationsAdapter(getActivity());
+        notificationsAdapter.setNotifications(notifications);
         notificationsRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         stickyRecyclerHeadersDecoration = new StickyRecyclerHeadersDecoration(notificationsAdapter);
         notificationsRecyclerView.addItemDecoration(stickyRecyclerHeadersDecoration);
@@ -130,20 +114,22 @@ public class NotificationsFragment extends Fragment {
     }
 
     private void fetchNotifications() {
-        MolvixDB.fetchNotifications((results, e) -> {
-            if (!notifications.containsAll(results)) {
-                notifications.addAll(results);
-                notificationsAdapter.notifyDataSetChanged();
-            }
+        removeNotificationsChangeListener();
+        notificationsSubScription = MolvixDB.getNotificationBox().query().build().subscribe().observer(this::loadNotifications);
+        fetchNotificationsFromRemoteResource();
+    }
+
+    private void loadNotifications(List<Notification> results) {
+        if (!notifications.containsAll(results)) {
+            notifications.addAll(results);
+            notificationsAdapter.notifyDataSetChanged();
             stickyRecyclerHeadersDecoration.invalidateHeaders();
-            if (!results.isEmpty()) {
-                for (Notification notification : results) {
-                    notification.setSeen(true);
-                    MolvixDB.updateNotification(notification);
-                }
+            for (Notification notification : results) {
+                notification.setSeen(true);
+                MolvixDB.updateNotification(notification);
             }
             invalidateUI();
-        });
+        }
     }
 
     private void invalidateUI() {

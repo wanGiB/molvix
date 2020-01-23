@@ -126,4 +126,11 @@ public class AppPrefs {
         getAppPreferences().edit().putStringSet(AppConstants.REFRESHED_MOVIES, refreshedMovies).commit();
     }
 
+    public static long getLastMoviesSize() {
+        return getAppPreferences().getLong(AppConstants.LAST_MOVIES_SIZE,0L);
+    }
+
+    public static void setLastMoviesSize(long newSize){
+        getAppPreferences().edit().putLong(AppConstants.LAST_MOVIES_SIZE,newSize).commit();
+    }
 }

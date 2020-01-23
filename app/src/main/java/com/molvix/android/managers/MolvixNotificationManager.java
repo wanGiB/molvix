@@ -10,14 +10,13 @@ import android.os.Build;
 import com.molvix.android.R;
 import com.molvix.android.companions.AppConstants;
 import com.molvix.android.components.ApplicationLoader;
+import com.molvix.android.database.MolvixDB;
 import com.molvix.android.models.Movie;
 import com.molvix.android.preferences.AppPrefs;
 import com.molvix.android.ui.activities.EmptyContentActivity;
 import com.molvix.android.ui.activities.MainActivity;
-import com.molvix.android.ui.activities.MovieDetailsActivity;
 import com.molvix.android.ui.notifications.notification.Load;
 import com.molvix.android.ui.notifications.notification.MolvixNotification;
-import com.molvix.android.database.MolvixDB;
 
 import org.apache.commons.lang3.text.WordUtils;
 
@@ -76,7 +75,8 @@ class MolvixNotificationManager {
     static void recommendMovieToUser(String movieId, Bitmap bitmap) {
         Movie recommendableMovie = MolvixDB.getMovie(movieId);
         if (recommendableMovie != null) {
-            Intent movieDetailsIntent = new Intent(ApplicationLoader.getInstance(), MovieDetailsActivity.class);
+            Intent movieDetailsIntent = new Intent(ApplicationLoader.getInstance(), MainActivity.class);
+            movieDetailsIntent.putExtra(AppConstants.INVOCATION_TYPE,AppConstants.DISPLAY_MOVIE);
             movieDetailsIntent.putExtra(AppConstants.MOVIE_ID, recommendableMovie.getMovieId());
             PendingIntent movieDetailsPendingIntent = PendingIntent.getActivity(ApplicationLoader.getInstance(), 100, movieDetailsIntent, PendingIntent.FLAG_UPDATE_CURRENT);
             createNotificationChannel("Next Rate Movie", "Check this out", "Molvix Next Rated Movie");

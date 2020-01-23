@@ -83,16 +83,9 @@ public class HomeFragment extends BaseFragment {
     }
 
     @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        MovieManager.clearAllRefreshedMovies();
-        addMoviesChangeListener();
-    }
-
-    @Override
     public void onResume() {
         super.onResume();
-        addMoviesChangeListener();
+        MovieManager.clearAllRefreshedMovies();
     }
 
     @Override
@@ -112,22 +105,29 @@ public class HomeFragment extends BaseFragment {
                              ViewGroup container, Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_home, container, false);
         ButterKnife.bind(this, root);
+        mUiHandler = new Handler();
         return root;
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        mUiHandler = new Handler();
         contentLoadingProgressMessageView.setOnClickListener(v -> {
             UiUtils.blinkView(v);
             spinMoviesDownloadJob();
         });
     }
 
-    private void addMoviesChangeListener() {
-        DataObserver<List<Movie>> moviesObserver = this::loadChangedData;
+    private void fetchMovies() {
+        removeMoviesChangeListener();
+        DataObserver<List<Movie>> moviesObserver = data -> {
+            nullifySearch();
+            Collections.shuffle(data);
+            loadChangedData(data);
+            swipeRefreshLayout.setRefreshing(false);
+        };
         moviesSubScription = MolvixDB.getMovieBox().query().build().subscribe().observer(moviesObserver);
+        spinMoviesDownloadJob();
     }
 
     private void loadChangedData(List<Movie> changedData) {
@@ -149,12 +149,8 @@ public class HomeFragment extends BaseFragment {
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         setupSwipeRefreshLayoutColorScheme();
-        if (moviesAdapter == null) {
-            initMoviesAdapter();
-        }
-        if (movies.isEmpty()) {
-            fetchAllAvailableMovies();
-        }
+        initMoviesAdapter();
+        fetchMovies();
     }
 
     @SuppressWarnings("ConstantConditions")
@@ -163,7 +159,7 @@ public class HomeFragment extends BaseFragment {
                 ContextCompat.getColor(getActivity(), R.color.gplus_color_2),
                 ContextCompat.getColor(getActivity(), R.color.gplus_color_3),
                 ContextCompat.getColor(getActivity(), R.color.gplus_color_4));
-        swipeRefreshLayout.setOnRefreshListener(this::fetchAllAvailableMovies);
+        swipeRefreshLayout.setOnRefreshListener(this::fetchMovies);
     }
 
     @SuppressLint("InflateParams")
@@ -171,23 +167,12 @@ public class HomeFragment extends BaseFragment {
         View headerView = LayoutInflater.from(getActivity()).inflate(R.layout.home_recycler_view_header, null);
         headerTextView = headerView.findViewById(R.id.header_text_view);
         moviesAdapter = new MoviesAdapter(getActivity());
+        moviesAdapter.setData(movies);
         HeaderAndFooterRecyclerViewAdapter headerAndFooterRecyclerViewAdapter = new HeaderAndFooterRecyclerViewAdapter(moviesAdapter);
         moviesRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity(), RecyclerView.VERTICAL, false));
         moviesRecyclerView.setItemAnimator(new ScaleInAnimator());
         moviesRecyclerView.setAdapter(headerAndFooterRecyclerViewAdapter);
         RecyclerViewUtils.setHeaderView(moviesRecyclerView, headerView);
-    }
-
-    private void fetchAllAvailableMovies() {
-        nullifySearch();
-        MolvixDB.fetchAllAvailableMovies((result, e) -> {
-            if (!result.isEmpty()) {
-                Collections.shuffle(result);
-                loadMovies(result);
-            }
-            swipeRefreshLayout.setRefreshing(false);
-        });
-        spinMoviesDownloadJob();
     }
 
     private void searchMovies(String searchString) {
@@ -209,7 +194,7 @@ public class HomeFragment extends BaseFragment {
         mUiHandler.post(() -> {
             if (movies.isEmpty()) {
                 movies.addAll(result);
-                moviesAdapter.setData(movies);
+                moviesAdapter.notifyDataSetChanged();
             } else {
                 for (Movie movie : result) {
                     if (!movies.contains(movie)) {
@@ -291,7 +276,7 @@ public class HomeFragment extends BaseFragment {
             if (StringUtils.isNotEmpty(searchString)) {
                 mUiHandler.post(() -> searchMovies(searchEvent.getSearchString().toLowerCase()));
             } else {
-                mUiHandler.post(this::fetchAllAvailableMovies);
+                mUiHandler.post(this::fetchMovies);
             }
         } else if (event instanceof Exception) {
             mUiHandler.post(() -> {
@@ -304,6 +289,8 @@ public class HomeFragment extends BaseFragment {
             });
         } else if (event instanceof ConnectivityChanged) {
             if (movies.isEmpty()) {
+                UiUtils.toggleViewVisibility(contentLoadingProgressBar, true);
+                contentLoadingProgressMessageView.setText("Loading...");
                 spinMoviesDownloadJob();
             }
         }
