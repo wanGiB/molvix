@@ -272,26 +272,26 @@ public class MainActivity extends BaseActivity {
 
     @Override
     public void onBackPressed() {
+        if (movieDetailsView != null) {
+            if (movieDetailsView.isBottomSheetDialogShowing()) {
+                movieDetailsView.closeBottomSheetDialog();
+            } else {
+                movieDetailsView.removeMovieChangeListener();
+                rootContainer.removeView(movieDetailsView);
+                movieDetailsView = null;
+            }
+            return;
+        }
         String searchString = searchView.getText();
         if (StringUtils.isNotEmpty(searchString)) {
             searchView.setText("");
-        } else {
-            if (movieDetailsView != null) {
-                if (movieDetailsView.isBottomSheetDialogShowing()) {
-                    movieDetailsView.closeBottomSheetDialog();
-                } else {
-                    movieDetailsView.removeMovieChangeListener();
-                    rootContainer.removeView(movieDetailsView);
-                    movieDetailsView = null;
-                }
-            } else {
-                if (fragmentsPager.getCurrentItem() != 0) {
-                    fragmentsPager.setCurrentItem(0);
-                } else {
-                    super.onBackPressed();
-                }
-            }
+            return;
         }
+        if (fragmentsPager.getCurrentItem() != 0) {
+            fragmentsPager.setCurrentItem(0);
+            return;
+        }
+        super.onBackPressed();
     }
 
     private void initSearchBox() {

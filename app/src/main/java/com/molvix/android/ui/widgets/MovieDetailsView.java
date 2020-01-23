@@ -23,7 +23,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.molvix.android.R;
-import com.molvix.android.companions.AppConstants;
 import com.molvix.android.database.MolvixDB;
 import com.molvix.android.managers.ContentManager;
 import com.molvix.android.managers.MovieManager;
@@ -193,7 +192,6 @@ public class MovieDetailsView extends FrameLayout {
     }
 
     private void addMovieChangeListener() {
-        removeMovieChangeListener();
         movieSubscription = MolvixDB.getMovieBox().query().equal(Movie_.movieId, movieId).build().subscribe().observer(data -> {
             if (!data.isEmpty()) {
                 Movie firstUpdatedMovie = data.get(0);
