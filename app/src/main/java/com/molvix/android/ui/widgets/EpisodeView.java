@@ -174,20 +174,17 @@ public class EpisodeView extends FrameLayout {
             } else {
                 if (ConnectivityUtils.isDeviceConnectedToTheInternet()) {
                     if (downloadButtonOrPlayButton.getAnimation() == null) {
-                        Episode updatableEpisode = MolvixDB.getEpisode(episode.getEpisodeId());
-                        if (updatableEpisode != null) {
-                            int episodeQualitySelection = episodeDownloadOptionsSpinner.getSelectedItemPosition();
-                            if (episodeQualitySelection == 0) {
-                                updatableEpisode.setEpisodeQuality(AppConstants.HIGH_QUALITY);
-                            } else if (episodeQualitySelection == 1) {
-                                updatableEpisode.setEpisodeQuality(AppConstants.STANDARD_QUALITY);
-                            } else {
-                                updatableEpisode.setEpisodeQuality(AppConstants.LOW_QUALITY);
-                            }
-                            updatableEpisode.setDownloadProgress(0);
-                            MolvixDB.updateEpisode(updatableEpisode);
-                            extractEpisodeDownloadOptions(updatableEpisode);
+                        int episodeQualitySelection = episodeDownloadOptionsSpinner.getSelectedItemPosition();
+                        if (episodeQualitySelection == 0) {
+                            episode.setEpisodeQuality(AppConstants.HIGH_QUALITY);
+                        } else if (episodeQualitySelection == 1) {
+                            episode.setEpisodeQuality(AppConstants.STANDARD_QUALITY);
+                        } else {
+                            episode.setEpisodeQuality(AppConstants.LOW_QUALITY);
                         }
+                        episode.setDownloadProgress(0);
+                        MolvixDB.updateEpisode(episode);
+                        extractEpisodeDownloadOptions(episode);
                     }
                 } else {
                     UiUtils.showSafeToast("Please connect to the internet and try again.");
@@ -242,11 +239,8 @@ public class EpisodeView extends FrameLayout {
             if (downloadUrl != null) {
                 String fileExtension = StringUtils.substringAfter(downloadUrl, ".");
                 String fileName = episodeName + "." + fileExtension;
-                UiUtils.showSafeToast("FileName=" + fileName);
                 File existingFile = FileUtils.getFilePath(fileName, WordUtils.capitalize(movie.getMovieName()), WordUtils.capitalize(season.getSeasonName()));
                 if (existingFile.exists()) {
-                    episodeNameView.setTextColor(ContextCompat.getColor(getContext(), R.color.colorGoogle));
-                    downloadButtonOrPlayButton.setText(getContext().getString(R.string.play));
                     setToPlayable();
                 } else {
                     setToDownloadable();
@@ -283,11 +277,15 @@ public class EpisodeView extends FrameLayout {
         VectorDrawableCompat downloadIcon = VectorDrawableCompat.create(getResources(), R.drawable.ic_file_download_white_24dp, null);
         downloadButtonOrPlayButton.setText(getContext().getString(R.string.download));
         downloadButtonOrPlayButton.setCompoundDrawablesWithIntrinsicBounds(downloadIcon, null, null, null);
+        downloadButtonOrPlayButton.setTextColor(ContextCompat.getColor(getContext(), R.color.colorAccent));
     }
 
     private void setToPlayable() {
+        downloadButtonOrPlayButton.setText(getContext().getString(R.string.play));
         VectorDrawableCompat playIcon = VectorDrawableCompat.create(getResources(), R.drawable.ic_play_arrow_blue_24dp, null);
         downloadButtonOrPlayButton.setCompoundDrawablesWithIntrinsicBounds(playIcon, null, null, null);
+        episodeNameView.setTextColor(ContextCompat.getColor(getContext(), R.color.colorGreen));
+        downloadButtonOrPlayButton.setTextColor(ContextCompat.getColor(getContext(), R.color.colorGreen));
     }
 
     private void extractEpisodeDownloadOptions(Episode episode) {
