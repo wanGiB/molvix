@@ -24,8 +24,6 @@ import com.molvix.android.utils.UiUtils;
 
 import org.greenrobot.eventbus.EventBus;
 
-import java.util.concurrent.atomic.AtomicBoolean;
-
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import io.objectbox.reactive.DataSubscription;
@@ -45,7 +43,6 @@ public class SeasonView extends FrameLayout {
     View subRootView;
 
     private Season season;
-    private AtomicBoolean pendingEpisodesLoadOperation = new AtomicBoolean();
     private DataSubscription seasonSubscription;
 
     public SeasonView(@NonNull Context context) {
@@ -106,10 +103,6 @@ public class SeasonView extends FrameLayout {
         if (newSeason.getEpisodes() != null && !newSeason.getEpisodes().isEmpty()) {
             setNewSeason(newSeason);
             seasonNameView.setText(newSeason.getSeasonName());
-            if (pendingEpisodesLoadOperation.get()) {
-                EventBus.getDefault().post(new LoadEpisodesForSeason(newSeason));
-                pendingEpisodesLoadOperation.set(false);
-            }
         }
     }
 
@@ -122,12 +115,11 @@ public class SeasonView extends FrameLayout {
             UiUtils.blinkView(rootView);
             if (season.getEpisodes() != null && !season.getEpisodes().isEmpty()) {
                 EventBus.getDefault().post(new LoadEpisodesForSeason(season));
-                } else {
+            } else {
                 if (ConnectivityUtils.isDeviceConnectedToTheInternet()) {
                     SeasonsManager.setSeasonRefreshable(season.getSeasonId());
                     UiUtils.showSafeToast("Please wait...");
-                    pendingEpisodesLoadOperation.set(true);
-                    loadSeasonEpisodes();
+                    new CallableSeasonEpisodesExtractionTask(season.getSeasonLink(), season.getSeasonId()).execute();
                 } else {
                     UiUtils.showSafeToast("Please connect to the internet and try again.");
                 }
@@ -144,6 +136,29 @@ public class SeasonView extends FrameLayout {
             SeasonEpisodesExtractionTask seasonEpisodesExtractionTask = new SeasonEpisodesExtractionTask(season.getSeasonLink(), season.getSeasonId());
             seasonEpisodesExtractionTask.execute();
         }
+    }
+
+    static class CallableSeasonEpisodesExtractionTask extends AsyncTask<Void, Void, Void> {
+
+        private String seasonId, seasonLink;
+
+        CallableSeasonEpisodesExtractionTask(String seasonLink, String seasonId) {
+            this.seasonId = seasonId;
+            this.seasonLink = seasonLink;
+        }
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            ContentManager.extractMetaDataFromMovieSeasonLink(seasonLink, seasonId, (result, e) -> {
+                if (e == null && result != null) {
+                    EventBus.getDefault().post(new LoadEpisodesForSeason(result));
+                } else {
+                    UiUtils.showSafeToast("An error occurred while trying to resolve Season.Please try again");
+                }
+            });
+            return null;
+        }
+
     }
 
     static class SeasonEpisodesExtractionTask extends AsyncTask<Void, Void, Void> {

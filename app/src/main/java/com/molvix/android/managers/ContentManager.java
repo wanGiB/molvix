@@ -4,6 +4,7 @@ import android.util.Log;
 import android.util.Pair;
 
 import com.molvix.android.companions.AppConstants;
+import com.molvix.android.contracts.DoneCallback;
 import com.molvix.android.database.MolvixDB;
 import com.molvix.android.models.Episode;
 import com.molvix.android.models.Movie;
@@ -204,7 +205,43 @@ public class ContentManager {
             }
         } catch (Exception e) {
             e.printStackTrace();
-           spitException(e);
+            spitException(e);
+        }
+    }
+
+    public static void extractMetaDataFromMovieSeasonLink(String seasonLink, String seasonId, DoneCallback<Season> extractionDoneCallBack) {
+        try {
+            Log.d(ContentManager.class.getSimpleName(), "Preparing to load season details " + seasonLink);
+            Season updatableSeason = MolvixDB.getSeason(seasonId);
+            if (updatableSeason != null) {
+                int totalNumberOfEpisodes = getTotalNumberOfEpisodes(seasonLink);
+                if (totalNumberOfEpisodes != 0) {
+                    for (int i = 0; i < totalNumberOfEpisodes; i++) {
+                        String episodeLink = generateEpisodeFromSeasonLink(updatableSeason.getSeasonLink(), i + 1);
+                        if (i == totalNumberOfEpisodes - 1) {
+                            episodeLink = checkForSeasonFinale(episodeLink);
+                        }
+                        String episodeName = generateEpisodeValue(i + 1);
+                        if (StringUtils.containsIgnoreCase(episodeLink, getSeasonFinaleSuffix())) {
+                            episodeName = generateEpisodeValue(i + 1) + getSeasonFinaleSuffix();
+                        }
+                        Episode newEpisode = generateNewEpisode(updatableSeason, episodeLink, episodeName);
+                        if (!updatableSeason.episodes.contains(newEpisode)) {
+                            updatableSeason.episodes.add(newEpisode);
+                        }
+                    }
+                    MolvixDB.updateSeason(updatableSeason);
+                    extractionDoneCallBack.done(updatableSeason, null);
+                } else {
+                    Log.d(ContentManager.class.getSimpleName(), "Updatable Season episodes count is zero");
+                }
+            } else {
+                Log.d(ContentManager.class.getSimpleName(), "Updatable Season is null");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            spitException(e);
+            extractionDoneCallBack.done(null, e);
         }
     }
 
