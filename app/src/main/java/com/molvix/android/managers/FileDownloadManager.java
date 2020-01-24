@@ -42,7 +42,7 @@ public class FileDownloadManager {
             String fileExtension = StringUtils.substringAfter(downloadUrl, ".");
             String fileName = episode.getEpisodeName() + "." + fileExtension;
             String dirPath = FileUtils.getFilePath(movieName, seasonName).getPath();
-            int downloadId = (dirPath + fileName).hashCode();
+            int downloadId = Math.abs((dirPath + fileName).hashCode());
             if (Status.PAUSED == PRDownloader.getStatus(downloadId)) {
                 PRDownloader.resume(downloadId);
             } else {

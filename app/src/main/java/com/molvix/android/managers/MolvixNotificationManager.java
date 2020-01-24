@@ -41,7 +41,7 @@ class MolvixNotificationManager {
     static void showEpisodeDownloadProgressNotification(String movieName, String movieDescription, String seasonId, String episodeId, String title, int progress, String progressMessage) {
         createNotificationChannel(movieName, movieDescription, seasonId);
 
-        int identifier = episodeId.hashCode();
+        int identifier = Math.abs(episodeId.hashCode());
 
         Intent cancelIntent = new Intent(ApplicationLoader.getInstance(), EmptyContentActivity.class);
         cancelIntent.putExtra(AppConstants.EPISODE_ID, episodeId);

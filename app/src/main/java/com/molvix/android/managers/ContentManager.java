@@ -63,10 +63,8 @@ public class ContentManager {
                     String seasonName = StringUtils.stripEnd(StringUtils.stripStart(StringUtils.substringBefore(secondProcessed, "- Episode"), "-"), "-").trim();
                     String thirdProcessed = secondProcessed.replace(seasonName, "");
                     String episodeName = StringUtils.stripStart(StringUtils.stripEnd(StringUtils.substringBeforeLast(thirdProcessed, "-"), "-"), "-").trim();
-                    if (StringUtils.isNotEmpty(movieTitle) && StringUtils.isNotEmpty(seasonName) && StringUtils.isNotEmpty(episodeName)) {
-                        Log.d(ContentManager.class.getSimpleName(), "Notif Text=" + updateTitle);
-                        Log.d(ContentManager.class.getSimpleName(), "MovieTitle=" + movieTitle + "; SeasonName=" + seasonName + "; EpisodeName=" + episodeName);
-                    }
+                    String realMovieTitle = StringUtils.strip(movieTitle, "-");
+
                 }
             }
         } catch (IOException e) {
@@ -85,7 +83,6 @@ public class ContentManager {
         if (!MovieManager.canRefreshMovieDetails(movieId)) {
             return;
         }
-        Log.d(ContentManager.class.getSimpleName(), "Loading Details for " + movieLink);
         try {
             Document movieDoc = Jsoup.connect(movieLink).get();
             Element movieInfoElement = movieDoc.select("div.tv_series_info").first();
@@ -109,7 +106,6 @@ public class ContentManager {
 
 
     public static void extractMetaDataFromMovieLink(String movieLink, String movieId, DoneCallback<Movie> movieExtractionDoneCallback) {
-        Log.d(ContentManager.class.getSimpleName(), "Loading Details for " + movieLink);
         try {
             Document movieDoc = Jsoup.connect(movieLink).get();
             Element movieInfoElement = movieDoc.select("div.tv_series_info").first();
@@ -230,7 +226,6 @@ public class ContentManager {
             return;
         }
         try {
-            Log.d(ContentManager.class.getSimpleName(), "Preparing to load season details " + seasonLink);
             Season updatableSeason = MolvixDB.getSeason(seasonId);
             if (updatableSeason != null) {
                 int totalNumberOfEpisodes = getTotalNumberOfEpisodes(seasonLink);
@@ -266,7 +261,6 @@ public class ContentManager {
 
     public static void extractMetaDataFromMovieSeasonLink(String seasonLink, String seasonId, DoneCallback<Season> extractionDoneCallBack) {
         try {
-            Log.d(ContentManager.class.getSimpleName(), "Preparing to load season details " + seasonLink);
             Season updatableSeason = MolvixDB.getSeason(seasonId);
             if (updatableSeason != null) {
                 int totalNumberOfEpisodes = getTotalNumberOfEpisodes(seasonLink);

@@ -29,7 +29,7 @@ public class MolvixDB {
         return ObjectBox.get().boxFor(DownloadableEpisode.class);
     }
 
-    private static Box<Episode> getEpisodeBox() {
+    public static Box<Episode> getEpisodeBox() {
         return ObjectBox.get().boxFor(Episode.class);
     }
 
@@ -104,7 +104,6 @@ public class MolvixDB {
 
     public static void updateEpisode(Episode episode) {
         getEpisodeBox().put(episode);
-        AppPrefs.setEpisodeUpdated(episode.getEpisodeId());
     }
 
     public static void createNewNotification(Notification newNotification) {

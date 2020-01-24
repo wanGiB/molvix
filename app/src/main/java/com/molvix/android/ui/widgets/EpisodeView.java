@@ -24,6 +24,7 @@ import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat;
 import com.molvix.android.R;
 import com.molvix.android.companions.AppConstants;
 import com.molvix.android.database.MolvixDB;
+import com.molvix.android.managers.ContentManager;
 import com.molvix.android.managers.EpisodesManager;
 import com.molvix.android.managers.FileDownloadManager;
 import com.molvix.android.models.Episode;
@@ -173,19 +174,17 @@ public class EpisodeView extends FrameLayout {
                 }
             } else {
                 if (ConnectivityUtils.isDeviceConnectedToTheInternet()) {
-                    if (downloadButtonOrPlayButton.getAnimation() == null) {
-                        int episodeQualitySelection = episodeDownloadOptionsSpinner.getSelectedItemPosition();
-                        if (episodeQualitySelection == 0) {
-                            episode.setEpisodeQuality(AppConstants.HIGH_QUALITY);
-                        } else if (episodeQualitySelection == 1) {
-                            episode.setEpisodeQuality(AppConstants.STANDARD_QUALITY);
-                        } else {
-                            episode.setEpisodeQuality(AppConstants.LOW_QUALITY);
-                        }
-                        episode.setDownloadProgress(0);
-                        MolvixDB.updateEpisode(episode);
-                        extractEpisodeDownloadOptions(episode);
+                    int episodeQualitySelection = episodeDownloadOptionsSpinner.getSelectedItemPosition();
+                    if (episodeQualitySelection == 0) {
+                        episode.setEpisodeQuality(AppConstants.HIGH_QUALITY);
+                    } else if (episodeQualitySelection == 1) {
+                        episode.setEpisodeQuality(AppConstants.STANDARD_QUALITY);
+                    } else {
+                        episode.setEpisodeQuality(AppConstants.LOW_QUALITY);
                     }
+                    episode.setDownloadProgress(0);
+                    MolvixDB.updateEpisode(episode);
+                    extractEpisodeDownloadOptions(episode);
                 } else {
                     UiUtils.showSafeToast("Please connect to the internet and try again.");
                 }
@@ -350,7 +349,7 @@ public class EpisodeView extends FrameLayout {
                                         episodeCaptchaSolverLink = lowest;
                                     }
                                 } catch (Exception ignored) {
-
+                                    Log.d(ContentManager.class.getSimpleName(), ignored.getMessage());
                                 }
                             }
                             String finalEpisodeCaptchaSolverLink = episodeCaptchaSolverLink;

@@ -71,7 +71,6 @@ public class HomeFragment extends BaseFragment {
     private TextView headerTextView;
     private String searchString;
     private DataSubscription moviesSubscription;
-    private DataSubscription searchSubscription;
 
     private void setSearchString(String searchString) {
         this.searchString = searchString;
@@ -153,21 +152,19 @@ public class HomeFragment extends BaseFragment {
     private void searchMovies(String searchString) {
         setSearchString(searchString);
         removeAllMoviesSubscription();
-        searchSubscription = MolvixDB.getMovieBox()
-                .query().contains(Movie_.movieName, searchString)
-                .or()
-                .contains(Movie_.movieDescription, searchString)
-                .build()
-                .subscribe()
-                .observer(data -> {
-                    clearCurrentData();
-                    loadMovies(data);
-                });
+        new Thread(() -> {
+            List<Movie> results = MolvixDB.getMovieBox()
+                    .query().contains(Movie_.movieName, searchString)
+                    .or()
+                    .contains(Movie_.movieDescription, searchString)
+                    .build().find();
+            clearCurrentData();
+            loadMovies(results);
+        }).start();
     }
 
     private void fetchMovies() {
         clearCurrentData();
-        removeSearchSubscription();
         nullifySearch();
         DataObserver<List<Movie>> moviesObserver = data -> {
             Collections.shuffle(data);
@@ -218,7 +215,7 @@ public class HomeFragment extends BaseFragment {
     private void initMoviesAdapter() {
         View headerView = LayoutInflater.from(getActivity()).inflate(R.layout.home_recycler_view_header, null);
         headerTextView = headerView.findViewById(R.id.header_text_view);
-        moviesAdapter = new MoviesAdapter(getActivity());
+        moviesAdapter = new MoviesAdapter(getActivity(), movies);
         HeaderAndFooterRecyclerViewAdapter headerAndFooterRecyclerViewAdapter = new HeaderAndFooterRecyclerViewAdapter(moviesAdapter);
         moviesRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity(), RecyclerView.VERTICAL, false));
         moviesRecyclerView.setItemAnimator(new ScaleInAnimator());
@@ -226,25 +223,20 @@ public class HomeFragment extends BaseFragment {
         RecyclerViewUtils.setHeaderView(moviesRecyclerView, headerView);
     }
 
-    private void removeSearchSubscription() {
-        if (searchSubscription != null && !searchSubscription.isCanceled()) {
-            searchSubscription.cancel();
-            searchSubscription = null;
-        }
-    }
-
     private void clearCurrentData() {
-        movies.clear();
-        if (moviesAdapter != null) {
-            moviesAdapter.notifyDataSetChanged();
-        }
+        mUiHandler.post(() -> {
+            movies.clear();
+            if (moviesAdapter != null) {
+                moviesAdapter.notifyDataSetChanged();
+            }
+        });
     }
 
     private void loadMovies(List<Movie> result) {
         mUiHandler.post(() -> {
             if (movies.isEmpty()) {
                 movies.addAll(result);
-                moviesAdapter.setData(movies);
+                moviesAdapter.notifyDataSetChanged();
             } else {
                 for (Movie movie : result) {
                     if (!movies.contains(movie)) {

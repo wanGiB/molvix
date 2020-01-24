@@ -1,5 +1,9 @@
 package com.molvix.android.models;
 
+import androidx.annotation.NonNull;
+
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
+
 import io.objectbox.annotation.Entity;
 import io.objectbox.annotation.Id;
 import io.objectbox.relation.ToOne;
@@ -36,4 +40,11 @@ public class DownloadableEpisode {
     public void setEpisode(ToOne<Episode> episode) {
         this.episode = episode;
     }
+
+    @NonNull
+    @Override
+    public String toString() {
+        return ReflectionToStringBuilder.toString(this);
+    }
+
 }

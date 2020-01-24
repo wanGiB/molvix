@@ -1,5 +1,9 @@
 package com.molvix.android.models;
 
+import androidx.annotation.NonNull;
+
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
+
 import io.objectbox.annotation.Backlink;
 import io.objectbox.annotation.Entity;
 import io.objectbox.annotation.Id;
@@ -91,4 +95,9 @@ public class Season {
         return this.getSeasonId().equals(another.getSeasonId());
     }
 
+    @NonNull
+    @Override
+    public String toString() {
+        return ReflectionToStringBuilder.toString(this);
+    }
 }

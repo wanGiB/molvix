@@ -2,13 +2,13 @@ package com.molvix.android.ui.widgets;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -28,19 +28,22 @@ import com.molvix.android.database.MolvixDB;
 import com.molvix.android.managers.ContentManager;
 import com.molvix.android.managers.MovieManager;
 import com.molvix.android.models.Episode;
+import com.molvix.android.models.Episode_;
 import com.molvix.android.models.Movie;
 import com.molvix.android.models.Season;
-import com.molvix.android.preferences.AppPrefs;
 import com.molvix.android.ui.adapters.EpisodesAdapter;
 import com.molvix.android.utils.ConnectivityUtils;
 import com.molvix.android.utils.UiUtils;
 
 import org.apache.commons.lang3.text.WordUtils;
 
+import java.security.SecureRandom;
 import java.util.List;
+import java.util.Random;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import io.objectbox.reactive.DataSubscription;
 
 public class MovieDetailsView extends FrameLayout {
 
@@ -65,7 +68,7 @@ public class MovieDetailsView extends FrameLayout {
     private String movieId;
     private Handler mUIHandler = new Handler();
     private BottomSheetDialog bottomSheetDialog;
-    private SharedPreferences.OnSharedPreferenceChangeListener onSharedPreferenceChangeListener;
+    private DataSubscription episodesUpdateSubscription;
 
     public MovieDetailsView(@NonNull Context context) {
         super(context);
@@ -123,6 +126,7 @@ public class MovieDetailsView extends FrameLayout {
     private void fillInEpisodes(View rootView, Season season) {
         EpisodesAdapter bottomSheetRecyclerViewAdapter;
         TextView bottomSheetTitleView = rootView.findViewById(R.id.bottom_sheet_title_view);
+        Button randomEpisodeMutator = rootView.findViewById(R.id.random_episode_mutator);
         RecyclerView bottomSheetRecyclerView = rootView.findViewById(R.id.bottom_sheet_recycler_view);
         bottomSheetTitleView.setText(WordUtils.capitalize(season.getSeasonName()));
         List<Episode> seasonEpisodes = season.getEpisodes();
@@ -130,16 +134,31 @@ public class MovieDetailsView extends FrameLayout {
         LinearLayoutManager bottomSheetLinearLayoutManager = new LinearLayoutManager(getContext());
         bottomSheetRecyclerView.setLayoutManager(bottomSheetLinearLayoutManager);
         bottomSheetRecyclerView.setAdapter(bottomSheetRecyclerViewAdapter);
-        onSharedPreferenceChangeListener = (sharedPreferences, key) -> {
-            String changedKey = key.split("_")[1];
-            Episode updatedEpisode = MolvixDB.getEpisode(changedKey);
-            if (updatedEpisode != null && seasonEpisodes.contains(updatedEpisode)) {
-                int indexOfEpisode = seasonEpisodes.indexOf(updatedEpisode);
-                seasonEpisodes.set(indexOfEpisode, updatedEpisode);
-                bottomSheetRecyclerViewAdapter.notifyItemChanged(indexOfEpisode);
-            }
-        };
-        AppPrefs.getAppPreferences().registerOnSharedPreferenceChangeListener(onSharedPreferenceChangeListener);
+        String[] episodeIds = new String[seasonEpisodes.size()];
+        for (int i = 0; i < episodeIds.length; i++) {
+            episodeIds[i] = seasonEpisodes.get(i).getEpisodeId();
+        }
+        episodesUpdateSubscription = MolvixDB.getEpisodeBox()
+                .query().in(Episode_.episodeId, episodeIds)
+                .build()
+                .subscribe()
+                .observer(data -> {
+                    if (!data.isEmpty()) {
+                        for (Episode updatedEpisode : data) {
+                            if (seasonEpisodes.contains(updatedEpisode)) {
+                                int indexOfEpisode = seasonEpisodes.indexOf(updatedEpisode);
+                                seasonEpisodes.set(indexOfEpisode, updatedEpisode);
+                                bottomSheetRecyclerViewAdapter.notifyItemChanged(indexOfEpisode);
+                            }
+                        }
+                    }
+                });
+        randomEpisodeMutator.setOnClickListener(v -> {
+            int randomEpisodeIndex = new SecureRandom().nextInt(seasonEpisodes.size());
+            Episode randomEpisode = seasonEpisodes.get(randomEpisodeIndex);
+            randomEpisode.setDownloadProgress(new Random().nextInt(100));
+            MolvixDB.updateEpisode(randomEpisode);
+        });
     }
 
     private void loadMovieDetails(Movie movie) {
@@ -197,9 +216,13 @@ public class MovieDetailsView extends FrameLayout {
     @Override
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
-        if (onSharedPreferenceChangeListener != null) {
-            AppPrefs.getAppPreferences().unregisterOnSharedPreferenceChangeListener(onSharedPreferenceChangeListener);
-            onSharedPreferenceChangeListener = null;
+        removeEpisodeListener();
+    }
+
+    public void removeEpisodeListener() {
+        if (episodesUpdateSubscription != null && !episodesUpdateSubscription.isCanceled()) {
+            episodesUpdateSubscription.cancel();
+            episodesUpdateSubscription = null;
         }
     }
 

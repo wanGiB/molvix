@@ -30,7 +30,7 @@ public class EpisodesManager {
         AppPrefs.lockCaptchaSolver(episodeId);
     }
 
-    private static void unLockCaptureSolver() {
+    public static void unLockCaptureSolver() {
         AppPrefs.unLockCaptchaSolver();
     }
 
