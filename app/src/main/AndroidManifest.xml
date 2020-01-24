@@ -39,10 +39,8 @@
             </intent-filter>
         </activity>
         <activity android:name=".ui.activities.EmptyContentActivity" />
-
         <receiver
-            android:name=".receivers.ConnectivityChangeReceiver"
-            android:enabled="true">
+            android:name=".receivers.ConnectivityChangeReceiver">
             <intent-filter>
                 <action
                     android:name="android.net.conn.CONNECTIVITY_CHANGE"
