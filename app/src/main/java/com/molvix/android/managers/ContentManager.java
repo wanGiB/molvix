@@ -8,6 +8,7 @@ import com.molvix.android.contracts.DoneCallback;
 import com.molvix.android.database.MolvixDB;
 import com.molvix.android.models.Episode;
 import com.molvix.android.models.Movie;
+import com.molvix.android.models.Movie_;
 import com.molvix.android.models.Season;
 import com.molvix.android.utils.CryptoUtils;
 
@@ -65,6 +66,16 @@ public class ContentManager {
                     String episodeName = StringUtils.stripStart(StringUtils.stripEnd(StringUtils.substringBeforeLast(thirdProcessed, "-"), "-"), "-").trim();
                     String realMovieTitle = StringUtils.strip(movieTitle, "-").trim();
                     String realSeasonName = StringUtils.strip(seasonName, "-").trim();
+                    List<Movie> results = MolvixDB.getMovieBox()
+                            .query()
+                            .equal(Movie_.movieName, realMovieTitle.toLowerCase())
+                            .build()
+                            .find();
+                    if (!results.isEmpty()) {
+                        for (Movie movie : results) {
+                            Log.d(ContentManager.class.getSimpleName(), "Found " + movie.getMovieName());
+                        }
+                    }
                 }
             }
         } catch (IOException e) {
@@ -245,13 +256,8 @@ public class ContentManager {
                         }
                     }
                     MolvixDB.updateSeason(updatableSeason);
-                    Log.d(ContentManager.class.getSimpleName(), "Updating Season Details for Season " + updatableSeason.getSeasonName());
                     SeasonsManager.addToRefreshedSeasons(updatableSeason.getSeasonId());
-                } else {
-                    Log.d(ContentManager.class.getSimpleName(), "Updatable Season episodes count is zero");
                 }
-            } else {
-                Log.d(ContentManager.class.getSimpleName(), "Updatable Season is null");
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -281,11 +287,7 @@ public class ContentManager {
                     }
                     MolvixDB.updateSeason(updatableSeason);
                     extractionDoneCallBack.done(updatableSeason, null);
-                } else {
-                    Log.d(ContentManager.class.getSimpleName(), "Updatable Season episodes count is zero");
                 }
-            } else {
-                Log.d(ContentManager.class.getSimpleName(), "Updatable Season is null");
             }
         } catch (Exception e) {
             e.printStackTrace();

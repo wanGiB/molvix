@@ -76,7 +76,7 @@ public class NotificationView extends FrameLayout {
     public void bindNotification(Notification notification) {
         notificationDescriptionView.setText(UiUtils.fromHtml(notification.getMessage()));
         int notificationDestination = notification.getDestination();
-        if (notificationDestination == AppConstants.DESTINATION_EPISODE) {
+        if (notificationDestination == AppConstants.DESTINATION_DOWNLOADED_EPISODE) {
             notificationRootView.setBackgroundColor(ContextCompat.getColor(getContext(), R.color.episode_notification_background_color));
             VectorDrawableCompat downloadIcon = VectorDrawableCompat.create(getResources(), R.drawable.ic_file_download_white_24dp, null);
             notificationIconView.setImageDrawable(downloadIcon);
@@ -88,7 +88,7 @@ public class NotificationView extends FrameLayout {
         notificationTimeView.setText(AppConstants.DATE_FORMATTER_IN_12HRS.format(new Date(notification.getTimeStamp())));
         View.OnClickListener onClickListener = v -> {
             UiUtils.blinkView(notificationRootView);
-            if (notificationDestination == AppConstants.DESTINATION_EPISODE) {
+            if (notificationDestination == AppConstants.DESTINATION_DOWNLOADED_EPISODE) {
                 Episode episode = MolvixDB.getEpisode(notification.getDestinationKey());
                 Movie movie = episode.getSeason().getMovie();
                 Season season = episode.getSeason();
@@ -104,9 +104,9 @@ public class NotificationView extends FrameLayout {
                     } else {
                         downloadUrl = episode.getLowQualityDownloadLink();
                     }
-                    String fileExtension = StringUtils.substringAfter(downloadUrl, ".");
+                    String fileExtension = StringUtils.substringAfterLast(downloadUrl, ".");
                     String fileName = episodeName + "." + fileExtension;
-                    File downloadedFile = FileUtils.getFilePath(fileName, WordUtils.capitalize(movie.getMovieName()), season.getSeasonName());
+                    File downloadedFile = FileUtils.getFilePath(fileName, WordUtils.capitalize(movie.getMovieName()), WordUtils.capitalize(season.getSeasonName()));
                     if (downloadedFile.exists()) {
                         Intent videoIntent = new Intent(Intent.ACTION_VIEW);
                         videoIntent.setDataAndType(Uri.fromFile(downloadedFile), "video/*");
@@ -115,9 +115,7 @@ public class NotificationView extends FrameLayout {
                         UiUtils.showSafeToast("Oops! Sorry, an error occurred while attempting to play video.The file must have being deleted or moved to another folder.");
                     }
                 }
-            } else if (notificationDestination == AppConstants.DESTINATION_NEW_EPISODE_AVAILABLE) {
-
-            } else if (notificationDestination == AppConstants.DESTINATION_NEW_SEASON_AVAILABLE) {
+            } else {
 
             }
         };

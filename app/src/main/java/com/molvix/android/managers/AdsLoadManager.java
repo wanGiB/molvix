@@ -10,11 +10,14 @@ import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.VideoOptions;
 import com.google.android.gms.ads.formats.NativeAdOptions;
 import com.google.android.gms.ads.formats.UnifiedNativeAd;
+import com.molvix.android.BuildConfig;
 import com.molvix.android.R;
+import com.molvix.android.companions.AppConstants;
 import com.molvix.android.components.ApplicationLoader;
 import com.molvix.android.eventbuses.LoadAds;
 import com.molvix.android.preferences.AppPrefs;
 
+import org.apache.commons.lang3.StringUtils;
 import org.greenrobot.eventbus.EventBus;
 
 import java.util.ArrayList;
@@ -90,9 +93,9 @@ public class AdsLoadManager {
                 }
             }).build();
             AdRequest.Builder adRequestBuilder = new AdRequest.Builder();
-//        if (StringUtils.isNotEmpty(AppConstants.TEST_DEVICE_ID) && BuildConfig.DEBUG) {
-//            adRequestBuilder.addTestDevice(AppConstants.TEST_DEVICE_ID);
-//        }
+            if (StringUtils.isNotEmpty(AppConstants.TEST_DEVICE_ID) && BuildConfig.DEBUG) {
+                adRequestBuilder.addTestDevice(AppConstants.TEST_DEVICE_ID);
+            }
             adLoader.loadAds(adRequestBuilder.build(), NUMBER_OF_ADS);
         }
 
@@ -102,4 +105,5 @@ public class AdsLoadManager {
             return null;
         }
     }
+
 }

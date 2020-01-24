@@ -45,7 +45,7 @@ public class MovieTracker {
         }
         Notification newNotification = new Notification();
         newNotification.setNotificationObjectId(notificationId);
-        newNotification.setDestination(AppConstants.DESTINATION_EPISODE);
+        newNotification.setDestination(AppConstants.DESTINATION_DOWNLOADED_EPISODE);
         newNotification.setMessage("<b>" + episode.getEpisodeName() + "</b>/<b>" + season.getSeasonName() + "</b> of <b>" + movie.getMovieName() + "</b> successfully downloaded");
         newNotification.setDestinationKey(episode.getEpisodeId());
         newNotification.setTimeStamp(System.currentTimeMillis());

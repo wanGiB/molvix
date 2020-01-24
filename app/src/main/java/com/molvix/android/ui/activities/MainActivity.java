@@ -171,7 +171,6 @@ public class MainActivity extends BaseActivity {
     }
 
     private void observeDownloadableEpisodes() {
-        stopObservingDownloadableEpisodes();
         downloadableEpisodesSubscription = MolvixDB.getDownloadableEpisodeBox().query().build().subscribe().observer(data -> {
             for (DownloadableEpisode downloadableEpisode : data) {
                 DownloadableEpisode existingData = MolvixDB.getDownloadableEpisode(downloadableEpisode.getDownloadableEpisodeId());
@@ -186,7 +185,7 @@ public class MainActivity extends BaseActivity {
                     return;
                 }
             }
-            updatedDownloadableEpisodes(data);
+            processDownloadableEpisodes(data);
         });
     }
 
@@ -197,7 +196,7 @@ public class MainActivity extends BaseActivity {
         }
     }
 
-    private void updatedDownloadableEpisodes(List<DownloadableEpisode> changedData) {
+    private void processDownloadableEpisodes(List<DownloadableEpisode> changedData) {
         if (!changedData.isEmpty()) {
             DownloadableEpisode first = changedData.get(0);
             if (EpisodesManager.isCaptchaSolvable()) {
@@ -246,8 +245,8 @@ public class MainActivity extends BaseActivity {
                     } else {
                         episode.setLowQualityDownloadLink(url);
                     }
-                    FileDownloadManager.downloadEpisode(episode);
                     MolvixDB.updateEpisode(episode);
+                    FileDownloadManager.downloadEpisode(episode);
                     hackWebView.onDestroy();
                     rootContainer.removeView(hackWebView);
                     EpisodesManager.popDownloadableEpisode(episode);

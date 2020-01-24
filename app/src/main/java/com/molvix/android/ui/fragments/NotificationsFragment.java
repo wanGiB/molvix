@@ -1,6 +1,5 @@
 package com.molvix.android.ui.fragments;
 
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,7 +15,6 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.molvix.android.R;
 import com.molvix.android.database.MolvixDB;
-import com.molvix.android.managers.ContentManager;
 import com.molvix.android.models.Notification;
 import com.molvix.android.ui.adapters.NotificationsAdapter;
 import com.molvix.android.ui.rendering.StickyRecyclerHeadersDecoration;
@@ -49,7 +47,6 @@ public class NotificationsFragment extends Fragment {
     private List<Notification> notifications = new ArrayList<>();
     private NotificationsAdapter notificationsAdapter;
     private StickyRecyclerHeadersDecoration stickyRecyclerHeadersDecoration;
-    private NotificationsFetchTask notificationsFetchTask;
     private DataSubscription notificationsSubScription;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -95,15 +92,6 @@ public class NotificationsFragment extends Fragment {
         }
     }
 
-    private void fetchNotificationsFromRemoteResource() {
-        if (notificationsFetchTask != null) {
-            notificationsFetchTask.cancel(true);
-            notificationsFetchTask = null;
-        }
-        notificationsFetchTask = new NotificationsFetchTask();
-        notificationsFetchTask.execute();
-    }
-
     private void setupAdapter() {
         notificationsAdapter = new NotificationsAdapter(getActivity());
         notificationsAdapter.setNotifications(notifications);
@@ -114,9 +102,7 @@ public class NotificationsFragment extends Fragment {
     }
 
     private void fetchNotifications() {
-        removeNotificationsChangeListener();
         notificationsSubScription = MolvixDB.getNotificationBox().query().build().subscribe().observer(this::loadNotifications);
-        fetchNotificationsFromRemoteResource();
     }
 
     private void loadNotifications(List<Notification> results) {
@@ -128,8 +114,8 @@ public class NotificationsFragment extends Fragment {
                 notification.setSeen(true);
                 MolvixDB.updateNotification(notification);
             }
-            invalidateUI();
         }
+        invalidateUI();
     }
 
     private void invalidateUI() {
@@ -140,16 +126,6 @@ public class NotificationsFragment extends Fragment {
             UiUtils.toggleViewVisibility(contentLoadingView, false);
             swipeRefreshLayout.setRefreshing(false);
         }
-    }
-
-    static class NotificationsFetchTask extends AsyncTask<Void, Void, Void> {
-
-        @Override
-        protected Void doInBackground(Void... voids) {
-            ContentManager.fetchNotifications();
-            return null;
-        }
-
     }
 
 }
