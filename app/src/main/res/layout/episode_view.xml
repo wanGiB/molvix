@@ -28,6 +28,7 @@
             android:layout_height="wrap_content"
             android:layout_alignParentStart="true"
             android:layout_gravity="center_vertical"
+            android:layout_centerVertical="true"
             android:entries="@array/episode_download_options" />
 
         <com.molvix.android.ui.widgets.MolvixTextView
@@ -37,6 +38,7 @@
             android:layout_alignParentEnd="true"
             android:layout_gravity="center_vertical"
             android:drawablePadding="5dp"
+            android:layout_centerVertical="true"
             android:paddingStart="8dp"
             android:paddingEnd="16dp"
             android:text="@string/download"

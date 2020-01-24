@@ -24,7 +24,6 @@ import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat;
 import com.molvix.android.R;
 import com.molvix.android.companions.AppConstants;
 import com.molvix.android.database.MolvixDB;
-import com.molvix.android.managers.ContentManager;
 import com.molvix.android.managers.EpisodesManager;
 import com.molvix.android.managers.FileDownloadManager;
 import com.molvix.android.models.Episode;
@@ -190,6 +189,7 @@ public class EpisodeView extends FrameLayout {
                 }
             }
         });
+        episodeNameView.setOnClickListener(v -> downloadButtonOrPlayButton.performClick());
     }
 
     private void checkEpisodeActiveDownloadStatus(Episode episode) {
@@ -348,8 +348,8 @@ public class EpisodeView extends FrameLayout {
                                     } else {
                                         episodeCaptchaSolverLink = lowest;
                                     }
-                                } catch (Exception ignored) {
-                                    Log.d(ContentManager.class.getSimpleName(), ignored.getMessage());
+                                } catch (Exception e) {
+                                    e.printStackTrace();
                                 }
                             }
                             String finalEpisodeCaptchaSolverLink = episodeCaptchaSolverLink;

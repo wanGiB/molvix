@@ -9,7 +9,6 @@ import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -41,7 +40,6 @@ import com.molvix.android.utils.UiUtils;
 import org.apache.commons.lang3.text.WordUtils;
 
 import java.util.List;
-import java.util.Random;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -127,7 +125,6 @@ public class MovieDetailsView extends FrameLayout {
     private void fillInEpisodes(View rootView, Season season) {
         EpisodesAdapter bottomSheetRecyclerViewAdapter;
         TextView bottomSheetTitleView = rootView.findViewById(R.id.bottom_sheet_title_view);
-        Button randomEpisodeMutator = rootView.findViewById(R.id.random_episode_mutator);
         RecyclerView bottomSheetRecyclerView = rootView.findViewById(R.id.bottom_sheet_recycler_view);
         bottomSheetTitleView.setText(WordUtils.capitalize(season.getSeasonName()));
         List<Episode> seasonEpisodes = season.getEpisodes();
@@ -147,11 +144,6 @@ public class MovieDetailsView extends FrameLayout {
             }
         };
         AppPrefs.getAppPreferences().registerOnSharedPreferenceChangeListener(onSharedPreferenceChangeListener);
-        randomEpisodeMutator.setOnClickListener(v -> {
-            Episode randomEpisode = seasonEpisodes.get(2);
-            randomEpisode.setDownloadProgress(new Random().nextInt(100));
-            MolvixDB.updateEpisode(randomEpisode);
-        });
     }
 
     private void loadMovieDetails(Movie movie) {
