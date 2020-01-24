@@ -43,7 +43,7 @@ public class ConnectivityChangeReceiver extends BroadcastReceiver {
             for (String episodeId : pausedDownloads) {
                 Episode episode = MolvixDB.getEpisode(episodeId);
                 if (episode != null) {
-                    FileDownloadManager.startNewEpisodeDownload(episode);
+                    FileDownloadManager.downloadEpisode(episode);
                 }
             }
         }

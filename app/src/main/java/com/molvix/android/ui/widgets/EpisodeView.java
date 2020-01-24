@@ -118,25 +118,7 @@ public class EpisodeView extends FrameLayout {
     }
 
     private void cancelActiveDownload() {
-        FileDownloadManager.cancelDownload(getCurrentDownloadId());
-    }
-
-    private int getCurrentDownloadId() {
-        String movieName = WordUtils.capitalize(movie.getMovieName());
-        String seasonName = WordUtils.capitalize(season.getSeasonName());
-        int downloadQuality = episode.getEpisodeQuality();
-        String downloadUrl;
-        if (downloadQuality == AppConstants.HIGH_QUALITY) {
-            downloadUrl = episode.getHighQualityDownloadLink();
-        } else if (downloadQuality == AppConstants.STANDARD_QUALITY) {
-            downloadUrl = episode.getStandardQualityDownloadLink();
-        } else {
-            downloadUrl = episode.getLowQualityDownloadLink();
-        }
-        String fileExtension = StringUtils.substringAfter(downloadUrl, ".");
-        String fileName = episode.getEpisodeName() + "." + fileExtension;
-        String dirPath = FileUtils.getFilePath(movieName, seasonName).getPath();
-        return (dirPath + fileName).hashCode();
+        FileDownloadManager.cancelDownload(episode);
     }
 
     private String setupEpisodeName(Episode episode) {
@@ -173,6 +155,9 @@ public class EpisodeView extends FrameLayout {
                 }
             } else {
                 if (ConnectivityUtils.isDeviceConnectedToTheInternet()) {
+                    if (episode.getDownloadProgress() > -1) {
+                        return;
+                    }
                     int episodeQualitySelection = episodeDownloadOptionsSpinner.getSelectedItemPosition();
                     if (episodeQualitySelection == 0) {
                         episode.setEpisodeQuality(AppConstants.HIGH_QUALITY);

@@ -3,6 +3,7 @@ package com.molvix.android.managers;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
+import android.text.format.DateUtils;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -22,12 +23,12 @@ import com.molvix.android.models.Season;
 import com.molvix.android.preferences.AppPrefs;
 import com.molvix.android.utils.CryptoUtils;
 import com.molvix.android.utils.UiUtils;
+import com.molvix.android.models.Movie_;
 
 import java.security.SecureRandom;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
-import java.util.concurrent.TimeUnit;
 
 public class MovieTracker {
 
@@ -54,12 +55,17 @@ public class MovieTracker {
     public static void recommendUnWatchedMoviesToUser() {
         long lastRecommendationTimeStamp = AppPrefs.getLastMovieRecommendationTime();
         if (lastRecommendationTimeStamp != -1) {
-            long timeDiff = TimeUnit.MILLISECONDS.toDays(System.currentTimeMillis()) - TimeUnit.MILLISECONDS.toDays(lastRecommendationTimeStamp);
-            if (timeDiff < 1) {
+            if (DateUtils.isToday(lastRecommendationTimeStamp)) {
                 return;
             }
         }
-        MolvixDB.fetchRecommendableMovies((recommendableMovies, e) -> {
+        new Thread(() -> {
+            List<Movie> recommendableMovies = MolvixDB.
+                    getMovieBox()
+                    .query()
+                    .equal(Movie_.recommendedToUser, false)
+                    .build()
+                    .find();
             if (!recommendableMovies.isEmpty()) {
                 Collections.shuffle(recommendableMovies, new SecureRandom());
                 Movie firstMovie = recommendableMovies.get(0);
@@ -75,8 +81,7 @@ public class MovieTracker {
                     }
                 }
             }
-
-        });
+        }).start();
     }
 
     private static class MovieContentsExtractionTask extends AsyncTask<String, Void, Void> {
@@ -84,7 +89,7 @@ public class MovieTracker {
         @Override
         protected Void doInBackground(String... movieIds) {
             ContentManager.extractMetaDataFromMovieLink(movieIds[0], movieIds[1], (result, e) -> {
-                if (e==null&& result!=null){
+                if (e == null && result != null) {
                     loadBitmapAndRecommendVideo(result.getMovieId(), result.getMovieArtUrl());
                 }
             });

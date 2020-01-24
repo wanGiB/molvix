@@ -55,14 +55,14 @@ class MolvixNotificationManager {
         Load mLoad = MolvixNotification.with(ApplicationLoader.getInstance()).load();
         mLoad.notificationChannelId(seasonId)
                 .title(title)
-                .autoCancel(true)
                 .largeIcon(R.drawable.ic_launcher);
-        mLoad.identifier(Math.abs(identifier));
+        mLoad.identifier(identifier);
 
         if (progress == 100) {
             mLoad.click(mainPendingIntent);
             mLoad.smallIcon(android.R.drawable.stat_sys_download_done);
             mLoad.message("Downloaded" + "..." + progressMessage);
+            mLoad.autoCancel(true);
             mLoad.simple().build();
         } else {
             mLoad.button(R.drawable.cancel, "CANCEL", cancelPendingIntent);
@@ -76,7 +76,7 @@ class MolvixNotificationManager {
         Movie recommendableMovie = MolvixDB.getMovie(movieId);
         if (recommendableMovie != null) {
             Intent movieDetailsIntent = new Intent(ApplicationLoader.getInstance(), MainActivity.class);
-            movieDetailsIntent.putExtra(AppConstants.INVOCATION_TYPE,AppConstants.DISPLAY_MOVIE);
+            movieDetailsIntent.putExtra(AppConstants.INVOCATION_TYPE, AppConstants.DISPLAY_MOVIE);
             movieDetailsIntent.putExtra(AppConstants.MOVIE_ID, recommendableMovie.getMovieId());
             PendingIntent movieDetailsPendingIntent = PendingIntent.getActivity(ApplicationLoader.getInstance(), 100, movieDetailsIntent, PendingIntent.FLAG_UPDATE_CURRENT);
             createNotificationChannel("Next Rate Movie", "Check this out", "Molvix Next Rated Movie");

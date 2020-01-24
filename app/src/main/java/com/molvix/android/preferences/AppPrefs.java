@@ -7,6 +7,7 @@ import android.content.SharedPreferences;
 import com.molvix.android.companions.AppConstants;
 import com.molvix.android.components.ApplicationLoader;
 import com.molvix.android.models.Episode;
+import com.molvix.android.utils.CryptoUtils;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -147,8 +148,25 @@ public class AppPrefs {
         getAppPreferences().edit().putStringSet(AppConstants.IN_PROGRESS_DOWNLOADS, inProgressDownloads).commit();
     }
 
+    @SuppressLint("ApplySharedPref")
+    public static void removeFromInProgressDownloads(Episode episode) {
+        Set<String> inProgressDownloads = getAppPreferences().getStringSet(AppConstants.IN_PROGRESS_DOWNLOADS, new HashSet<>());
+        inProgressDownloads.remove(episode.getEpisodeId());
+        getAppPreferences().edit().putStringSet(AppConstants.IN_PROGRESS_DOWNLOADS, inProgressDownloads).commit();
+    }
+
+
     public static Set<String> getInProgressDownloads() {
         return getAppPreferences().getStringSet(AppConstants.IN_PROGRESS_DOWNLOADS, new HashSet<>());
+    }
+
+    public static int getDownloadId(String s) {
+        return getAppPreferences().getInt(AppConstants.DOWNLOAD + CryptoUtils.getSha256Digest(s), 0);
+    }
+
+    @SuppressLint("ApplySharedPref")
+    public static void saveDownloadId(String s, int downloadId) {
+        getAppPreferences().edit().putInt(AppConstants.DOWNLOAD + CryptoUtils.getSha256Digest(s), downloadId).commit();
     }
 
 }
