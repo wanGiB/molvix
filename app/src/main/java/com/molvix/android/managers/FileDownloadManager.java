@@ -76,7 +76,7 @@ public class FileDownloadManager {
         }
         MovieTracker.recordEpisodeAsDownloaded(episode);
         AppPrefs.removeFromInProgressDownloads(episode);
-        MolvixNotificationManager.showEpisodeDownloadProgressNotification(movieName, movieDescription, seasonId, episodeId, episode.getEpisodeName() + "/" + seasonName + "/" + movieName, 100, "");
+        MolvixNotificationManager.showEpisodeDownloadProgressNotification(movieName, movieDescription, seasonId, episodeId, movieName + "/" + seasonName + "/" + episode.getEpisodeName(), 100, "");
     }
 
     private static void updateDownloadProgress(Episode episode, String movieName, String movieDescription, String seasonName, String seasonId, Progress progress) {

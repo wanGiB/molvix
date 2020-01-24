@@ -57,7 +57,6 @@ public class AppConstants {
     public static final String NOTIFICATION_DESTINATION = "destination";
     public static final int DESTINATION_DOWNLOADED_EPISODE = 0;
     public static final int DESTINATION_NEW_EPISODE_AVAILABLE = 1;
-    public static final int DESTINATION_NEW_SEASON_AVAILABLE = 2;
     public static final String DAILY_MOVIES_RECOMMENDABILITY = "daily_movies_recommendability";
     public static final String DOWNLOADED_MOVIES_UPDATE = "downloaded_movies_update_key";
     public static final String AD_CONSUMED = "ad_consumed";

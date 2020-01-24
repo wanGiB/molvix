@@ -169,4 +169,13 @@ public class AppPrefs {
         getAppPreferences().edit().putInt(AppConstants.DOWNLOAD + CryptoUtils.getSha256Digest(s), downloadId).commit();
     }
 
+    public static boolean hasBeenNotified(String checkKey) {
+        return getAppPreferences().getBoolean(AppConstants.NOTIFICATION + checkKey, false);
+    }
+
+    @SuppressLint("ApplySharedPref")
+    public static void setHasBeenNotified(String checkKey) {
+        getAppPreferences().edit().putBoolean(AppConstants.NOTIFICATION + checkKey, true).commit();
+    }
+
 }

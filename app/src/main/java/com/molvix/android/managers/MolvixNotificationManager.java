@@ -5,19 +5,36 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
+import android.os.AsyncTask;
 import android.os.Build;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.DataSource;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.load.engine.GlideException;
+import com.bumptech.glide.request.RequestListener;
+import com.bumptech.glide.request.RequestOptions;
+import com.bumptech.glide.request.target.CustomTarget;
+import com.bumptech.glide.request.target.Target;
+import com.bumptech.glide.request.transition.Transition;
 import com.molvix.android.R;
 import com.molvix.android.companions.AppConstants;
 import com.molvix.android.components.ApplicationLoader;
 import com.molvix.android.database.MolvixDB;
 import com.molvix.android.models.Movie;
+import com.molvix.android.models.Notification;
 import com.molvix.android.preferences.AppPrefs;
 import com.molvix.android.ui.activities.EmptyContentActivity;
 import com.molvix.android.ui.activities.MainActivity;
 import com.molvix.android.ui.notifications.notification.Load;
 import com.molvix.android.ui.notifications.notification.MolvixNotification;
+import com.molvix.android.utils.UiUtils;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.text.WordUtils;
 
 class MolvixNotificationManager {
@@ -100,4 +117,84 @@ class MolvixNotificationManager {
             MolvixDB.updateMovie(recommendableMovie);
         }
     }
+
+    static void displayNewMovieNotification(Movie updatedMovie, Notification newMovieAvailableNotification) {
+        String movieArtUrl = updatedMovie.getMovieArtUrl();
+        if (movieArtUrl != null) {
+            new BitmapLoadTask(newMovieAvailableNotification).execute(movieArtUrl);
+        }
+    }
+
+    private static class BitmapLoadTask extends AsyncTask<String, Void, Void> {
+
+        private Notification notification;
+
+        BitmapLoadTask(Notification notification) {
+            this.notification = notification;
+        }
+
+        @Override
+        protected Void doInBackground(String... strings) {
+            String artUrl = strings[0];
+            RequestOptions imageLoadRequestOptions = new RequestOptions()
+                    .diskCacheStrategy(DiskCacheStrategy.ALL);
+            Glide.with(ApplicationLoader.getInstance())
+                    .asBitmap()
+                    .load(artUrl)
+                    .apply(imageLoadRequestOptions)
+                    .listener(new RequestListener<Bitmap>() {
+                        @Override
+                        public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Bitmap> target, boolean isFirstResource) {
+                            return false;
+                        }
+
+                        @Override
+                        public boolean onResourceReady(Bitmap resource, Object model, Target<Bitmap> target, DataSource dataSource, boolean isFirstResource) {
+                            return false;
+                        }
+
+                    })
+                    .into(new CustomTarget<Bitmap>() {
+                        @Override
+                        public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
+                            UiUtils.runOnMain(() -> MolvixNotificationManager.displayUpdatedMovieNotification(resource, notification));
+                        }
+
+                        @Override
+                        public void onLoadCleared(@Nullable Drawable placeholder) {
+                        }
+
+                    });
+            return null;
+        }
+
+    }
+
+    private static void displayUpdatedMovieNotification(Bitmap movieBitmap, Notification notification) {
+        String messageDisplay = notification.getMessage();
+        messageDisplay = StringUtils.remove(messageDisplay, "<b>");
+        messageDisplay = StringUtils.remove(messageDisplay, "</b>");
+        String message = messageDisplay;
+        Intent movieDetailsIntent = new Intent(ApplicationLoader.getInstance(), MainActivity.class);
+        movieDetailsIntent.putExtra(AppConstants.INVOCATION_TYPE, AppConstants.DISPLAY_MOVIE);
+        movieDetailsIntent.putExtra(AppConstants.MOVIE_ID, notification.getDestinationKey());
+        PendingIntent movieDetailsPendingIntent = PendingIntent.getActivity(ApplicationLoader.getInstance(), 100, movieDetailsIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        createNotificationChannel("Next Rated Movie", "Check this out", "Molvix Next Rated Movie");
+        MolvixNotification.with(ApplicationLoader.getInstance())
+                .load()
+                .notificationChannelId("Molvix Next Rated Movie")
+                .title("Molvix")
+                .message(message)
+                .autoCancel(true)
+                .click(movieDetailsPendingIntent)
+                .bigTextStyle(message)
+                .smallIcon(R.drawable.ic_launcher)
+                .largeIcon(R.drawable.ic_launcher)
+                .color(android.R.color.background_dark)
+                .custom()
+                .background(movieBitmap)
+                .setPlaceholder(R.drawable.ic_placeholder)
+                .build();
+    }
+
 }

@@ -1,6 +1,5 @@
 package com.molvix.android.managers;
 
-import android.util.Log;
 import android.util.Pair;
 
 import com.molvix.android.companions.AppConstants;
@@ -9,8 +8,11 @@ import com.molvix.android.database.MolvixDB;
 import com.molvix.android.models.Episode;
 import com.molvix.android.models.Movie;
 import com.molvix.android.models.Movie_;
+import com.molvix.android.models.Notification;
 import com.molvix.android.models.Season;
+import com.molvix.android.preferences.AppPrefs;
 import com.molvix.android.utils.CryptoUtils;
+import com.molvix.android.utils.RandomStringUtils;
 
 import org.apache.commons.lang3.StringUtils;
 import org.greenrobot.eventbus.EventBus;
@@ -66,14 +68,26 @@ public class ContentManager {
                     String episodeName = StringUtils.stripStart(StringUtils.stripEnd(StringUtils.substringBeforeLast(thirdProcessed, "-"), "-"), "-").trim();
                     String realMovieTitle = StringUtils.strip(movieTitle, "-").trim();
                     String realSeasonName = StringUtils.strip(seasonName, "-").trim();
-                    List<Movie> results = MolvixDB.getMovieBox()
+                    Movie result = MolvixDB.getMovieBox()
                             .query()
                             .equal(Movie_.movieName, realMovieTitle.toLowerCase())
                             .build()
-                            .find();
-                    if (!results.isEmpty()) {
-                        for (Movie movie : results) {
-                            Log.d(ContentManager.class.getSimpleName(), "Found " + movie.getMovieName());
+                            .findFirst();
+                    if (result != null) {
+                        String realEpisodeName = StringUtils.strip(episodeName, "-");
+                        String message = "<b>" + realMovieTitle + "</b>" + "/" + "<b>" + realSeasonName + "</b>" + "/" + "<b>" + realEpisodeName + "</b>" + "is now available for download.";
+                        String checkKey = CryptoUtils.getSha256Digest(realMovieTitle + "/" + realSeasonName + "/" + realEpisodeName);
+                        boolean hasBeenNotified = AppPrefs.hasBeenNotified(checkKey);
+                        if (!hasBeenNotified) {
+                            Notification newMovieAvailableNotification = new Notification();
+                            newMovieAvailableNotification.setNotificationObjectId(CryptoUtils.getSha256Digest(RandomStringUtils.random(256) + System.currentTimeMillis()));
+                            newMovieAvailableNotification.setMessage(message);
+                            newMovieAvailableNotification.setTimeStamp(System.currentTimeMillis());
+                            newMovieAvailableNotification.setDestination(AppConstants.DESTINATION_NEW_EPISODE_AVAILABLE);
+                            newMovieAvailableNotification.setDestinationKey(result.getMovieId());
+                            MolvixDB.createNewNotification(newMovieAvailableNotification);
+                            MolvixNotificationManager.displayNewMovieNotification(result, newMovieAvailableNotification);
+                            AppPrefs.setHasBeenNotified(checkKey);
                         }
                     }
                 }
@@ -114,7 +128,6 @@ public class ContentManager {
             spitException(e);
         }
     }
-
 
     public static void extractMetaDataFromMovieLink(String movieLink, String movieId, DoneCallback<Movie> movieExtractionDoneCallback) {
         try {

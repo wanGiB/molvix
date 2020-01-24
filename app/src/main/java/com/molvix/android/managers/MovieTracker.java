@@ -9,26 +9,30 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.DataSource;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.load.engine.GlideException;
+import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.RequestOptions;
 import com.bumptech.glide.request.target.CustomTarget;
+import com.bumptech.glide.request.target.Target;
 import com.bumptech.glide.request.transition.Transition;
 import com.molvix.android.companions.AppConstants;
 import com.molvix.android.components.ApplicationLoader;
 import com.molvix.android.database.MolvixDB;
 import com.molvix.android.models.Episode;
 import com.molvix.android.models.Movie;
+import com.molvix.android.models.Movie_;
 import com.molvix.android.models.Notification;
 import com.molvix.android.models.Season;
 import com.molvix.android.preferences.AppPrefs;
 import com.molvix.android.utils.CryptoUtils;
+import com.molvix.android.utils.RandomStringUtils;
 import com.molvix.android.utils.UiUtils;
-import com.molvix.android.models.Movie_;
 
 import java.security.SecureRandom;
 import java.util.Collections;
 import java.util.List;
-import java.util.Random;
 
 public class MovieTracker {
 
@@ -38,7 +42,7 @@ public class MovieTracker {
         //Add to user notifications pane
         Season season = episode.getSeason();
         Movie movie = season.getMovie();
-        String notificationId = CryptoUtils.getSha256Digest(String.valueOf(System.currentTimeMillis() + new Random().nextInt(256)));
+        String notificationId = CryptoUtils.getSha256Digest(RandomStringUtils.random(256) + System.currentTimeMillis());
         Notification existingNotification = MolvixDB.getNotification(notificationId);
         if (existingNotification != null) {
             return;
@@ -88,14 +92,15 @@ public class MovieTracker {
 
         @Override
         protected Void doInBackground(String... movieIds) {
-            ContentManager.extractMetaDataFromMovieLink(movieIds[0], movieIds[1], (result, e) -> {
+            String movieLink = movieIds[0];
+            String movieId = movieIds[1];
+            ContentManager.extractMetaDataFromMovieLink(movieLink, movieId, (result, e) -> {
                 if (e == null && result != null) {
                     loadBitmapAndRecommendVideo(result.getMovieId(), result.getMovieArtUrl());
                 }
             });
             return null;
         }
-
     }
 
     private static void loadBitmapAndRecommendVideo(String videoId, String artUrl) {
@@ -119,6 +124,18 @@ public class MovieTracker {
                     .asBitmap()
                     .load(artUrl)
                     .apply(imageLoadRequestOptions)
+                    .listener(new RequestListener<Bitmap>() {
+                        @Override
+                        public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Bitmap> target, boolean isFirstResource) {
+                            return false;
+                        }
+
+                        @Override
+                        public boolean onResourceReady(Bitmap resource, Object model, Target<Bitmap> target, DataSource dataSource, boolean isFirstResource) {
+                            return false;
+                        }
+
+                    })
                     .into(new CustomTarget<Bitmap>() {
                         @Override
                         public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
@@ -127,13 +144,11 @@ public class MovieTracker {
 
                         @Override
                         public void onLoadCleared(@Nullable Drawable placeholder) {
-
                         }
 
                     });
             return null;
         }
-
     }
 
 }

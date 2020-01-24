@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.os.AsyncTask;
+import android.util.Log;
 
 import com.molvix.android.database.MolvixDB;
 import com.molvix.android.eventbuses.ConnectivityChangedEvent;
@@ -28,12 +29,14 @@ public class ConnectivityChangeReceiver extends BroadcastReceiver {
             return;
         }
         if (intent.getAction().equals(ConnectivityManager.CONNECTIVITY_ACTION) && ConnectivityUtils.isDeviceConnectedToTheInternet()) {
+            if (AppPrefs.canDailyMoviesBeRecommended()) {
+                MovieTracker.recommendUnWatchedMoviesToUser();
+            } else {
+                Log.d(ContentManager.class.getSimpleName(), "Unfortunately the user has disabled daily notifications");
+            }
             checkAndResumePausedDownloads();
             EventBus.getDefault().post(new ConnectivityChangedEvent());
             fetchNotifications();
-            if (AppPrefs.canDailyMoviesBeRecommended()) {
-                MovieTracker.recommendUnWatchedMoviesToUser();
-            }
         }
     }
 
@@ -49,7 +52,7 @@ public class ConnectivityChangeReceiver extends BroadcastReceiver {
         }
     }
 
-    private void fetchNotifications() {
+    public void fetchNotifications() {
         if (notificationsPullTask != null) {
             notificationsPullTask.cancel(true);
             notificationsPullTask = null;
