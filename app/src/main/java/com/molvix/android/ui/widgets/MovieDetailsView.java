@@ -40,7 +40,6 @@ import com.molvix.android.utils.UiUtils;
 
 import org.apache.commons.lang3.text.WordUtils;
 
-import java.security.SecureRandom;
 import java.util.List;
 import java.util.Random;
 
@@ -138,11 +137,9 @@ public class MovieDetailsView extends FrameLayout {
         bottomSheetRecyclerView.setAdapter(bottomSheetRecyclerViewAdapter);
         onSharedPreferenceChangeListener = (sharedPreferences, key) -> {
             if (key.contains(AppConstants.EPISODE)) {
-                UiUtils.showSafeToast(key + " updated");
                 String episodeId = key.replace(AppConstants.EPISODE, "").trim();
                 Episode updatedEpisode = MolvixDB.getEpisode(episodeId);
                 if (seasonEpisodes.contains(updatedEpisode)) {
-                    UiUtils.showSafeToast("ChangedEpisode contained in current collection");
                     int indexOfEpisode = seasonEpisodes.indexOf(updatedEpisode);
                     seasonEpisodes.set(indexOfEpisode, updatedEpisode);
                     bottomSheetRecyclerViewAdapter.notifyItemChanged(indexOfEpisode);
@@ -151,8 +148,7 @@ public class MovieDetailsView extends FrameLayout {
         };
         AppPrefs.getAppPreferences().registerOnSharedPreferenceChangeListener(onSharedPreferenceChangeListener);
         randomEpisodeMutator.setOnClickListener(v -> {
-            int randomEpisodeIndex = new SecureRandom().nextInt(seasonEpisodes.size());
-            Episode randomEpisode = seasonEpisodes.get(randomEpisodeIndex);
+            Episode randomEpisode = seasonEpisodes.get(2);
             randomEpisode.setDownloadProgress(new Random().nextInt(100));
             MolvixDB.updateEpisode(randomEpisode);
         });
