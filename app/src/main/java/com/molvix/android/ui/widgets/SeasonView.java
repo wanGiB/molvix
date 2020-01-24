@@ -1,6 +1,7 @@
 package com.molvix.android.ui.widgets;
 
 import android.annotation.SuppressLint;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.util.AttributeSet;
@@ -13,6 +14,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.molvix.android.R;
+import com.molvix.android.contracts.DoneCallback;
 import com.molvix.android.database.MolvixDB;
 import com.molvix.android.eventbuses.LoadEpisodesForSeason;
 import com.molvix.android.managers.ContentManager;
@@ -44,6 +46,9 @@ public class SeasonView extends FrameLayout {
 
     private Season season;
     private DataSubscription seasonSubscription;
+    private ProgressDialog progressDialog;
+
+    private CallableSeasonEpisodesExtractionTask callableSeasonEpisodesExtractionTask;
 
     public SeasonView(@NonNull Context context) {
         super(context);
@@ -118,8 +123,16 @@ public class SeasonView extends FrameLayout {
             } else {
                 if (ConnectivityUtils.isDeviceConnectedToTheInternet()) {
                     SeasonsManager.setSeasonRefreshable(season.getSeasonId());
-                    UiUtils.showSafeToast("Please wait...");
-                    new CallableSeasonEpisodesExtractionTask(season.getSeasonLink(), season.getSeasonId()).execute();
+                    showProgressDialog();
+                    callableSeasonEpisodesExtractionTask = new CallableSeasonEpisodesExtractionTask((result, e) -> UiUtils.runOnMain(() -> {
+                        dismissProgressDialog();
+                        if (e == null && result != null) {
+                            EventBus.getDefault().post(new LoadEpisodesForSeason(result));
+                        } else {
+                            UiUtils.showSafeToast("Sorry,an error occurred while fetching episodes for " + season.getSeasonName() + ".Please try again");
+                        }
+                    }));
+                    callableSeasonEpisodesExtractionTask.execute(season.getSeasonLink(), season.getSeasonId());
                 } else {
                     UiUtils.showSafeToast("Please connect to the internet and try again.");
                 }
@@ -131,6 +144,24 @@ public class SeasonView extends FrameLayout {
         subRootView.setOnClickListener(onClickListener);
     }
 
+    private void showProgressDialog() {
+        progressDialog = ProgressDialog.show(getContext(), "Fetching " + season.getSeasonName() + " Episodes", "Please wait...", true, true);
+        progressDialog.setOnCancelListener(dialog -> {
+            if (callableSeasonEpisodesExtractionTask != null && !callableSeasonEpisodesExtractionTask.isCancelled()) {
+                callableSeasonEpisodesExtractionTask.cancel(true);
+                callableSeasonEpisodesExtractionTask = null;
+            }
+        });
+    }
+
+    private void dismissProgressDialog() {
+        if (progressDialog != null && progressDialog.isShowing()) {
+            progressDialog.dismiss();
+            progressDialog.cancel();
+            progressDialog = null;
+        }
+    }
+
     private void loadSeasonEpisodes() {
         if (SeasonsManager.canRefreshSeason(season.getSeasonId())) {
             SeasonEpisodesExtractionTask seasonEpisodesExtractionTask = new SeasonEpisodesExtractionTask(season.getSeasonLink(), season.getSeasonId());
@@ -138,24 +169,19 @@ public class SeasonView extends FrameLayout {
         }
     }
 
-    static class CallableSeasonEpisodesExtractionTask extends AsyncTask<Void, Void, Void> {
+    static class CallableSeasonEpisodesExtractionTask extends AsyncTask<String, Void, Void> {
 
-        private String seasonId, seasonLink;
+        private DoneCallback<Season> seasonDoneCallback;
 
-        CallableSeasonEpisodesExtractionTask(String seasonLink, String seasonId) {
-            this.seasonId = seasonId;
-            this.seasonLink = seasonLink;
+        CallableSeasonEpisodesExtractionTask(DoneCallback<Season> seasonDoneCallback) {
+            this.seasonDoneCallback = seasonDoneCallback;
         }
 
         @Override
-        protected Void doInBackground(Void... voids) {
-            ContentManager.extractMetaDataFromMovieSeasonLink(seasonLink, seasonId, (result, e) -> {
-                if (e == null && result != null) {
-                    EventBus.getDefault().post(new LoadEpisodesForSeason(result));
-                } else {
-                    UiUtils.showSafeToast("Sorry,an error occurred while trying to resolve Season.Please try again");
-                }
-            });
+        protected Void doInBackground(String... input) {
+            String seasonLink = input[0];
+            String seasonId = input[1];
+            ContentManager.extractMetaDataFromMovieSeasonLink(seasonLink, seasonId, (result, e) -> seasonDoneCallback.done(result, e));
             return null;
         }
     }

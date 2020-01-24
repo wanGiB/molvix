@@ -6,6 +6,7 @@ import android.content.SharedPreferences;
 
 import com.molvix.android.companions.AppConstants;
 import com.molvix.android.components.ApplicationLoader;
+import com.molvix.android.models.Episode;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -137,6 +138,17 @@ public class AppPrefs {
     @SuppressLint("ApplySharedPref")
     public static void setEpisodeUpdated(String episodeId) {
         getAppPreferences().edit().putString(AppConstants.EPISODE + episodeId, AppConstants.UPDATED).commit();
+    }
+
+    @SuppressLint("ApplySharedPref")
+    public static void addToInProgressDownloads(Episode episode) {
+        Set<String> inProgressDownloads = getAppPreferences().getStringSet(AppConstants.IN_PROGRESS_DOWNLOADS, new HashSet<>());
+        inProgressDownloads.add(episode.getEpisodeId());
+        getAppPreferences().edit().putStringSet(AppConstants.IN_PROGRESS_DOWNLOADS, inProgressDownloads).commit();
+    }
+
+    public static Set<String> getInProgressDownloads() {
+        return getAppPreferences().getStringSet(AppConstants.IN_PROGRESS_DOWNLOADS, new HashSet<>());
     }
 
 }

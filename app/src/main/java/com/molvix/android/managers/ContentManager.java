@@ -63,8 +63,8 @@ public class ContentManager {
                     String seasonName = StringUtils.stripEnd(StringUtils.stripStart(StringUtils.substringBefore(secondProcessed, "- Episode"), "-"), "-").trim();
                     String thirdProcessed = secondProcessed.replace(seasonName, "");
                     String episodeName = StringUtils.stripStart(StringUtils.stripEnd(StringUtils.substringBeforeLast(thirdProcessed, "-"), "-"), "-").trim();
-                    String realMovieTitle = StringUtils.strip(movieTitle, "-");
-
+                    String realMovieTitle = StringUtils.strip(movieTitle, "-").trim();
+                    String realSeasonName = StringUtils.strip(seasonName, "-").trim();
                 }
             }
         } catch (IOException e) {

@@ -31,6 +31,7 @@ import com.molvix.android.managers.FileDownloadManager;
 import com.molvix.android.models.DownloadableEpisode;
 import com.molvix.android.models.Episode;
 import com.molvix.android.models.Season;
+import com.molvix.android.preferences.AppPrefs;
 import com.molvix.android.ui.adapters.MainActivityPagerAdapter;
 import com.molvix.android.ui.fragments.HomeFragment;
 import com.molvix.android.ui.fragments.MoreContentsFragment;
@@ -43,6 +44,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -77,6 +79,19 @@ public class MainActivity extends BaseActivity {
         initPager();
         observeNewIntent(getIntent());
         observeDownloadableEpisodes();
+        checkAndResumePausedDownloads();
+    }
+
+    private void checkAndResumePausedDownloads() {
+        Set<String> pausedDownloads = AppPrefs.getInProgressDownloads();
+        if (!pausedDownloads.isEmpty()) {
+            for (String episodeId : pausedDownloads) {
+                Episode episode = MolvixDB.getEpisode(episodeId);
+                if (episode != null) {
+                    FileDownloadManager.startNewEpisodeDownload(episode);
+                }
+            }
+        }
     }
 
     @Override
@@ -157,7 +172,22 @@ public class MainActivity extends BaseActivity {
 
     private void observeDownloadableEpisodes() {
         stopObservingDownloadableEpisodes();
-        downloadableEpisodesSubscription = MolvixDB.getDownloadableEpisodeBox().query().build().subscribe().observer(this::updatedDownloadableEpisodes);
+        downloadableEpisodesSubscription = MolvixDB.getDownloadableEpisodeBox().query().build().subscribe().observer(data -> {
+            for (DownloadableEpisode downloadableEpisode : data) {
+                DownloadableEpisode existingData = MolvixDB.getDownloadableEpisode(downloadableEpisode.getDownloadableEpisodeId());
+                if (existingData == null) {
+                    stopObservingDownloadableEpisodes();
+                    observeDownloadableEpisodes();
+                    return;
+                }
+                Set<String> downloadsInProgress = AppPrefs.getInProgressDownloads();
+                if (downloadsInProgress.contains(existingData.getDownloadableEpisodeId())) {
+                    MolvixDB.getDownloadableEpisodeBox().remove(existingData);
+                    return;
+                }
+            }
+            updatedDownloadableEpisodes(data);
+        });
     }
 
     private void stopObservingDownloadableEpisodes() {

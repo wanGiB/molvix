@@ -29,8 +29,8 @@ import com.molvix.android.contracts.DoneCallback;
 import com.molvix.android.database.MolvixDB;
 import com.molvix.android.managers.ContentManager;
 import com.molvix.android.managers.MovieManager;
+import com.molvix.android.managers.SeasonsManager;
 import com.molvix.android.models.Episode;
-import com.molvix.android.models.Episode_;
 import com.molvix.android.models.Movie;
 import com.molvix.android.models.Season;
 import com.molvix.android.preferences.AppPrefs;
@@ -46,7 +46,6 @@ import java.util.Random;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import io.objectbox.reactive.DataSubscription;
 
 public class MovieDetailsView extends FrameLayout {
 
@@ -107,7 +106,7 @@ public class MovieDetailsView extends FrameLayout {
                 List<Season> movieSeasons = movie.getSeasons();
                 if (movieSeasons == null || movieSeasons.isEmpty()) {
                     if (ConnectivityUtils.isDeviceConnectedToTheInternet()) {
-                        spinMoviePullTask();
+                        pullMovieDetailsFromTheInternet();
                     } else {
                         UiUtils.showSafeToast("Please connect to the internet and try again.");
                     }
@@ -139,14 +138,14 @@ public class MovieDetailsView extends FrameLayout {
         bottomSheetRecyclerView.setAdapter(bottomSheetRecyclerViewAdapter);
         onSharedPreferenceChangeListener = (sharedPreferences, key) -> {
             if (key.contains(AppConstants.EPISODE)) {
-                String episodeId = key.split("-")[0];
-                if (episodeId != null) {
-                    Episode updatedEpisode = MolvixDB.getEpisode(episodeId);
-                    if (seasonEpisodes.contains(updatedEpisode)) {
-                        int indexOfEpisode = seasonEpisodes.indexOf(updatedEpisode);
-                        seasonEpisodes.set(indexOfEpisode, updatedEpisode);
-                        bottomSheetRecyclerViewAdapter.notifyItemChanged(indexOfEpisode);
-                    }
+                UiUtils.showSafeToast(key + " updated");
+                String episodeId = key.replace(AppConstants.EPISODE, "").trim();
+                Episode updatedEpisode = MolvixDB.getEpisode(episodeId);
+                if (seasonEpisodes.contains(updatedEpisode)) {
+                    UiUtils.showSafeToast("ChangedEpisode contained in current collection");
+                    int indexOfEpisode = seasonEpisodes.indexOf(updatedEpisode);
+                    seasonEpisodes.set(indexOfEpisode, updatedEpisode);
+                    bottomSheetRecyclerViewAdapter.notifyItemChanged(indexOfEpisode);
                 }
             }
         };
@@ -170,17 +169,21 @@ public class MovieDetailsView extends FrameLayout {
         });
     }
 
-    private void spinMoviePullTask() {
-        if (moviePullTask != null) {
-            moviePullTask.cancel(true);
-            moviePullTask = null;
-        }
+    private void pullMovieDetailsFromTheInternet() {
+        cancelPreviousMovieFetchTask();
         moviePullTask = new MoviePullTask(movieId, (result, e) -> {
             if (result != null && e == null) {
                 loadMovieDetails(result);
             }
         });
         moviePullTask.execute();
+    }
+
+    private void cancelPreviousMovieFetchTask() {
+        if (moviePullTask != null) {
+            moviePullTask.cancel(true);
+            moviePullTask = null;
+        }
     }
 
     public boolean isBottomSheetDialogShowing() {
@@ -202,6 +205,7 @@ public class MovieDetailsView extends FrameLayout {
         List<Season> movieSeasons = movie.getSeasons();
         for (Season season : movieSeasons) {
             SeasonView seasonView = new SeasonView(getContext());
+            SeasonsManager.setSeasonRefreshable(season.getSeasonId());
             seasonView.bindSeason(season);
             seasonsContainer.addView(seasonView, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         }

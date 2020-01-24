@@ -73,4 +73,5 @@ public class AppConstants {
     public static final String SEASON = "Season_";
     public static final String DOWNLOADABLE_EPISODE = "Downloadable_";
     public static final String DISPLAY_MOVIE = "display_movie";
+    public static final String IN_PROGRESS_DOWNLOADS = "in_progress_downloads";
 }
