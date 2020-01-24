@@ -107,8 +107,63 @@ public class ContentManager {
         }
     }
 
+
+    public static void extractMetaDataFromMovieLink(String movieLink, String movieId, DoneCallback<Movie> movieExtractionDoneCallback) {
+        Log.d(ContentManager.class.getSimpleName(), "Loading Details for " + movieLink);
+        try {
+            Document movieDoc = Jsoup.connect(movieLink).get();
+            Element movieInfoElement = movieDoc.select("div.tv_series_info").first();
+            String movieArtUrl = movieInfoElement.select("div.img>img").attr("src");
+            String movieDescription = movieInfoElement.select("div.serial_desc").text();
+            Movie updatableMovie = MolvixDB.getMovie(movieId);
+            if (updatableMovie != null) {
+                if (StringUtils.isNotEmpty(movieArtUrl)) {
+                    updatableMovie.setMovieArtUrl(movieArtUrl);
+                }
+                if (StringUtils.isNotEmpty(movieDescription)) {
+                    updatableMovie.setMovieDescription(movieDescription);
+                }
+                extractOtherMovieDataParts(movieLink, movieDoc, updatableMovie, movieExtractionDoneCallback);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            spitException(e);
+            movieExtractionDoneCallback.done(null, e);
+        }
+    }
+
     private static void spitException(Exception e) {
         EventBus.getDefault().post(e);
+    }
+
+    private static void extractOtherMovieDataParts(String movieLink, Document movieDoc, Movie updatableMovie, DoneCallback<Movie> movieExtractionDoneCallBack) {
+        Element otherInfoDocument = movieDoc.selectFirst("div.other_info");
+        Elements otherInfoElements = otherInfoDocument.getAllElements();
+        int totalNumberOfSeasons = 0;
+        if (otherInfoElements != null) {
+            for (Element infoElement : otherInfoElements) {
+                Elements rowElementChildren = infoElement.children();
+                for (Element rowChild : rowElementChildren) {
+                    String field = rowChild.select(".field").html();
+                    String value = rowChild.select(".value").html();
+                    if (field.trim().toLowerCase().equals("seasons:") && StringUtils.isNotEmpty(value)) {
+                        totalNumberOfSeasons = Integer.parseInt(value.trim());
+                    }
+                }
+            }
+        }
+        if (totalNumberOfSeasons != 0) {
+            for (int i = 0; i < totalNumberOfSeasons; i++) {
+                String seasonAtI = generateSeasonFromMovieLink(movieLink, i + 1);
+                String seasonName = generateSeasonValue(i + 1);
+                Season season = generateNewSeason(updatableMovie, seasonAtI, seasonName);
+                if (!updatableMovie.seasons.contains(season)) {
+                    updatableMovie.seasons.add(season);
+                }
+            }
+            MolvixDB.updateMovie(updatableMovie);
+            movieExtractionDoneCallBack.done(updatableMovie, null);
+        }
     }
 
     private static void extractOtherMovieDataParts(String movieLink, Document movieDoc, Movie updatableMovie) {

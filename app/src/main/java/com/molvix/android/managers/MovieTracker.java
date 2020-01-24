@@ -17,7 +17,6 @@ import com.molvix.android.components.ApplicationLoader;
 import com.molvix.android.database.MolvixDB;
 import com.molvix.android.models.Episode;
 import com.molvix.android.models.Movie;
-import com.molvix.android.models.Movie_;
 import com.molvix.android.models.Notification;
 import com.molvix.android.models.Season;
 import com.molvix.android.preferences.AppPrefs;
@@ -30,11 +29,8 @@ import java.util.List;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
-import io.objectbox.reactive.DataSubscription;
-
 public class MovieTracker {
 
-    private static DataSubscription movieSubscription;
     private static BitmapLoadTask bitmapLoadTask;
 
     static void recordEpisodeAsDownloaded(Episode episode) {
@@ -72,15 +68,7 @@ public class MovieTracker {
                     String movieId = firstMovie.getMovieId();
                     String movieLink = firstMovie.getMovieLink();
                     List<Season> movieSeasons = firstMovie.getSeasons();
-                    if (movieArtUrl == null || movieSeasons.isEmpty()) {
-                        movieSubscription = MolvixDB.getMovieBox().query().equal(Movie_.movieId, firstMovie.getMovieId()).build().subscribe().observer(data -> {
-                            if (!data.isEmpty()) {
-                                Movie retrievedMovie = data.get(0);
-                                if (retrievedMovie.equals(firstMovie) && retrievedMovie.getMovieArtUrl() != null) {
-                                    loadBitmapAndRecommendVideo(retrievedMovie.getMovieId(), retrievedMovie.getMovieArtUrl());
-                                }
-                            }
-                        });
+                    if (movieArtUrl == null || movieSeasons == null || movieSeasons.isEmpty()) {
                         new MovieContentsExtractionTask().execute(movieLink, movieId);
                     } else {
                         loadBitmapAndRecommendVideo(firstMovie.getMovieId(), firstMovie.getMovieArtUrl());
@@ -95,17 +83,17 @@ public class MovieTracker {
 
         @Override
         protected Void doInBackground(String... movieIds) {
-            ContentManager.extractMetaDataFromMovieLink(movieIds[0], movieIds[1]);
+            ContentManager.extractMetaDataFromMovieLink(movieIds[0], movieIds[1], (result, e) -> {
+                if (e==null&& result!=null){
+                    loadBitmapAndRecommendVideo(result.getMovieId(), result.getMovieArtUrl());
+                }
+            });
             return null;
         }
 
     }
 
     private static void loadBitmapAndRecommendVideo(String videoId, String artUrl) {
-        if (movieSubscription != null && !movieSubscription.isCanceled()) {
-            movieSubscription.cancel();
-            movieSubscription = null;
-        }
         if (bitmapLoadTask != null) {
             bitmapLoadTask.cancel(true);
             bitmapLoadTask = null;
