@@ -153,12 +153,11 @@ public class SeasonView extends FrameLayout {
                 if (e == null && result != null) {
                     EventBus.getDefault().post(new LoadEpisodesForSeason(result));
                 } else {
-                    UiUtils.showSafeToast("An error occurred while trying to resolve Season.Please try again");
+                    UiUtils.showSafeToast("Sorry,an error occurred while trying to resolve Season.Please try again");
                 }
             });
             return null;
         }
-
     }
 
     static class SeasonEpisodesExtractionTask extends AsyncTask<Void, Void, Void> {
