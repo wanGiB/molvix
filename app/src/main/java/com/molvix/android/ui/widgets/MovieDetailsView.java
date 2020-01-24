@@ -32,6 +32,7 @@ import com.molvix.android.models.Movie;
 import com.molvix.android.models.Season;
 import com.molvix.android.preferences.AppPrefs;
 import com.molvix.android.ui.adapters.EpisodesAdapter;
+import com.molvix.android.utils.ConnectivityUtils;
 import com.molvix.android.utils.UiUtils;
 
 import org.apache.commons.lang3.text.WordUtils;
@@ -99,7 +100,11 @@ public class MovieDetailsView extends FrameLayout {
             if (movie != null) {
                 List<Season> movieSeasons = movie.getSeasons();
                 if (movieSeasons == null || movieSeasons.isEmpty()) {
-                    spinMoviePullTask();
+                    if (ConnectivityUtils.isDeviceConnectedToTheInternet()) {
+                        spinMoviePullTask();
+                    } else {
+                        UiUtils.showSafeToast("Please connect to the internet and try again.");
+                    }
                 } else {
                     loadMovieDetails(movie);
                 }
