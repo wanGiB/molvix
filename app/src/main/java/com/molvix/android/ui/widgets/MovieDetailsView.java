@@ -23,12 +23,12 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.molvix.android.R;
+import com.molvix.android.contracts.DoneCallback;
 import com.molvix.android.database.MolvixDB;
 import com.molvix.android.managers.ContentManager;
 import com.molvix.android.managers.MovieManager;
 import com.molvix.android.models.Episode;
 import com.molvix.android.models.Movie;
-import com.molvix.android.models.Movie_;
 import com.molvix.android.models.Season;
 import com.molvix.android.preferences.AppPrefs;
 import com.molvix.android.ui.adapters.EpisodesAdapter;
@@ -40,7 +40,6 @@ import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import io.objectbox.reactive.DataSubscription;
 
 public class MovieDetailsView extends FrameLayout {
 
@@ -63,7 +62,6 @@ public class MovieDetailsView extends FrameLayout {
     private MoviePullTask moviePullTask;
 
     private String movieId;
-    private DataSubscription movieSubscription;
     private Handler mUIHandler = new Handler();
     private BottomSheetDialog bottomSheetDialog;
     private SharedPreferences.OnSharedPreferenceChangeListener onSharedPreferenceChangeListener;
@@ -99,7 +97,6 @@ public class MovieDetailsView extends FrameLayout {
             loadingLayoutProgressMsgView.setText(getContext().getString(R.string.please_wait));
             Movie movie = MolvixDB.getMovie(movieId);
             if (movie != null) {
-                addMovieChangeListener();
                 List<Season> movieSeasons = movie.getSeasons();
                 if (movieSeasons == null || movieSeasons.isEmpty()) {
                     spinMoviePullTask();
@@ -156,7 +153,11 @@ public class MovieDetailsView extends FrameLayout {
             moviePullTask.cancel(true);
             moviePullTask = null;
         }
-        moviePullTask = new MoviePullTask(movieId);
+        moviePullTask = new MoviePullTask(movieId, (result, e) -> {
+            if (result != null && e == null) {
+                loadMovieDetails(result);
+            }
+        });
         moviePullTask.execute();
     }
 
@@ -185,34 +186,12 @@ public class MovieDetailsView extends FrameLayout {
     }
 
     private void initBackButton() {
-        backButton.setOnClickListener(v -> {
-            removeMovieChangeListener();
-            ((ViewGroup) getParent()).removeView(MovieDetailsView.this);
-        });
-    }
-
-    private void addMovieChangeListener() {
-        movieSubscription = MolvixDB.getMovieBox().query().equal(Movie_.movieId, movieId).build().subscribe().observer(data -> {
-            if (!data.isEmpty()) {
-                Movie firstUpdatedMovie = data.get(0);
-                if (firstUpdatedMovie != null && firstUpdatedMovie.getMovieId().equals(movieId) && firstUpdatedMovie.getMovieArtUrl() != null && firstUpdatedMovie.getSeasons() != null && !firstUpdatedMovie.getSeasons().isEmpty()) {
-                    loadMovieDetails(firstUpdatedMovie);
-                }
-            }
-        });
-    }
-
-    public void removeMovieChangeListener() {
-        if (movieSubscription != null && !movieSubscription.isCanceled()) {
-            movieSubscription.cancel();
-            movieSubscription = null;
-        }
+        backButton.setOnClickListener(v -> ((ViewGroup) getParent()).removeView(MovieDetailsView.this));
     }
 
     @Override
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
-        removeMovieChangeListener();
         if (onSharedPreferenceChangeListener != null) {
             AppPrefs.getAppPreferences().unregisterOnSharedPreferenceChangeListener(onSharedPreferenceChangeListener);
             onSharedPreferenceChangeListener = null;
@@ -222,16 +201,18 @@ public class MovieDetailsView extends FrameLayout {
     static class MoviePullTask extends AsyncTask<Void, Void, Void> {
 
         private String movieId;
+        private DoneCallback<Movie> movieDoneLoadingCallBack;
 
-        MoviePullTask(String movieId) {
+        MoviePullTask(String movieId, DoneCallback<Movie> movieDoneLoadingCallBack) {
             this.movieId = movieId;
+            this.movieDoneLoadingCallBack = movieDoneLoadingCallBack;
         }
 
         @Override
         protected Void doInBackground(Void... voids) {
             Movie movie = MolvixDB.getMovie(movieId);
             if (movie != null) {
-                ContentManager.extractMetaDataFromMovieLink(movie.getMovieLink(), movie.getMovieId());
+                ContentManager.extractMetaDataFromMovieLink(movie.getMovieLink(), movie.getMovieId(), (result, e) -> movieDoneLoadingCallBack.done(result, e));
             }
             return null;
         }

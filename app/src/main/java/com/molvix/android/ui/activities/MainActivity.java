@@ -185,6 +185,7 @@ public class MainActivity extends BaseActivity {
             @Override
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
+                Log.d(ContentManager.class.getSimpleName(), "onPageEnded with url=" + url)
                 String mimeTypeOfUrl = FileUtils.getMimeType(url);
                 if (!mimeTypeOfUrl.toLowerCase().contains("video")) {
                     injectMagicScript(hackWebView);
@@ -194,6 +195,7 @@ public class MainActivity extends BaseActivity {
             @Override
             public void onPageStarted(WebView view, String url, Bitmap favicon) {
                 super.onPageStarted(view, url, favicon);
+                Log.d(ContentManager.class.getSimpleName(), "onPageStarted with url=" + url)
                 String mimeTypeOfUrl = FileUtils.getMimeType(url);
                 if (mimeTypeOfUrl.toLowerCase().contains("video")) {
                     hackWebView.stopLoading();
