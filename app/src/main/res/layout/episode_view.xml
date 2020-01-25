@@ -7,15 +7,29 @@
     android:background="@color/incoming_bubbles_color"
     android:orientation="vertical">
 
-    <com.molvix.android.ui.widgets.MolvixTextView
-        android:id="@+id/episode_name_view"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="8dp"
-        android:text="Episode"
-        android:textColor="@color/blue_grey_active"
-        android:textSize="15sp"
-        app:textStyle="medium" />
+        android:orientation="horizontal">
+
+        <com.molvix.android.ui.widgets.MolvixTextView
+            android:id="@+id/episode_name_view"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:padding="8dp"
+            android:text="Episode"
+            android:textColor="@color/blue_grey_active"
+            android:textSize="15sp"
+            app:textStyle="medium" />
+
+        <View
+            android:id="@+id/clickable_dummy_view"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_weight="1" />
+
+    </LinearLayout>
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -27,8 +41,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentStart="true"
-            android:layout_gravity="center_vertical"
             android:layout_centerVertical="true"
+            android:layout_gravity="center_vertical"
             android:entries="@array/episode_download_options" />
 
         <com.molvix.android.ui.widgets.MolvixTextView
@@ -36,9 +50,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
             android:layout_gravity="center_vertical"
             android:drawablePadding="5dp"
-            android:layout_centerVertical="true"
             android:paddingStart="8dp"
             android:paddingEnd="16dp"
             android:text="@string/download"

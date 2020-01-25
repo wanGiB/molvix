@@ -76,6 +76,9 @@ public class EpisodeView extends FrameLayout {
     @BindView(R.id.cancel_download_btn)
     Button cancelDownloadBtn;
 
+    @BindView(R.id.clickable_dummy_view)
+    View clickableDummyView;
+
     private Episode episode;
     private Season season;
     private Movie movie;
@@ -208,7 +211,7 @@ public class EpisodeView extends FrameLayout {
                 }
             }
         });
-        episodeNameView.setOnClickListener(v -> downloadButtonOrPlayButton.performClick());
+        clickableDummyView.setOnClickListener(v -> downloadButtonOrPlayButton.performClick());
     }
 
     private void checkEpisodeActiveDownloadStatus(Episode episode) {
