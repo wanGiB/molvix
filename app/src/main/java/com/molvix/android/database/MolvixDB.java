@@ -4,7 +4,6 @@ import android.os.AsyncTask;
 import android.util.Pair;
 
 import com.molvix.android.beans.MoviesToSave;
-import com.molvix.android.contracts.DoneCallback;
 import com.molvix.android.models.DownloadableEpisode;
 import com.molvix.android.models.DownloadableEpisode_;
 import com.molvix.android.models.Episode;
@@ -29,7 +28,7 @@ public class MolvixDB {
         return ObjectBox.get().boxFor(DownloadableEpisode.class);
     }
 
-    public static Box<Episode> getEpisodeBox() {
+    private static Box<Episode> getEpisodeBox() {
         return ObjectBox.get().boxFor(Episode.class);
     }
 
@@ -104,40 +103,10 @@ public class MolvixDB {
 
     public static void updateEpisode(Episode episode) {
         getEpisodeBox().put(episode);
-        AppPrefs.setEpisodeUpdated(episode.getEpisodeId());
     }
 
     public static void createNewNotification(Notification newNotification) {
         getNotificationBox().put(newNotification);
-    }
-
-    public static void fetchRecommendableMovies(DoneCallback<List<Movie>> fetchDoneCallBack) {
-        new FetchRecommendableMoviesTask(fetchDoneCallBack).execute();
-    }
-
-    public static void updateNotification(Notification notification) {
-        getNotificationBox().put(notification);
-    }
-
-    static class FetchRecommendableMoviesTask extends AsyncTask<Void, Void, List<Movie>> {
-
-        private DoneCallback<List<Movie>> moviesFetchDoneCallBack;
-
-        FetchRecommendableMoviesTask(DoneCallback<List<Movie>> moviesFetchDoneCallBack) {
-            this.moviesFetchDoneCallBack = moviesFetchDoneCallBack;
-        }
-
-        @Override
-        protected List<Movie> doInBackground(Void... voids) {
-            return getMovieBox().query().equal(Movie_.recommendedToUser, false).build().find();
-        }
-
-        @Override
-        protected void onPostExecute(List<Movie> movies) {
-            super.onPostExecute(movies);
-            moviesFetchDoneCallBack.done(movies, null);
-        }
-
     }
 
     static class BulkSaveTask extends AsyncTask<MoviesToSave, Void, Void> {

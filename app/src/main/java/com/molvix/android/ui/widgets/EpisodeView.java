@@ -3,7 +3,6 @@ package com.molvix.android.ui.widgets;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.util.AttributeSet;
@@ -80,8 +79,6 @@ public class EpisodeView extends FrameLayout {
     private Movie movie;
     private Animation mFadeInFadeIn;
 
-    private SharedPreferences.OnSharedPreferenceChangeListener onSharedPreferenceChangeListener;
-
     public EpisodeView(@NonNull Context context) {
         super(context);
         init(context);
@@ -115,60 +112,6 @@ public class EpisodeView extends FrameLayout {
         initDownloadOrPlayButtonEventListener(episode, episodeName);
         checkEpisodeActiveDownloadStatus(episode);
         initCancelActiveDownloadButtonEventListener();
-        listenToDownloadStatus();
-    }
-
-    private void listenToDownloadStatus() {
-        onSharedPreferenceChangeListener = (sharedPreferences, key) -> {
-            if (key.contains(AppConstants.EPISODE)) {
-                String episodeId = key.replace(AppConstants.EPISODE, "").trim();
-                if (episodeId.equals(episode.getEpisodeId())) {
-                    String downloadProgressText = AppPrefs.getEpisodeDownloadProgressText(episodeId);
-                    int downloadProgress = AppPrefs.getEpisodeDownloadProgress(episodeId);
-                    if (downloadProgress != -1) {
-                        if (downloadProgress == 0) {
-                            downloadButtonOrPlayButton.setText(getContext().getString(R.string.preparing));
-                            downloadButtonOrPlayButton.setCompoundDrawablesWithIntrinsicBounds(null, null, null, null);
-                            animateDownloadButton();
-                            UiUtils.toggleViewVisibility(downloadProgressContainer, false);
-                        } else {
-                            setToDownloadable();
-                            downloadButtonOrPlayButton.setText(getContext().getString(R.string.downloading));
-                            animateDownloadButton();
-                            //Download has started
-                            UiUtils.toggleViewVisibility(downloadProgressContainer, true);
-                            downloadProgressBar.setProgress(downloadProgress);
-                            downloadProgressTextView.setText(downloadProgressText);
-                        }
-                    } else {
-                        downloadButtonOrPlayButton.clearAnimation();
-                        UiUtils.toggleViewVisibility(downloadProgressContainer, false);
-                        checkToSeeIfEpisodeAlreadyDownloaded(episode, episode.getEpisodeName());
-                    }
-                    invalidate();
-                }
-            }
-        };
-        AppPrefs.getAppPreferences().registerOnSharedPreferenceChangeListener(onSharedPreferenceChangeListener);
-    }
-
-    @Override
-    protected void onDetachedFromWindow() {
-        super.onDetachedFromWindow();
-        removeEpisodeListener();
-    }
-
-    @Override
-    protected void onAttachedToWindow() {
-        super.onAttachedToWindow();
-        listenToDownloadStatus();
-    }
-
-    public void removeEpisodeListener() {
-        if (onSharedPreferenceChangeListener != null) {
-            AppPrefs.getAppPreferences().unregisterOnSharedPreferenceChangeListener(onSharedPreferenceChangeListener);
-            onSharedPreferenceChangeListener = null;
-        }
     }
 
     private void initCancelActiveDownloadButtonEventListener() {
@@ -214,6 +157,7 @@ public class EpisodeView extends FrameLayout {
             } else {
                 if (ConnectivityUtils.isDeviceConnectedToTheInternet()) {
                     if (AppPrefs.getEpisodeDownloadProgress(episode.getEpisodeId()) > -1) {
+                        UiUtils.showSafeToast("Download already in progress");
                         return;
                     }
                     int episodeQualitySelection = episodeDownloadOptionsSpinner.getSelectedItemPosition();
@@ -410,6 +354,8 @@ public class EpisodeView extends FrameLayout {
                 }
             } catch (IOException e) {
                 e.printStackTrace();
+                UiUtils.showSafeToast("Sorry, failed to download " + MolvixDB.getEpisode(episodeId).getEpisodeName() + ".Please try again.");
+                AppPrefs.updateEpisodeDownloadProgress(episodeId,-1);
             }
         }
     }

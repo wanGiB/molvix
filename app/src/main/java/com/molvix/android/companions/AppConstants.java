@@ -47,8 +47,8 @@ public class AppConstants {
     public static final String STANDARD_QUALITY_DOWNLOAD_LINK = "standardQualityDownloadLink";
     public static final String LOW_QUALITY_DOWNLOAD_LINK = "lowQualityDownloadLink";
     public static final String EPISODE_CAPTCHA_SOLVER_LINK = "episodeCaptchaSolverLink";
-    public static final String EPISODE_DOWNLOAD_PROGRESS = "downloadProgress";
-    public static final String EPISODE_DOWNLOAD_PROGRESS_TEXT = "progressDisplayText";
+    public static final String EPISODE_DOWNLOAD_PROGRESS = "EpisodeDownloadProgress";
+    public static final String EPISODE_DOWNLOAD_PROGRESS_TEXT = "EpisodeDownloadProgressText";
 
     public static final String INVOCATION_TYPE = "invocation_type";
     public static final String NAVIGATE_TO_SECOND_FRAGMENT = "navigate_to_second_fragment";

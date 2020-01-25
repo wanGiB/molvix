@@ -137,11 +137,6 @@ public class AppPrefs {
     }
 
     @SuppressLint("ApplySharedPref")
-    public static void setEpisodeUpdated(String episodeId) {
-        getAppPreferences().edit().putString(AppConstants.EPISODE + episodeId, AppConstants.UPDATED).commit();
-    }
-
-    @SuppressLint("ApplySharedPref")
     public static void addToInProgressDownloads(Episode episode) {
         Set<String> inProgressDownloads = getAppPreferences().getStringSet(AppConstants.IN_PROGRESS_DOWNLOADS, new HashSet<>());
         inProgressDownloads.add(episode.getEpisodeId());
