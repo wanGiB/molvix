@@ -4,7 +4,7 @@ import com.molvix.android.preferences.AppPrefs;
 
 public class MovieManager {
 
-    public static boolean canRefreshMovieDetails(String movieId) {
+    public static boolean canFetchMovieDetails(String movieId) {
         return AppPrefs.canRefreshMovieDetails(movieId);
     }
 
@@ -12,7 +12,7 @@ public class MovieManager {
         AppPrefs.clearAllRefreshedMovies();
     }
 
-    public static void addToRefreshedMovies(String movieId) {
+    static void addToRefreshedMovies(String movieId) {
         AppPrefs.addToRefreshedMovies(movieId);
     }
 

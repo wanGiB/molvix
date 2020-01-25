@@ -9,6 +9,7 @@ import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -35,6 +36,7 @@ import com.molvix.android.models.Season;
 import com.molvix.android.preferences.AppPrefs;
 import com.molvix.android.ui.adapters.EpisodesAdapter;
 import com.molvix.android.utils.ConnectivityUtils;
+import com.molvix.android.utils.RandomStringUtils;
 import com.molvix.android.utils.UiUtils;
 
 import org.apache.commons.lang3.text.WordUtils;
@@ -64,7 +66,6 @@ public class MovieDetailsView extends FrameLayout {
 
     private MoviePullTask moviePullTask;
 
-    private String movieId;
     private Handler mUIHandler = new Handler();
     private BottomSheetDialog bottomSheetDialog;
 
@@ -94,7 +95,6 @@ public class MovieDetailsView extends FrameLayout {
     }
 
     public void loadMovieDetails(String movieId) {
-        this.movieId = movieId;
         initBackButton();
         if (movieId != null) {
             MovieManager.setMovieRefreshable(movieId);
@@ -104,7 +104,7 @@ public class MovieDetailsView extends FrameLayout {
                 List<Season> movieSeasons = movie.getSeasons();
                 if (movieSeasons == null || movieSeasons.isEmpty()) {
                     if (ConnectivityUtils.isDeviceConnectedToTheInternet()) {
-                        pullMovieDetailsFromTheInternet();
+                        pullMovieDetailsFromTheInternet(movie);
                     } else {
                         UiUtils.showSafeToast("Please connect to the internet and try again.");
                     }
@@ -147,6 +147,15 @@ public class MovieDetailsView extends FrameLayout {
             }
         };
         AppPrefs.getAppPreferences().registerOnSharedPreferenceChangeListener(onSharedPreferenceChangeListener);
+        Button mutator = rootView.findViewById(R.id.mutator);
+        mutator.setOnClickListener(v -> {
+            Episode firstEpisode = seasonEpisodes.get(0);
+            String episodeId = firstEpisode.getEpisodeId();
+            for (int i = 0; i < 100; i++) {
+                AppPrefs.updateEpisodeDownloadProgress(episodeId, i);
+                AppPrefs.updateEpisodeDownloadProgressMsg(episodeId, RandomStringUtils.random(3));
+            }
+        });
     }
 
     public void removeEpisodeListener() {
@@ -173,9 +182,9 @@ public class MovieDetailsView extends FrameLayout {
         super.onDetachedFromWindow();
     }
 
-    private void pullMovieDetailsFromTheInternet() {
+    private void pullMovieDetailsFromTheInternet(Movie movie) {
         cancelPreviousMovieFetchTask();
-        moviePullTask = new MoviePullTask(movieId, (result, e) -> {
+        moviePullTask = new MoviePullTask(movie, (result, e) -> {
             if (result != null && e == null) {
                 loadMovieDetails(result);
             }
@@ -221,20 +230,17 @@ public class MovieDetailsView extends FrameLayout {
 
     static class MoviePullTask extends AsyncTask<Void, Void, Void> {
 
-        private String movieId;
+        private Movie movie;
         private DoneCallback<Movie> movieDoneLoadingCallBack;
 
-        MoviePullTask(String movieId, DoneCallback<Movie> movieDoneLoadingCallBack) {
-            this.movieId = movieId;
+        MoviePullTask(Movie movie, DoneCallback<Movie> movieDoneLoadingCallBack) {
+            this.movie = movie;
             this.movieDoneLoadingCallBack = movieDoneLoadingCallBack;
         }
 
         @Override
         protected Void doInBackground(Void... voids) {
-            Movie movie = MolvixDB.getMovie(movieId);
-            if (movie != null) {
-                ContentManager.extractMetaDataFromMovieLink(movie.getMovieLink(), movie.getMovieId(), (result, e) -> movieDoneLoadingCallBack.done(result, e));
-            }
+            ContentManager.extractMovieMetaData(movie, (result, e) -> movieDoneLoadingCallBack.done(result, e));
             return null;
         }
     }

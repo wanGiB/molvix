@@ -7,6 +7,7 @@ import android.net.Uri;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -66,11 +67,10 @@ public class NotificationView extends FrameLayout {
     }
 
     private void init(Context context) {
+        removeAllViews();
         @SuppressLint("InflateParams") View notificationView = LayoutInflater.from(context).inflate(R.layout.notificaton_view, null);
         ButterKnife.bind(this, notificationView);
-        removeAllViews();
-        addView(notificationView);
-        requestLayout();
+        addView(notificationView, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
     }
 
     @SuppressWarnings("ConstantConditions")

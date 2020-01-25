@@ -75,11 +75,9 @@ public class MovieTracker {
                 Movie firstMovie = recommendableMovies.get(0);
                 if (firstMovie != null) {
                     String movieArtUrl = firstMovie.getMovieArtUrl();
-                    String movieId = firstMovie.getMovieId();
-                    String movieLink = firstMovie.getMovieLink();
                     List<Season> movieSeasons = firstMovie.getSeasons();
                     if (movieArtUrl == null || movieSeasons == null || movieSeasons.isEmpty()) {
-                        new MovieContentsExtractionTask().execute(movieLink, movieId);
+                        new MovieContentsExtractionTask().execute(firstMovie);
                     } else {
                         loadBitmapAndRecommendVideo(firstMovie.getMovieId(), firstMovie.getMovieArtUrl());
                     }
@@ -88,13 +86,11 @@ public class MovieTracker {
         }).start();
     }
 
-    private static class MovieContentsExtractionTask extends AsyncTask<String, Void, Void> {
+    private static class MovieContentsExtractionTask extends AsyncTask<Movie, Void, Void> {
 
         @Override
-        protected Void doInBackground(String... movieIds) {
-            String movieLink = movieIds[0];
-            String movieId = movieIds[1];
-            ContentManager.extractMetaDataFromMovieLink(movieLink, movieId, (result, e) -> {
+        protected Void doInBackground(Movie... movies) {
+            ContentManager.extractMovieMetaData(movies[0], (result, e) -> {
                 if (e == null && result != null) {
                     loadBitmapAndRecommendVideo(result.getMovieId(), result.getMovieArtUrl());
                 }

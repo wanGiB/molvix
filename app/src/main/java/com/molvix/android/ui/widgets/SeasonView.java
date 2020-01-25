@@ -7,6 +7,7 @@ import android.os.AsyncTask;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 
@@ -66,11 +67,10 @@ public class SeasonView extends FrameLayout {
     }
 
     private void init(Context context) {
+        removeAllViews();
         @SuppressLint("InflateParams") View seasonView = LayoutInflater.from(context).inflate(R.layout.season_view, null);
         ButterKnife.bind(this, seasonView);
-        removeAllViews();
-        addView(seasonView);
-        requestLayout();
+        addView(seasonView, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
     }
 
     public void bindSeason(Season season) {
@@ -132,7 +132,7 @@ public class SeasonView extends FrameLayout {
                             UiUtils.showSafeToast("Sorry,an error occurred while fetching episodes for " + season.getSeasonName() + ".Please try again");
                         }
                     }));
-                    callableSeasonEpisodesExtractionTask.execute(season.getSeasonLink(), season.getSeasonId());
+                    callableSeasonEpisodesExtractionTask.execute(season);
                 } else {
                     UiUtils.showSafeToast("Please connect to the internet and try again.");
                 }
@@ -163,13 +163,13 @@ public class SeasonView extends FrameLayout {
     }
 
     private void loadSeasonEpisodes() {
-        if (SeasonsManager.canRefreshSeason(season.getSeasonId())) {
-            SeasonEpisodesExtractionTask seasonEpisodesExtractionTask = new SeasonEpisodesExtractionTask(season.getSeasonLink(), season.getSeasonId());
-            seasonEpisodesExtractionTask.execute();
+        if (SeasonsManager.canFetchSeasonDetails(season.getSeasonId())) {
+            SeasonEpisodesExtractionTask seasonEpisodesExtractionTask = new SeasonEpisodesExtractionTask();
+            seasonEpisodesExtractionTask.execute(season);
         }
     }
 
-    static class CallableSeasonEpisodesExtractionTask extends AsyncTask<String, Void, Void> {
+    static class CallableSeasonEpisodesExtractionTask extends AsyncTask<Season, Void, Void> {
 
         private DoneCallback<Season> seasonDoneCallback;
 
@@ -178,27 +178,18 @@ public class SeasonView extends FrameLayout {
         }
 
         @Override
-        protected Void doInBackground(String... input) {
-            String seasonLink = input[0];
-            String seasonId = input[1];
-            ContentManager.extractMetaDataFromMovieSeasonLink(seasonLink, seasonId, (result, e) -> seasonDoneCallback.done(result, e));
+        protected Void doInBackground(Season... seasons) {
+            ContentManager.extractMovieSeasonMetaData(seasons[0], (result, e) -> seasonDoneCallback.done(result, e));
             return null;
         }
 
     }
 
-    static class SeasonEpisodesExtractionTask extends AsyncTask<Void, Void, Void> {
-
-        private String seasonId, seasonLink;
-
-        SeasonEpisodesExtractionTask(String seasonLink, String seasonId) {
-            this.seasonId = seasonId;
-            this.seasonLink = seasonLink;
-        }
+    static class SeasonEpisodesExtractionTask extends AsyncTask<Season, Void, Void> {
 
         @Override
-        protected Void doInBackground(Void... voids) {
-            ContentManager.extractMetaDataFromMovieSeasonLink(seasonLink, seasonId);
+        protected Void doInBackground(Season... seasons) {
+            ContentManager.extractMovieSeasonMetaData(seasons[0]);
             return null;
         }
 

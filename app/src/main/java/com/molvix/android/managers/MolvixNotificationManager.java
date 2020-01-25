@@ -124,11 +124,11 @@ class MolvixNotificationManager {
             Log.d(ContentManager.class.getSimpleName(), "Movie Art Url for next notification is not null.About to display notification for the movie");
             new BitmapLoadTask(newMovieAvailableNotification).execute(movieArtUrl);
         } else {
-            new MovieContentsExtractionTask(newMovieAvailableNotification).execute(updatedMovie.getMovieLink(), updatedMovie.getMovieId());
+            new MovieContentsExtractionTask(newMovieAvailableNotification).execute(updatedMovie);
         }
     }
 
-    private static class MovieContentsExtractionTask extends AsyncTask<String, Void, Void> {
+    private static class MovieContentsExtractionTask extends AsyncTask<Movie, Void, Void> {
 
         private Notification notification;
 
@@ -137,10 +137,8 @@ class MolvixNotificationManager {
         }
 
         @Override
-        protected Void doInBackground(String... movieIds) {
-            String movieLink = movieIds[0];
-            String movieId = movieIds[1];
-            ContentManager.extractMetaDataFromMovieLink(movieLink, movieId, (result, e) -> {
+        protected Void doInBackground(Movie... movies) {
+            ContentManager.extractMovieMetaData(movies[0], (result, e) -> {
                 if (e == null && result != null) {
                     String movieArtUrl = result.getMovieArtUrl();
                     if (movieArtUrl != null) {

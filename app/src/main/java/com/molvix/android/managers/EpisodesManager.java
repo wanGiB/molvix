@@ -1,9 +1,12 @@
 package com.molvix.android.managers;
 
+import com.molvix.android.eventbuses.CheckForMoreContentsToDownload;
 import com.molvix.android.models.DownloadableEpisode;
 import com.molvix.android.models.Episode;
 import com.molvix.android.preferences.AppPrefs;
 import com.molvix.android.database.MolvixDB;
+
+import org.greenrobot.eventbus.EventBus;
 
 public class EpisodesManager {
 
@@ -24,6 +27,7 @@ public class EpisodesManager {
             MolvixDB.deleteDownloadableEpisode(downloadableEpisode);
             unLockCaptureSolver();
         }
+        EventBus.getDefault().post(new CheckForMoreContentsToDownload());
     }
 
     public static void lockCaptchaSolver(String episodeId) {

@@ -49,7 +49,6 @@ import java.util.Set;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import im.delight.android.webview.AdvancedWebView;
-import io.objectbox.reactive.DataSubscription;
 
 public class MainActivity extends BaseActivity {
 
@@ -65,7 +64,6 @@ public class MainActivity extends BaseActivity {
     @BindView(R.id.container)
     FrameLayout rootContainer;
 
-    private DataSubscription downloadableEpisodesSubscription;
     private MovieDetailsView movieDetailsView;
 
     @Override
@@ -75,11 +73,15 @@ public class MainActivity extends BaseActivity {
         ButterKnife.bind(this);
         initSearchBox();
         initNavBarTints();
-        EpisodesManager.unLockCaptureSolver();
-        initPager();
+        unLockAppCaptchaSolver();
+        setupViewPager();
         observeNewIntent(getIntent());
-        observeDownloadableEpisodes();
+        fetchDownloadableEpisodes();
         checkAndResumePausedDownloads();
+    }
+
+    private void unLockAppCaptchaSolver() {
+        EpisodesManager.unLockCaptureSolver();
     }
 
     private void checkAndResumePausedDownloads() {
@@ -87,7 +89,7 @@ public class MainActivity extends BaseActivity {
         if (!pausedDownloads.isEmpty()) {
             for (String episodeId : pausedDownloads) {
                 Episode episode = MolvixDB.getEpisode(episodeId);
-                if (episode != null) {
+                if (episode != null && AppPrefs.getEpisodeDownloadProgress(episodeId) == -1) {
                     FileDownloadManager.downloadEpisode(episode);
                 }
             }
@@ -112,7 +114,7 @@ public class MainActivity extends BaseActivity {
         });
     }
 
-    private void initPager() {
+    private void setupViewPager() {
         List<Fragment> fragments = new ArrayList<>();
         fragments.add(new HomeFragment());
         fragments.add(new NotificationsFragment());
@@ -170,30 +172,22 @@ public class MainActivity extends BaseActivity {
         });
     }
 
-    private void observeDownloadableEpisodes() {
-        downloadableEpisodesSubscription = MolvixDB.getDownloadableEpisodeBox().query().build().subscribe().observer(data -> {
-            for (DownloadableEpisode downloadableEpisode : data) {
-                DownloadableEpisode existingData = MolvixDB.getDownloadableEpisode(downloadableEpisode.getDownloadableEpisodeId());
-                if (existingData == null) {
-                    stopObservingDownloadableEpisodes();
-                    observeDownloadableEpisodes();
-                    return;
+    private void fetchDownloadableEpisodes() {
+        new Thread(() -> {
+            List<DownloadableEpisode> downloadableEpisodes = MolvixDB.getDownloadableEpisodeBox().query().build().find();
+            List<DownloadableEpisode> processed = new ArrayList<>();
+            if (!downloadableEpisodes.isEmpty()) {
+                for (DownloadableEpisode existingData : downloadableEpisodes) {
+                    Set<String> downloadsInProgress = AppPrefs.getInProgressDownloads();
+                    if (downloadsInProgress.contains(existingData.getDownloadableEpisodeId())) {
+                        MolvixDB.getDownloadableEpisodeBox().remove(existingData);
+                    } else {
+                        processed.add(existingData);
+                    }
                 }
-                Set<String> downloadsInProgress = AppPrefs.getInProgressDownloads();
-                if (downloadsInProgress.contains(existingData.getDownloadableEpisodeId())) {
-                    MolvixDB.getDownloadableEpisodeBox().remove(existingData);
-                    return;
-                }
+                processDownloadableEpisodes(processed);
             }
-            processDownloadableEpisodes(data);
-        });
-    }
-
-    private void stopObservingDownloadableEpisodes() {
-        if (downloadableEpisodesSubscription != null && !downloadableEpisodesSubscription.isCanceled()) {
-            downloadableEpisodesSubscription.cancel();
-            downloadableEpisodesSubscription = null;
-        }
+        }).start();
     }
 
     private void processDownloadableEpisodes(List<DownloadableEpisode> changedData) {
@@ -256,7 +250,7 @@ public class MainActivity extends BaseActivity {
             @Override
             public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
                 super.onReceivedError(view, request, error);
-                EpisodesManager.unLockCaptureSolver();
+                unLockAppCaptchaSolver();
             }
 
         });
@@ -266,13 +260,7 @@ public class MainActivity extends BaseActivity {
     @Override
     public void onResume() {
         super.onResume();
-        observeDownloadableEpisodes();
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        stopObservingDownloadableEpisodes();
+        fetchDownloadableEpisodes();
     }
 
     private void observeNewIntent(Intent intent) {

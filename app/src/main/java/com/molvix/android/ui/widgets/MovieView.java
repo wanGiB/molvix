@@ -7,6 +7,7 @@ import android.os.AsyncTask;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -15,7 +16,6 @@ import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 
 import com.molvix.android.R;
-import com.molvix.android.managers.AdsLoadManager;
 import com.molvix.android.managers.ContentManager;
 import com.molvix.android.managers.MovieManager;
 import com.molvix.android.models.Movie;
@@ -50,9 +50,6 @@ public class MovieView extends FrameLayout {
     @BindView(R.id.movie_seasons_count_view)
     TextView movieSeasonsCountView;
 
-    @BindView(R.id.admob_ad_view)
-    AdMobNativeAdView adMobNativeAdView;
-
     private Movie movie;
 
     private String searchString;
@@ -73,11 +70,10 @@ public class MovieView extends FrameLayout {
     }
 
     private void init(Context context) {
+        removeAllViews();
         @SuppressLint("InflateParams") View view = LayoutInflater.from(context).inflate(R.layout.movie_view, null);
         ButterKnife.bind(this, view);
-        removeAllViews();
-        addView(view);
-        requestLayout();
+        addView(view, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
     }
 
     public void setSearchString(String searchString) {
@@ -93,18 +89,7 @@ public class MovieView extends FrameLayout {
         this.movie = movie;
         setupMovieCoreData(movie);
         initEventHandlers(movie);
-        checkAndLoadAd();
         refreshMovieDetails(movie);
-    }
-
-    private void checkAndLoadAd() {
-        if (!AdsLoadManager.nativeAds.isEmpty() && !AdsLoadManager.adConsumed()) {
-            UiUtils.toggleViewVisibility(adMobNativeAdView, true);
-            adMobNativeAdView.loadInAd(AdsLoadManager.nativeAds.get(0));
-            AdsLoadManager.setAdConsumed(true);
-        } else {
-            UiUtils.toggleViewVisibility(adMobNativeAdView, false);
-        }
     }
 
     private void initEventHandlers(Movie movie) {
@@ -162,9 +147,9 @@ public class MovieView extends FrameLayout {
     }
 
     private void refreshMovieDetails(Movie movie) {
-        if (MovieManager.canRefreshMovieDetails(movie.getMovieId()) && ConnectivityUtils.isDeviceConnectedToTheInternet()) {
-            MovieMetadataExtractionTask movieMetadataExtractionTask = new MovieMetadataExtractionTask(movie.getMovieLink(), movie.getMovieId());
-            movieMetadataExtractionTask.execute();
+        if (MovieManager.canFetchMovieDetails(movie.getMovieId()) && ConnectivityUtils.isDeviceConnectedToTheInternet()) {
+            MovieMetadataExtractionTask movieMetadataExtractionTask = new MovieMetadataExtractionTask();
+            movieMetadataExtractionTask.execute(movie);
         }
     }
 
@@ -174,25 +159,11 @@ public class MovieView extends FrameLayout {
         refreshMovieDetails(movie);
     }
 
-    @Override
-    protected void onDetachedFromWindow() {
-        super.onDetachedFromWindow();
-        AdsLoadManager.destroyAds();
-    }
-
-    static class MovieMetadataExtractionTask extends AsyncTask<Void, Void, Void> {
-
-        private String movieLink;
-        private String movieId;
-
-        MovieMetadataExtractionTask(String movieLink, String movieId) {
-            this.movieLink = movieLink;
-            this.movieId = movieId;
-        }
+    static class MovieMetadataExtractionTask extends AsyncTask<Movie, Void, Void> {
 
         @Override
-        protected Void doInBackground(Void... voids) {
-            ContentManager.extractMetaDataFromMovieLink(movieLink, movieId);
+        protected Void doInBackground(Movie... movies) {
+            ContentManager.extractMovieMetaData(movies[0]);
             return null;
         }
 

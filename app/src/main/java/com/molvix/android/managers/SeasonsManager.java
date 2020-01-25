@@ -8,15 +8,11 @@ public class SeasonsManager {
         AppPrefs.addToRefreshedSeasons(seasonId);
     }
 
-    public static boolean canRefreshSeason(String seasonId) {
+    public static boolean canFetchSeasonDetails(String seasonId) {
         return AppPrefs.canRefreshSeasonDetails(seasonId);
     }
 
     public static void setSeasonRefreshable(String seasonId){
         AppPrefs.setSeasonRefreshable(seasonId);
     }
-    public static void clearAllRefreshedSeasons() {
-        AppPrefs.clearAllRefreshedSeasons();
-    }
-
 }

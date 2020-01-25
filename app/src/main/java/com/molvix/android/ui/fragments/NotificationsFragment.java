@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.molvix.android.R;
 import com.molvix.android.database.MolvixDB;
 import com.molvix.android.models.Notification;
@@ -44,6 +45,9 @@ public class NotificationsFragment extends BaseFragment {
     @BindView(R.id.notifications_empty_view)
     View notificationsEmptyView;
 
+    @BindView(R.id.btn_clear_all_notifications)
+    FloatingActionButton clearNotificationsFab;
+
     private List<Notification> notifications = new ArrayList<>();
     private NotificationsAdapter notificationsAdapter;
     private DataSubscription notificationsSubScription;
@@ -53,6 +57,17 @@ public class NotificationsFragment extends BaseFragment {
         View root = inflater.inflate(R.layout.fragment_notifications, container, false);
         ButterKnife.bind(this, root);
         return root;
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        clearNotificationsFab.setOnClickListener(v -> {
+            notifications.clear();
+            notificationsAdapter.notifyDataSetChanged();
+            MolvixDB.getNotificationBox().removeAll();
+            invalidateUI();
+        });
     }
 
     @SuppressWarnings("ConstantConditions")
@@ -96,6 +111,7 @@ public class NotificationsFragment extends BaseFragment {
 
     private void fetchNotifications() {
         notificationsSubScription = MolvixDB.getNotificationBox().query().build().subscribe().observer(this::loadNotifications);
+        new Handler().postDelayed(this::invalidateUI, 5000);
     }
 
     private void loadNotifications(List<Notification> results) {
@@ -116,8 +132,10 @@ public class NotificationsFragment extends BaseFragment {
         if (notifications.isEmpty()) {
             UiUtils.toggleViewVisibility(notificationsEmptyView, true);
             UiUtils.toggleViewVisibility(loadingView, false);
+            UiUtils.toggleViewVisibility(clearNotificationsFab, false);
         } else {
             UiUtils.toggleViewVisibility(contentLoadingView, false);
+            UiUtils.toggleViewVisibility(clearNotificationsFab, true);
         }
         swipeRefreshLayout.setRefreshing(false);
     }

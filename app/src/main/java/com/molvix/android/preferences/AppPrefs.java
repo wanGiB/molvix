@@ -107,13 +107,6 @@ public class AppPrefs {
     }
 
     @SuppressLint("ApplySharedPref")
-    public static void clearAllRefreshedSeasons() {
-        Set<String> refreshedSeasons = getAppPreferences().getStringSet(AppConstants.REFRESHED_SEASONS, new HashSet<>());
-        refreshedSeasons.clear();
-        getAppPreferences().edit().putStringSet(AppConstants.REFRESHED_SEASONS, refreshedSeasons).commit();
-    }
-
-    @SuppressLint("ApplySharedPref")
     public static void setSeasonRefreshable(String seasonId) {
         Set<String> refreshedSeasons = getAppPreferences().getStringSet(AppConstants.REFRESHED_SEASONS, new HashSet<>());
         refreshedSeasons.remove(seasonId);
@@ -184,7 +177,7 @@ public class AppPrefs {
     }
 
     public static String getEpisodeDownloadProgressText(String episodeId) {
-        return getAppPreferences().getString(AppConstants.EPISODE_DOWNLOAD_PROGRESS_TEXT + episodeId, null);
+        return getAppPreferences().getString(AppConstants.EPISODE_DOWNLOAD_PROGRESS_TEXT + episodeId, "");
     }
 
     public static int getEpisodeDownloadProgress(String episodeId) {

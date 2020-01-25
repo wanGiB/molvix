@@ -9,6 +9,7 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.widget.Button;
 import android.widget.FrameLayout;
@@ -95,12 +96,11 @@ public class EpisodeView extends FrameLayout {
     }
 
     private void init(Context context) {
+        removeAllViews();
         mFadeInFadeIn = UiUtils.getAnimation(getContext(), android.R.anim.fade_in);
         @SuppressLint("InflateParams") View rootView = LayoutInflater.from(context).inflate(R.layout.episode_view, null);
         ButterKnife.bind(this, rootView);
-        removeAllViews();
-        addView(rootView);
-        requestLayout();
+        addView(rootView, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
     }
 
     public void bindEpisode(Episode episode) {
@@ -109,8 +109,8 @@ public class EpisodeView extends FrameLayout {
         movie = season.getMovie();
         String episodeName = setupEpisodeName(episode);
         initSpinner(episode);
-        initDownloadOrPlayButtonEventListener(episode, episodeName);
         checkEpisodeActiveDownloadStatus(episode);
+        initDownloadOrPlayButtonEventListener(episode, episodeName);
         initCancelActiveDownloadButtonEventListener();
     }
 
@@ -144,7 +144,7 @@ public class EpisodeView extends FrameLayout {
                 } else {
                     downloadUrl = episode.getLowQualityDownloadLink();
                 }
-                String fileExtension = StringUtils.substringAfter(downloadUrl, ".");
+                String fileExtension = StringUtils.substringAfterLast(downloadUrl, ".");
                 String fileName = episodeName + "." + fileExtension;
                 File downloadedFile = FileUtils.getFilePath(fileName, WordUtils.capitalize(movie.getMovieName()), season.getSeasonName());
                 if (downloadedFile.exists()) {
@@ -223,7 +223,7 @@ public class EpisodeView extends FrameLayout {
                 downloadUrl = episode.getLowQualityDownloadLink();
             }
             if (downloadUrl != null) {
-                String fileExtension = StringUtils.substringAfter(downloadUrl, ".");
+                String fileExtension = StringUtils.substringAfterLast(downloadUrl, ".");
                 String fileName = episodeName + "." + fileExtension;
                 File existingFile = FileUtils.getFilePath(fileName, WordUtils.capitalize(movie.getMovieName()), WordUtils.capitalize(season.getSeasonName()));
                 if (existingFile.exists()) {
@@ -275,88 +275,87 @@ public class EpisodeView extends FrameLayout {
     }
 
     private void extractEpisodeDownloadOptions(Episode episode) {
-        new EpisodeDownloadOptionsExtractionTask(episode.getEpisodeId()).execute();
+        new EpisodeDownloadOptionsExtractionTask(episode).execute();
     }
 
     static class EpisodeDownloadOptionsExtractionTask extends AsyncTask<Void, Void, Void> {
 
-        private String episodeId;
+        public Episode episode;
 
-        EpisodeDownloadOptionsExtractionTask(String episodeId) {
-            this.episodeId = episodeId;
+        EpisodeDownloadOptionsExtractionTask(Episode episode) {
+            this.episode = episode;
         }
 
         @Override
         protected Void doInBackground(Void... voids) {
-            fetchDownloadOptionsForEpisode(episodeId);
+            fetchDownloadOptionsForEpisode(episode);
             return null;
         }
 
-        private void fetchDownloadOptionsForEpisode(String episodeId) {
+        private void fetchDownloadOptionsForEpisode(Episode episode) {
             try {
-                Episode episode = MolvixDB.getEpisode(episodeId);
-                if (episode != null) {
-                    Document episodeDocument = Jsoup.connect(episode.getEpisodeLink()).get();
-                    //Bring out all href elements containing
-                    Elements links = episodeDocument.select("a[href]");
-                    if (links != null && !links.isEmpty()) {
-                        List<String> downloadOptions = new ArrayList<>();
-                        for (Element link : links) {
-                            String episodeFileName = link.text();
-                            String episodeDownloadLink = link.attr("href");
-                            if (episodeDownloadLink.contains(AppConstants.DOWNLOADABLE)) {
-                                Log.d(TAG, episodeFileName + ", " + episodeDownloadLink);
-                                downloadOptions.add(episodeDownloadLink);
+                Document episodeDocument = Jsoup.connect(episode.getEpisodeLink()).get();
+                //Bring out all href elements containing download
+                Elements links = episodeDocument.select("a[href]");
+                if (links != null && !links.isEmpty()) {
+                    List<String> downloadOptions = new ArrayList<>();
+                    for (Element link : links) {
+                        String episodeFileName = link.text();
+                        String episodeDownloadLink = link.attr("href");
+                        if (episodeDownloadLink.contains(AppConstants.DOWNLOADABLE)) {
+                            Log.d(TAG, episodeFileName + ", " + episodeDownloadLink);
+                            downloadOptions.add(episodeDownloadLink);
+                        }
+                    }
+                    if (!downloadOptions.isEmpty()) {
+                        String episodeCaptchaSolverLink = null;
+                        if (downloadOptions.size() == 2) {
+                            try {
+                                String standard = downloadOptions.get(0);
+                                String lowest = downloadOptions.get(1);
+                                if (episode.getEpisodeQuality() == AppConstants.HIGH_QUALITY || episode.getEpisodeQuality() == AppConstants.STANDARD_QUALITY) {
+                                    episodeCaptchaSolverLink = standard;
+                                } else {
+                                    episodeCaptchaSolverLink = lowest;
+                                }
+                            } catch (Exception ignored) {
+
+                            }
+                        } else if (downloadOptions.size() == 3) {
+                            try {
+                                String standard = downloadOptions.get(0);
+                                String highest = downloadOptions.get(1);
+                                String lowest = downloadOptions.get(2);
+                                if (episode.getEpisodeQuality() == AppConstants.HIGH_QUALITY) {
+                                    episodeCaptchaSolverLink = highest;
+                                } else if (episode.getEpisodeQuality() == AppConstants.STANDARD_QUALITY) {
+                                    episodeCaptchaSolverLink = standard;
+                                } else {
+                                    episodeCaptchaSolverLink = lowest;
+                                }
+                            } catch (Exception e) {
+                                e.printStackTrace();
                             }
                         }
-                        if (!downloadOptions.isEmpty()) {
-                            String episodeCaptchaSolverLink = null;
-                            if (downloadOptions.size() == 2) {
-                                try {
-                                    String standard = downloadOptions.get(0);
-                                    String lowest = downloadOptions.get(1);
-                                    if (episode.getEpisodeQuality() == AppConstants.HIGH_QUALITY || episode.getEpisodeQuality() == AppConstants.STANDARD_QUALITY) {
-                                        episodeCaptchaSolverLink = standard;
-                                    } else {
-                                        episodeCaptchaSolverLink = lowest;
-                                    }
-                                } catch (Exception ignored) {
-
-                                }
-                            } else if (downloadOptions.size() == 3) {
-                                try {
-                                    String standard = downloadOptions.get(0);
-                                    String highest = downloadOptions.get(1);
-                                    String lowest = downloadOptions.get(2);
-                                    if (episode.getEpisodeQuality() == AppConstants.HIGH_QUALITY) {
-                                        episodeCaptchaSolverLink = highest;
-                                    } else if (episode.getEpisodeQuality() == AppConstants.STANDARD_QUALITY) {
-                                        episodeCaptchaSolverLink = standard;
-                                    } else {
-                                        episodeCaptchaSolverLink = lowest;
-                                    }
-                                } catch (Exception e) {
-                                    e.printStackTrace();
-                                }
-                            }
-                            String finalEpisodeCaptchaSolverLink = episodeCaptchaSolverLink;
-                            if (finalEpisodeCaptchaSolverLink != null) {
-                                episode.setEpisodeCaptchaSolverLink(finalEpisodeCaptchaSolverLink);
-                                MolvixDB.updateEpisode(episode);
-                                EpisodesManager.enqueDownloadableEpisode(episode);
-                            } else {
-                                UiUtils.showSafeToast("Sorry, failed to download " + episode.getEpisodeName() + ".Please try again.");
-                                AppPrefs.updateEpisodeDownloadProgress(episodeId,-1);
-                                MolvixDB.updateEpisode(episode);
-                            }
+                        String finalEpisodeCaptchaSolverLink = episodeCaptchaSolverLink;
+                        if (finalEpisodeCaptchaSolverLink != null) {
+                            episode.setEpisodeCaptchaSolverLink(finalEpisodeCaptchaSolverLink);
+                            MolvixDB.updateEpisode(episode);
+                            EpisodesManager.enqueDownloadableEpisode(episode);
+                        } else {
+                            UiUtils.showSafeToast("Sorry, failed to download " + episode.getEpisodeName() + ".Please try again.");
+                            AppPrefs.updateEpisodeDownloadProgress(episode.getEpisodeId(), -1);
+                            MolvixDB.updateEpisode(episode);
                         }
                     }
                 }
+
             } catch (IOException e) {
                 e.printStackTrace();
-                UiUtils.showSafeToast("Sorry, failed to download " + MolvixDB.getEpisode(episodeId).getEpisodeName() + ".Please try again.");
-                AppPrefs.updateEpisodeDownloadProgress(episodeId,-1);
+                UiUtils.showSafeToast("Sorry, failed to download " + episode.getEpisodeName() + ".Please try again.");
+                AppPrefs.updateEpisodeDownloadProgress(episode.getEpisodeId(), -1);
             }
         }
     }
+
 }

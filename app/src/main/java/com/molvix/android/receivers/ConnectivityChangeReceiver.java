@@ -21,9 +21,11 @@ import java.util.Set;
 
 public class ConnectivityChangeReceiver extends BroadcastReceiver {
     private NotificationsPullTask notificationsPullTask;
+    private DeletedContentCleanUpTask deletedContentCleanUpTask;
 
     @Override
     public void onReceive(Context context, Intent intent) {
+        performDeletedContentsCleanUp();
         if (intent.getAction() == null) {
             return;
         }
@@ -58,11 +60,29 @@ public class ConnectivityChangeReceiver extends BroadcastReceiver {
         notificationsPullTask.execute();
     }
 
+    private void performDeletedContentsCleanUp() {
+        if (deletedContentCleanUpTask != null) {
+            deletedContentCleanUpTask.cancel(true);
+            deletedContentCleanUpTask = null;
+        }
+        deletedContentCleanUpTask = new DeletedContentCleanUpTask();
+        deletedContentCleanUpTask.execute();
+    }
+
     static class NotificationsPullTask extends AsyncTask<Void, Void, Void> {
 
         @Override
         protected Void doInBackground(Void... voids) {
             ContentManager.fetchNotifications();
+            return null;
+        }
+    }
+
+    static class DeletedContentCleanUpTask extends AsyncTask<Void, Void, Void> {
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            ContentManager.cleanUpDeletedContents();
             return null;
         }
     }
