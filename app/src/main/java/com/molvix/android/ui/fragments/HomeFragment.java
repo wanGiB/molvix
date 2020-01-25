@@ -34,7 +34,6 @@ import com.molvix.android.utils.UiUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.greenrobot.eventbus.EventBus;
 
-import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -87,14 +86,9 @@ public class HomeFragment extends BaseFragment {
     public void onResume() {
         super.onResume();
         MovieManager.clearAllRefreshedMovies();
-        fetchMovies();
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        removeAllMoviesSubscription();
-        removeAllMoviesSubscription();
+        if (movies.isEmpty()) {
+            fetchMovies();
+        }
     }
 
     private void removeAllMoviesSubscription() {
@@ -196,6 +190,12 @@ public class HomeFragment extends BaseFragment {
         setupSwipeRefreshLayoutColorScheme();
         initMoviesAdapter();
         fetchMovies();
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        removeAllMoviesSubscription();
     }
 
     @SuppressWarnings("ConstantConditions")
@@ -323,7 +323,7 @@ public class HomeFragment extends BaseFragment {
         protected Void doInBackground(Void... voids) {
             try {
                 ContentManager.grabMovies();
-            } catch (IOException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
                 EventBus.getDefault().post(e);
             }

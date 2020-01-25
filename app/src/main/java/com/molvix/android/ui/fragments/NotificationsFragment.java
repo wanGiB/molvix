@@ -1,6 +1,7 @@
 package com.molvix.android.ui.fragments;
 
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -8,7 +9,6 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
-import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
@@ -27,7 +27,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import io.objectbox.reactive.DataSubscription;
 
-public class NotificationsFragment extends Fragment {
+public class NotificationsFragment extends BaseFragment {
 
     @BindView(R.id.notifications_recycler_view)
     RecyclerView notificationsRecyclerView;
@@ -46,7 +46,6 @@ public class NotificationsFragment extends Fragment {
 
     private List<Notification> notifications = new ArrayList<>();
     private NotificationsAdapter notificationsAdapter;
-    private StickyRecyclerHeadersDecoration stickyRecyclerHeadersDecoration;
     private DataSubscription notificationsSubScription;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -74,14 +73,8 @@ public class NotificationsFragment extends Fragment {
     }
 
     @Override
-    public void onResume() {
-        super.onResume();
-        fetchNotifications();
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
+    public void onDetach() {
+        super.onDetach();
         removeNotificationsChangeListener();
     }
 
@@ -96,7 +89,7 @@ public class NotificationsFragment extends Fragment {
         notificationsAdapter = new NotificationsAdapter(getActivity());
         notificationsAdapter.setNotifications(notifications);
         notificationsRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
-        stickyRecyclerHeadersDecoration = new StickyRecyclerHeadersDecoration(notificationsAdapter);
+        StickyRecyclerHeadersDecoration stickyRecyclerHeadersDecoration = new StickyRecyclerHeadersDecoration(notificationsAdapter);
         notificationsRecyclerView.addItemDecoration(stickyRecyclerHeadersDecoration);
         notificationsRecyclerView.setAdapter(notificationsAdapter);
     }
@@ -106,13 +99,14 @@ public class NotificationsFragment extends Fragment {
     }
 
     private void loadNotifications(List<Notification> results) {
-        if (!notifications.containsAll(results)) {
-            notifications.addAll(results);
-            notificationsAdapter.notifyDataSetChanged();
-            stickyRecyclerHeadersDecoration.invalidateHeaders();
-            for (Notification notification : results) {
-                notification.setSeen(true);
-                MolvixDB.updateNotification(notification);
+        for (Notification notification : results) {
+            if (!notifications.contains(notification)) {
+                notifications.add(notification);
+                if (notifications.size() == 1) {
+                    notificationsAdapter.notifyDataSetChanged();
+                } else {
+                    notificationsAdapter.notifyItemInserted(notifications.size() - 1);
+                }
             }
         }
         invalidateUI();
@@ -124,8 +118,8 @@ public class NotificationsFragment extends Fragment {
             UiUtils.toggleViewVisibility(loadingView, false);
         } else {
             UiUtils.toggleViewVisibility(contentLoadingView, false);
-            swipeRefreshLayout.setRefreshing(false);
         }
+        swipeRefreshLayout.setRefreshing(false);
     }
 
 }

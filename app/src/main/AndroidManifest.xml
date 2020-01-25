@@ -27,9 +27,9 @@
 
         <activity
             android:name=".ui.activities.MainActivity"
-            android:screenOrientation="portrait"
             android:label="@string/app_name"
             android:launchMode="singleTop"
+            android:screenOrientation="portrait"
             android:windowSoftInputMode="stateHidden|adjustPan" />
 
         <activity android:name=".ui.activities.SplashActivity">
@@ -38,9 +38,13 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".ui.activities.EmptyContentActivity" />
+        <activity
+            android:name=".ui.activities.EmptyContentActivity"
+            android:launchMode="singleTop" />
+
         <receiver
-            android:name=".receivers.ConnectivityChangeReceiver">
+            android:name=".receivers.ConnectivityChangeReceiver"
+            android:enabled="true">
             <intent-filter>
                 <action
                     android:name="android.net.conn.CONNECTIVITY_CHANGE"

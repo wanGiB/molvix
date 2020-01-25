@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 
 import java.text.SimpleDateFormat;
 import java.util.Locale;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class AppConstants {
 
@@ -74,4 +75,7 @@ public class AppConstants {
     public static final String DISPLAY_MOVIE = "display_movie";
     public static final String IN_PROGRESS_DOWNLOADS = "in_progress_downloads";
     public static final String DOWNLOAD = "OngoingDownload_";
+
+    public static final String EPISODE_FROM_MOVIE = "Episode_From_Movie_";
+    public static final String MOVIE_EPISODES_DOWNLOADING = "MovieEpisodesDownloading";
 }

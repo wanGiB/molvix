@@ -23,8 +23,6 @@ public class Episode {
     public String standardQualityDownloadLink;
     public String lowQualityDownloadLink;
     public String episodeCaptchaSolverLink;
-    public int downloadProgress = -1;
-    public String progressDisplayText;
 
     public long getId() {
         return id;
@@ -104,22 +102,6 @@ public class Episode {
 
     public void setEpisodeCaptchaSolverLink(String episodeCaptchaSolverLink) {
         this.episodeCaptchaSolverLink = episodeCaptchaSolverLink;
-    }
-
-    public int getDownloadProgress() {
-        return downloadProgress;
-    }
-
-    public void setDownloadProgress(int downloadProgress) {
-        this.downloadProgress = downloadProgress;
-    }
-
-    public String getProgressDisplayText() {
-        return progressDisplayText;
-    }
-
-    public void setProgressDisplayText(String progressDisplayText) {
-        this.progressDisplayText = progressDisplayText;
     }
 
     @Override

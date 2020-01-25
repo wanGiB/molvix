@@ -97,7 +97,7 @@ public class SeasonView extends FrameLayout {
                 });
     }
 
-    private void removeSeasonChangeListener() {
+    public void removeSeasonChangeListener() {
         if (seasonSubscription != null && !seasonSubscription.isCanceled()) {
             seasonSubscription.cancel();
             seasonSubscription = null;
@@ -184,6 +184,7 @@ public class SeasonView extends FrameLayout {
             ContentManager.extractMetaDataFromMovieSeasonLink(seasonLink, seasonId, (result, e) -> seasonDoneCallback.done(result, e));
             return null;
         }
+
     }
 
     static class SeasonEpisodesExtractionTask extends AsyncTask<Void, Void, Void> {

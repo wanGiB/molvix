@@ -45,7 +45,6 @@ public class FileDownloadManager {
         String fileExtension = StringUtils.substringAfterLast(downloadUrl, ".");
         String fileName = episode.getEpisodeName() + "." + fileExtension;
         String dirPath = FileUtils.getFilePath(movieName, seasonName).getPath();
-        String downloadIdKey = dirPath + fileName;
         int downloadId = PRDownloader
                 .download(downloadUrl, dirPath, fileName)
                 .build()
@@ -58,15 +57,21 @@ public class FileDownloadManager {
 
                     @Override
                     public void onError(Error error) {
+                        resetEpisodeDownloadProgress(episode);
                         cleanUpTempFiles(movieName, seasonName);
                     }
 
                 });
-        AppPrefs.saveDownloadId(downloadIdKey, downloadId);
+        AppPrefs.saveDownloadId(getDownloadKey(episode), downloadId);
+    }
+
+    private static void resetEpisodeDownloadProgress(Episode episode) {
+        AppPrefs.updateEpisodeDownloadProgressMsg(episode.getEpisodeId(), "");
+        AppPrefs.updateEpisodeDownloadProgress(episode.getEpisodeId(), -1);
     }
 
     private static void finalizeDownload(Episode episode, Movie movie, String episodeId, String movieName, String movieDescription, String seasonId, String seasonName) {
-        episode.setDownloadProgress(-1);
+        resetEpisodeDownloadProgress(episode);
         movie.setSeenByUser(true);
         movie.setRecommendedToUser(true);
         MolvixDB.updateMovie(movie);
@@ -83,26 +88,26 @@ public class FileDownloadManager {
         long progressPercent = progress.currentBytes * 100 / progress.totalBytes;
         String progressMessage = FileUtils.getProgressDisplayLine(progress.currentBytes, progress.totalBytes);
         MolvixNotificationManager.showEpisodeDownloadProgressNotification(movieName, movieDescription, seasonId, episode.getEpisodeId(), episode.getEpisodeName() + "/" + seasonName + "/" + movieName, (int) progressPercent, progressMessage);
-        episode.setDownloadProgress((int) progressPercent);
-        episode.setProgressDisplayText(progressMessage);
-        MolvixDB.updateEpisode(episode);
+        AppPrefs.updateEpisodeDownloadProgress(episode.getEpisodeId(), (int) progressPercent);
+        AppPrefs.updateEpisodeDownloadProgressMsg(episode.getEpisodeId(), progressMessage);
     }
 
     public static void cancelDownload(Episode episode) {
-        if (Status.RUNNING == PRDownloader.getStatus(getDownloadKeyFromEpisode(episode))) {
+        if (PRDownloader.getStatus(getDownloadKeyFromEpisode(episode)) == Status.RUNNING) {
             PRDownloader.cancel(getDownloadKeyFromEpisode(episode));
         }
         Season season = episode.getSeason();
         Movie movie = season.getMovie();
         String movieName = WordUtils.capitalize(movie.getMovieName());
         String seasonName = WordUtils.capitalize(season.getSeasonName());
-        episode.setDownloadProgress(-1);
+        AppPrefs.updateEpisodeDownloadProgress(episode.getEpisodeId(), -1);
         MolvixDB.updateEpisode(episode);
         DownloadableEpisode downloadableEpisode = MolvixDB.getDownloadableEpisode(episode.getEpisodeId());
         if (downloadableEpisode != null) {
             MolvixDB.deleteDownloadableEpisode(downloadableEpisode);
         }
         AppPrefs.removeFromInProgressDownloads(episode);
+        resetEpisodeDownloadProgress(episode);
         MolvixNotification.with(ApplicationLoader.getInstance()).cancel(Math.abs(episode.getEpisodeId().hashCode()));
         cleanUpTempFiles(movieName, seasonName);
     }
@@ -124,6 +129,11 @@ public class FileDownloadManager {
     }
 
     private static int getDownloadKeyFromEpisode(Episode episode) {
+        String downloadIdKey = getDownloadKey(episode);
+        return AppPrefs.getDownloadId(downloadIdKey);
+    }
+
+    private static String getDownloadKey(Episode episode) {
         Season season = episode.getSeason();
         Movie movie = season.getMovie();
         String movieName = WordUtils.capitalize(movie.getMovieName());
@@ -140,8 +150,7 @@ public class FileDownloadManager {
         String fileExtension = StringUtils.substringAfterLast(downloadUrl, ".");
         String fileName = episode.getEpisodeName() + "." + fileExtension;
         String dirPath = FileUtils.getFilePath(movieName, seasonName).getPath();
-        String downloadIdKey = dirPath + fileName;
-        return AppPrefs.getDownloadId(downloadIdKey);
+        return dirPath + fileName;
     }
 
 }

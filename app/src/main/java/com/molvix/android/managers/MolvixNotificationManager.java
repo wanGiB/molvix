@@ -8,6 +8,7 @@ import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Build;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -34,7 +35,6 @@ import com.molvix.android.ui.notifications.notification.Load;
 import com.molvix.android.ui.notifications.notification.MolvixNotification;
 import com.molvix.android.utils.UiUtils;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.text.WordUtils;
 
 class MolvixNotificationManager {
@@ -104,7 +104,7 @@ class MolvixNotificationManager {
                     .message("Have you seen the Movie \"" + WordUtils.capitalize(recommendableMovie.getMovieName()) + "\"")
                     .autoCancel(true)
                     .click(movieDetailsPendingIntent)
-                    .bigTextStyle("Have you seen the Movie \"" + WordUtils.capitalize(recommendableMovie.getMovieName()) + "\"")
+                    .bigTextStyle("Have you seen the Movie \"" + WordUtils.capitalize(recommendableMovie.getMovieName()) + "\"", "Recommended For You")
                     .smallIcon(R.drawable.ic_launcher)
                     .largeIcon(R.drawable.ic_launcher)
                     .color(android.R.color.background_dark)
@@ -121,8 +121,36 @@ class MolvixNotificationManager {
     static void displayNewMovieNotification(Movie updatedMovie, Notification newMovieAvailableNotification) {
         String movieArtUrl = updatedMovie.getMovieArtUrl();
         if (movieArtUrl != null) {
+            Log.d(ContentManager.class.getSimpleName(), "Movie Art Url for next notification is not null.About to display notification for the movie");
             new BitmapLoadTask(newMovieAvailableNotification).execute(movieArtUrl);
+        } else {
+            new MovieContentsExtractionTask(newMovieAvailableNotification).execute(updatedMovie.getMovieLink(), updatedMovie.getMovieId());
         }
+    }
+
+    private static class MovieContentsExtractionTask extends AsyncTask<String, Void, Void> {
+
+        private Notification notification;
+
+        MovieContentsExtractionTask(Notification notification) {
+            this.notification = notification;
+        }
+
+        @Override
+        protected Void doInBackground(String... movieIds) {
+            String movieLink = movieIds[0];
+            String movieId = movieIds[1];
+            ContentManager.extractMetaDataFromMovieLink(movieLink, movieId, (result, e) -> {
+                if (e == null && result != null) {
+                    String movieArtUrl = result.getMovieArtUrl();
+                    if (movieArtUrl != null) {
+                        new BitmapLoadTask(notification).execute(movieArtUrl);
+                    }
+                }
+            });
+            return null;
+        }
+
     }
 
     private static class BitmapLoadTask extends AsyncTask<String, Void, Void> {
@@ -166,15 +194,13 @@ class MolvixNotificationManager {
 
                     });
             return null;
+
         }
 
     }
 
     private static void displayUpdatedMovieNotification(Bitmap movieBitmap, Notification notification) {
         String messageDisplay = notification.getMessage();
-        messageDisplay = StringUtils.remove(messageDisplay, "<b>");
-        messageDisplay = StringUtils.remove(messageDisplay, "</b>");
-        String message = messageDisplay;
         Intent movieDetailsIntent = new Intent(ApplicationLoader.getInstance(), MainActivity.class);
         movieDetailsIntent.putExtra(AppConstants.INVOCATION_TYPE, AppConstants.DISPLAY_MOVIE);
         movieDetailsIntent.putExtra(AppConstants.MOVIE_ID, notification.getDestinationKey());
@@ -184,10 +210,10 @@ class MolvixNotificationManager {
                 .load()
                 .notificationChannelId("Molvix Next Rated Movie")
                 .title("Molvix")
-                .message(message)
+                .message(UiUtils.fromHtml(messageDisplay))
                 .autoCancel(true)
                 .click(movieDetailsPendingIntent)
-                .bigTextStyle(message)
+                .bigTextStyle(UiUtils.fromHtml(messageDisplay), "From Your Downloads")
                 .smallIcon(R.drawable.ic_launcher)
                 .largeIcon(R.drawable.ic_launcher)
                 .color(android.R.color.background_dark)

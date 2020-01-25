@@ -83,6 +83,17 @@
           "type": 9
         },
         {
+          "id": "10:586679988816434631",
+          "name": "downloadProgress",
+          "type": 5,
+          "flags": 4
+        },
+        {
+          "id": "11:3792279184963286681",
+          "name": "progressDisplayText",
+          "type": 9
+        },
+        {
           "id": "12:7846286150654063499",
           "name": "seasonId",
           "indexId": "2:5343677043282199646",
@@ -243,10 +254,7 @@
   "modelVersionParserMinimum": 5,
   "retiredEntityUids": [],
   "retiredIndexUids": [],
-  "retiredPropertyUids": [
-    586679988816434631,
-    3792279184963286681
-  ],
+  "retiredPropertyUids": [],
   "retiredRelationUids": [],
   "version": 1
 }

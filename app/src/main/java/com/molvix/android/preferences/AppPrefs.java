@@ -178,4 +178,22 @@ public class AppPrefs {
         getAppPreferences().edit().putBoolean(AppConstants.NOTIFICATION + checkKey, true).commit();
     }
 
+    @SuppressLint("ApplySharedPref")
+    public static void updateEpisodeDownloadProgress(String episodeId, int progress) {
+        getAppPreferences().edit().putInt(AppConstants.EPISODE_DOWNLOAD_PROGRESS + episodeId, progress).commit();
+    }
+
+    @SuppressLint("ApplySharedPref")
+    public static void updateEpisodeDownloadProgressMsg(String episodeId, String progressText) {
+        getAppPreferences().edit().putString(AppConstants.EPISODE_DOWNLOAD_PROGRESS_TEXT + episodeId, progressText).commit();
+    }
+
+    public static String getEpisodeDownloadProgressText(String episodeId) {
+        return getAppPreferences().getString(AppConstants.EPISODE_DOWNLOAD_PROGRESS_TEXT + episodeId, null);
+    }
+
+    public static int getEpisodeDownloadProgress(String episodeId) {
+        return getAppPreferences().getInt(AppConstants.EPISODE_DOWNLOAD_PROGRESS + episodeId, -1);
+    }
+
 }

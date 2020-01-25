@@ -22,6 +22,7 @@ import com.molvix.android.models.Episode;
 import com.molvix.android.models.Movie;
 import com.molvix.android.models.Notification;
 import com.molvix.android.models.Season;
+import com.molvix.android.ui.activities.MainActivity;
 import com.molvix.android.utils.FileUtils;
 import com.molvix.android.database.MolvixDB;
 import com.molvix.android.utils.UiUtils;
@@ -116,7 +117,11 @@ public class NotificationView extends FrameLayout {
                     }
                 }
             } else {
-
+                String destinationKey = notification.getDestinationKey();
+                if (getContext() instanceof MainActivity) {
+                    MainActivity mainActivity = (MainActivity) getContext();
+                    mainActivity.loadMovieDetails(destinationKey);
+                }
             }
         };
         notificationRootView.setOnClickListener(onClickListener);

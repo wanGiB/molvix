@@ -1,5 +1,6 @@
 package com.molvix.android.managers;
 
+import android.util.Log;
 import android.util.Pair;
 
 import com.molvix.android.companions.AppConstants;
@@ -21,17 +22,16 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 public class ContentManager {
 
-    public static void grabMovies() throws IOException {
+    public static void grabMovies() throws Exception {
         loadMoviesTitlesAndLinks();
     }
 
-    private static void loadMoviesTitlesAndLinks() throws IOException {
+    private static void loadMoviesTitlesAndLinks() throws Exception {
         String TV_SERIES_URL = "https://o2tvseries.com/search/list_all_tv_series";
         Document document = Jsoup.connect(TV_SERIES_URL).get();
         Element moviesTitlesAndLinks = document.selectFirst("div.data_list");
@@ -74,13 +74,17 @@ public class ContentManager {
                             .build()
                             .findFirst();
                     if (result != null) {
-                        String realEpisodeName = StringUtils.strip(episodeName, "-");
-                        String message = "<b>" + realMovieTitle + "</b>" + "/" + "<b>" + realSeasonName + "</b>" + "/" + "<b>" + realEpisodeName + "</b>" + "is now available for download.";
+                        String realEpisodeName = StringUtils.strip(episodeName, "-").trim();
+                        String message = "<b>" + realMovieTitle + "</b>" + "/" + "<b>" + realSeasonName + "</b>" + "/" + "<b>" + realEpisodeName + "</b>" + " is now available for download.";
                         String checkKey = CryptoUtils.getSha256Digest(realMovieTitle + "/" + realSeasonName + "/" + realEpisodeName);
                         boolean hasBeenNotified = AppPrefs.hasBeenNotified(checkKey);
                         if (!hasBeenNotified) {
+                            Notification existingNotification = MolvixDB.getNotification(checkKey);
+                            if (existingNotification != null) {
+                                return;
+                            }
                             Notification newMovieAvailableNotification = new Notification();
-                            newMovieAvailableNotification.setNotificationObjectId(CryptoUtils.getSha256Digest(RandomStringUtils.random(256) + System.currentTimeMillis()));
+                            newMovieAvailableNotification.setNotificationObjectId(checkKey);
                             newMovieAvailableNotification.setMessage(message);
                             newMovieAvailableNotification.setTimeStamp(System.currentTimeMillis());
                             newMovieAvailableNotification.setDestination(AppConstants.DESTINATION_NEW_EPISODE_AVAILABLE);
@@ -92,7 +96,7 @@ public class ContentManager {
                     }
                 }
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
             spitException(e);
         }
@@ -123,7 +127,7 @@ public class ContentManager {
                 }
                 extractOtherMovieDataParts(movieLink, movieDoc, updatableMovie);
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
             spitException(e);
         }
@@ -145,7 +149,7 @@ public class ContentManager {
                 }
                 extractOtherMovieDataParts(movieLink, movieDoc, updatableMovie, movieExtractionDoneCallback);
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
             spitException(e);
             movieExtractionDoneCallback.done(null, e);
@@ -238,7 +242,6 @@ public class ContentManager {
             episode.setEpisodeId(episodeId);
             episode.setEpisodeLink(episodeLink);
             episode.setEpisodeName(episodeName);
-            episode.setDownloadProgress(-1);
             episode.season.setTarget(season);
             MolvixDB.createNewEpisode(episode);
         }
@@ -309,7 +312,7 @@ public class ContentManager {
         }
     }
 
-    private static int getTotalNumberOfEpisodes(String seasonLink) throws IOException {
+    private static int getTotalNumberOfEpisodes(String seasonLink) throws Exception {
         Document movieSeasonDoc = Jsoup.connect(seasonLink).get();
         Element otherInfoDocument = movieSeasonDoc.selectFirst("div.other_info");
         Elements otherInfoElements = otherInfoDocument.getAllElements();
@@ -348,7 +351,7 @@ public class ContentManager {
             } else {
                 return episodeLink;
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
             return episodeLink;
         }
