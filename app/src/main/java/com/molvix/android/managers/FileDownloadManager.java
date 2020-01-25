@@ -1,5 +1,7 @@
 package com.molvix.android.managers;
 
+import android.os.Handler;
+
 import com.downloader.Error;
 import com.downloader.OnDownloadListener;
 import com.downloader.PRDownloader;
@@ -21,8 +23,9 @@ import org.apache.commons.lang3.text.WordUtils;
 
 import java.io.File;
 
-@SuppressWarnings("ResultOfMethodCallIgnored")
 public class FileDownloadManager {
+
+    private static Handler mUiHandler = new Handler();
 
     public static void downloadEpisode(Episode episode) {
         AppPrefs.addToInProgressDownloads(episode);
@@ -88,8 +91,10 @@ public class FileDownloadManager {
         long progressPercent = progress.currentBytes * 100 / progress.totalBytes;
         String progressMessage = FileUtils.getProgressDisplayLine(progress.currentBytes, progress.totalBytes);
         MolvixNotificationManager.showEpisodeDownloadProgressNotification(movieName, movieDescription, seasonId, episode.getEpisodeId(), episode.getEpisodeName() + "/" + seasonName + "/" + movieName, (int) progressPercent, progressMessage);
-        AppPrefs.updateEpisodeDownloadProgress(episode.getEpisodeId(), (int) progressPercent);
-        AppPrefs.updateEpisodeDownloadProgressMsg(episode.getEpisodeId(), progressMessage);
+        mUiHandler.postDelayed(() -> {
+            AppPrefs.updateEpisodeDownloadProgress(episode.getEpisodeId(), (int) progressPercent);
+            AppPrefs.updateEpisodeDownloadProgressMsg(episode.getEpisodeId(), progressMessage);
+        }, 1000);
     }
 
     public static void cancelDownload(Episode episode) {
@@ -112,6 +117,7 @@ public class FileDownloadManager {
         cleanUpTempFiles(movieName, seasonName);
     }
 
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     private static void cleanUpTempFiles(String movieName, String seasonName) {
         File seasonDir = FileUtils.getFilePath(movieName, seasonName);
         if (seasonDir.exists()) {

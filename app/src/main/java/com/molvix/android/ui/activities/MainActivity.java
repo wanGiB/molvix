@@ -23,6 +23,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.molvix.android.R;
 import com.molvix.android.companions.AppConstants;
 import com.molvix.android.database.MolvixDB;
+import com.molvix.android.eventbuses.CheckForDownloadableEpisodes;
 import com.molvix.android.eventbuses.LoadEpisodesForSeason;
 import com.molvix.android.eventbuses.SearchEvent;
 import com.molvix.android.managers.ContentManager;
@@ -39,6 +40,7 @@ import com.molvix.android.ui.fragments.NotificationsFragment;
 import com.molvix.android.ui.widgets.MolvixSearchView;
 import com.molvix.android.ui.widgets.MovieDetailsView;
 import com.molvix.android.utils.FileUtils;
+import com.molvix.android.utils.UiUtils;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -110,6 +112,8 @@ public class MainActivity extends BaseActivity {
                 if (seasonToLoad != null && movieDetailsView != null) {
                     movieDetailsView.loadEpisodesForSeason(seasonToLoad);
                 }
+            } else if (event instanceof CheckForDownloadableEpisodes) {
+                fetchDownloadableEpisodes();
             }
         });
     }
@@ -276,6 +280,7 @@ public class MainActivity extends BaseActivity {
     }
 
     public void loadMovieDetails(String movieId) {
+        UiUtils.dismissKeyboard(searchView);
         movieDetailsView = new MovieDetailsView(this);
         checkAndRemovePreviousMovieDetailsView();
         FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
@@ -305,7 +310,6 @@ public class MainActivity extends BaseActivity {
             if (movieDetailsView.isBottomSheetDialogShowing()) {
                 movieDetailsView.closeBottomSheetDialog();
             } else {
-                movieDetailsView.removeEpisodeListener();
                 rootContainer.removeView(movieDetailsView);
                 movieDetailsView = null;
             }

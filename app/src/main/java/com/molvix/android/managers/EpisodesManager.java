@@ -1,6 +1,6 @@
 package com.molvix.android.managers;
 
-import com.molvix.android.eventbuses.CheckForMoreContentsToDownload;
+import com.molvix.android.eventbuses.CheckForDownloadableEpisodes;
 import com.molvix.android.models.DownloadableEpisode;
 import com.molvix.android.models.Episode;
 import com.molvix.android.preferences.AppPrefs;
@@ -19,6 +19,7 @@ public class EpisodesManager {
         newDownloadableEpisode.setDownloadableEpisodeId(episode.getEpisodeId());
         newDownloadableEpisode.episode.setTarget(episode);
         MolvixDB.createNewDownloadableEpisode(newDownloadableEpisode);
+        EventBus.getDefault().post(new CheckForDownloadableEpisodes());
     }
 
     public static void popDownloadableEpisode(Episode episode) {
@@ -27,7 +28,7 @@ public class EpisodesManager {
             MolvixDB.deleteDownloadableEpisode(downloadableEpisode);
             unLockCaptureSolver();
         }
-        EventBus.getDefault().post(new CheckForMoreContentsToDownload());
+        EventBus.getDefault().post(new CheckForDownloadableEpisodes());
     }
 
     public static void lockCaptchaSolver(String episodeId) {

@@ -3,14 +3,15 @@ package com.molvix.android.ui.widgets;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Handler;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.Animation;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ProgressBar;
@@ -78,7 +79,7 @@ public class EpisodeView extends FrameLayout {
     private Episode episode;
     private Season season;
     private Movie movie;
-    private Animation mFadeInFadeIn;
+    private SharedPreferences.OnSharedPreferenceChangeListener onSharedPreferenceChangeListener;
 
     public EpisodeView(@NonNull Context context) {
         super(context);
@@ -97,7 +98,6 @@ public class EpisodeView extends FrameLayout {
 
     private void init(Context context) {
         removeAllViews();
-        mFadeInFadeIn = UiUtils.getAnimation(getContext(), android.R.anim.fade_in);
         @SuppressLint("InflateParams") View rootView = LayoutInflater.from(context).inflate(R.layout.episode_view, null);
         ButterKnife.bind(this, rootView);
         addView(rootView, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
@@ -112,6 +112,38 @@ public class EpisodeView extends FrameLayout {
         checkEpisodeActiveDownloadStatus(episode);
         initDownloadOrPlayButtonEventListener(episode, episodeName);
         initCancelActiveDownloadButtonEventListener();
+        listenToEpisodeDownloadStatus();
+    }
+
+    private void listenToEpisodeDownloadStatus() {
+        onSharedPreferenceChangeListener = (sharedPreferences, key) -> {
+            if (key.contains(AppConstants.EPISODE_DOWNLOAD_PROGRESS)) {
+                String episodeId = key.replace(AppConstants.EPISODE_DOWNLOAD_PROGRESS, "").trim();
+                if (episodeId.equals(episode.getEpisodeId())) {
+                    new Handler().post(() -> checkEpisodeActiveDownloadStatus(episode));
+                }
+            }
+        };
+        AppPrefs.getAppPreferences().registerOnSharedPreferenceChangeListener(onSharedPreferenceChangeListener);
+    }
+
+    @Override
+    protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        listenToEpisodeDownloadStatus();
+    }
+
+    @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        removeEpisodeListener();
+    }
+
+    public void removeEpisodeListener() {
+        if (onSharedPreferenceChangeListener != null) {
+            AppPrefs.getAppPreferences().unregisterOnSharedPreferenceChangeListener(onSharedPreferenceChangeListener);
+            onSharedPreferenceChangeListener = null;
+        }
     }
 
     private void initCancelActiveDownloadButtonEventListener() {
@@ -185,12 +217,10 @@ public class EpisodeView extends FrameLayout {
             if (episodeActiveDownloadProgress == 0) {
                 downloadButtonOrPlayButton.setText(getContext().getString(R.string.preparing));
                 downloadButtonOrPlayButton.setCompoundDrawablesWithIntrinsicBounds(null, null, null, null);
-                animateDownloadButton();
                 UiUtils.toggleViewVisibility(downloadProgressContainer, false);
             } else {
                 setToDownloadable();
                 downloadButtonOrPlayButton.setText(getContext().getString(R.string.downloading));
-                animateDownloadButton();
                 //Download has started
                 UiUtils.toggleViewVisibility(downloadProgressContainer, true);
                 downloadProgressBar.setProgress(AppPrefs.getEpisodeDownloadProgress(episode.getEpisodeId()));
@@ -201,14 +231,6 @@ public class EpisodeView extends FrameLayout {
             UiUtils.toggleViewVisibility(downloadProgressContainer, false);
             checkToSeeIfEpisodeAlreadyDownloaded(episode, episode.getEpisodeName());
         }
-    }
-
-    private void animateDownloadButton() {
-        mFadeInFadeIn.setDuration(800);
-        mFadeInFadeIn.setRepeatMode(Animation.REVERSE);
-        mFadeInFadeIn.setRepeatCount(Animation.INFINITE);
-        downloadButtonOrPlayButton.clearAnimation();
-        UiUtils.animateView(downloadButtonOrPlayButton, mFadeInFadeIn);
     }
 
     private void checkToSeeIfEpisodeAlreadyDownloaded(Episode episode, String episodeName) {

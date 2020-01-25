@@ -2,14 +2,12 @@ package com.molvix.android.ui.widgets;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -24,7 +22,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.molvix.android.R;
-import com.molvix.android.companions.AppConstants;
 import com.molvix.android.contracts.DoneCallback;
 import com.molvix.android.database.MolvixDB;
 import com.molvix.android.managers.ContentManager;
@@ -33,10 +30,8 @@ import com.molvix.android.managers.SeasonsManager;
 import com.molvix.android.models.Episode;
 import com.molvix.android.models.Movie;
 import com.molvix.android.models.Season;
-import com.molvix.android.preferences.AppPrefs;
 import com.molvix.android.ui.adapters.EpisodesAdapter;
 import com.molvix.android.utils.ConnectivityUtils;
-import com.molvix.android.utils.RandomStringUtils;
 import com.molvix.android.utils.UiUtils;
 
 import org.apache.commons.lang3.text.WordUtils;
@@ -68,8 +63,6 @@ public class MovieDetailsView extends FrameLayout {
 
     private Handler mUIHandler = new Handler();
     private BottomSheetDialog bottomSheetDialog;
-
-    private SharedPreferences.OnSharedPreferenceChangeListener onSharedPreferenceChangeListener;
 
     public MovieDetailsView(@NonNull Context context) {
         super(context);
@@ -133,36 +126,6 @@ public class MovieDetailsView extends FrameLayout {
         LinearLayoutManager bottomSheetLinearLayoutManager = new LinearLayoutManager(getContext());
         bottomSheetRecyclerView.setLayoutManager(bottomSheetLinearLayoutManager);
         bottomSheetRecyclerView.setAdapter(bottomSheetRecyclerViewAdapter);
-        onSharedPreferenceChangeListener = (sharedPreferences, key) -> {
-            if (key.contains(AppConstants.EPISODE_DOWNLOAD_PROGRESS)) {
-                String episodeId = key.replace(AppConstants.EPISODE_DOWNLOAD_PROGRESS, "").trim();
-                Episode dummyEpisode = new Episode();
-                dummyEpisode.setEpisodeId(episodeId);
-                if (seasonEpisodes.contains(dummyEpisode)) {
-                    int indexOfDummyEpisode = seasonEpisodes.indexOf(dummyEpisode);
-                    if (indexOfDummyEpisode != -1) {
-                        bottomSheetRecyclerViewAdapter.notifyItemChanged(indexOfDummyEpisode);
-                    }
-                }
-            }
-        };
-        AppPrefs.getAppPreferences().registerOnSharedPreferenceChangeListener(onSharedPreferenceChangeListener);
-        Button mutator = rootView.findViewById(R.id.mutator);
-        mutator.setOnClickListener(v -> {
-            Episode firstEpisode = seasonEpisodes.get(0);
-            String episodeId = firstEpisode.getEpisodeId();
-            for (int i = 0; i < 100; i++) {
-                AppPrefs.updateEpisodeDownloadProgress(episodeId, i);
-                AppPrefs.updateEpisodeDownloadProgressMsg(episodeId, RandomStringUtils.random(3));
-            }
-        });
-    }
-
-    public void removeEpisodeListener() {
-        if (onSharedPreferenceChangeListener != null) {
-            AppPrefs.getAppPreferences().unregisterOnSharedPreferenceChangeListener(onSharedPreferenceChangeListener);
-            onSharedPreferenceChangeListener = null;
-        }
     }
 
     private void loadMovieDetails(Movie movie) {
@@ -174,12 +137,6 @@ public class MovieDetailsView extends FrameLayout {
                 MolvixDB.updateMovie(movie);
             }
         });
-    }
-
-    @Override
-    protected void onDetachedFromWindow() {
-        removeEpisodeListener();
-        super.onDetachedFromWindow();
     }
 
     private void pullMovieDetailsFromTheInternet(Movie movie) {
