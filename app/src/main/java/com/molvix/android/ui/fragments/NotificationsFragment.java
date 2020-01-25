@@ -5,6 +5,7 @@ import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -48,6 +49,9 @@ public class NotificationsFragment extends BaseFragment {
     @BindView(R.id.btn_clear_all_notifications)
     FloatingActionButton clearNotificationsFab;
 
+    @BindView(R.id.notifications_center_label)
+    TextView notificationsCenterLabel;
+
     private List<Notification> notifications = new ArrayList<>();
     private NotificationsAdapter notificationsAdapter;
     private DataSubscription notificationsSubScription;
@@ -67,6 +71,7 @@ public class NotificationsFragment extends BaseFragment {
             notificationsAdapter.notifyDataSetChanged();
             MolvixDB.getNotificationBox().removeAll();
             invalidateUI();
+            notificationsCenterLabel.setText(getString(R.string.all_caught_up));
         });
     }
 

@@ -3,6 +3,7 @@ package com.molvix.android.ui.widgets;
 import android.content.Context;
 import android.util.AttributeSet;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
@@ -36,9 +37,9 @@ public class AdMobNativeAdView extends FrameLayout {
     }
 
     void init(Context context) {
-        View adView = inflate(context, R.layout.admob_native_ad_view, null);
         removeAllViews();
-        addView(adView);
+        View adView = inflate(context, R.layout.admob_native_ad_view, null);
+        addView(adView, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
     }
 
     /**

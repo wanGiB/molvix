@@ -18,6 +18,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.liucanwen.app.headerfooterrecyclerview.HeaderAndFooterRecyclerViewAdapter;
+import com.liucanwen.app.headerfooterrecyclerview.OnRecyclerViewScrollListener;
 import com.liucanwen.app.headerfooterrecyclerview.RecyclerViewUtils;
 import com.molvix.android.R;
 import com.molvix.android.database.MolvixDB;
@@ -70,6 +71,7 @@ public class HomeFragment extends BaseFragment {
     private TextView headerTextView;
     private String searchString;
     private DataSubscription moviesSubscription;
+    private LinearLayoutManager homeLinearLayoutManager;
 
     private void setSearchString(String searchString) {
         this.searchString = searchString;
@@ -190,6 +192,27 @@ public class HomeFragment extends BaseFragment {
         setupSwipeRefreshLayoutColorScheme();
         initMoviesAdapter();
         fetchMovies();
+        moviesRecyclerView.addOnScrollListener(new OnRecyclerViewScrollListener() {
+            @Override
+            public void onScrollUp() {
+
+            }
+
+            @Override
+            public void onScrollDown() {
+                UiUtils.showSafeToast("Current Position=" + homeLinearLayoutManager.findFirstVisibleItemPosition());
+            }
+
+            @Override
+            public void onBottom() {
+
+            }
+
+            @Override
+            public void onMoved(int distanceX, int distanceY) {
+
+            }
+        });
     }
 
     @Override
@@ -217,7 +240,8 @@ public class HomeFragment extends BaseFragment {
         headerTextView = headerView.findViewById(R.id.header_text_view);
         moviesAdapter = new MoviesAdapter(getActivity(), movies);
         HeaderAndFooterRecyclerViewAdapter headerAndFooterRecyclerViewAdapter = new HeaderAndFooterRecyclerViewAdapter(moviesAdapter);
-        moviesRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity(), RecyclerView.VERTICAL, false));
+        homeLinearLayoutManager = new LinearLayoutManager(getActivity());
+        moviesRecyclerView.setLayoutManager(homeLinearLayoutManager);
         moviesRecyclerView.setItemAnimator(new ScaleInAnimator());
         moviesRecyclerView.setAdapter(headerAndFooterRecyclerViewAdapter);
         RecyclerViewUtils.setHeaderView(moviesRecyclerView, headerView);

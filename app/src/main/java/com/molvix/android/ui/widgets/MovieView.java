@@ -92,6 +92,10 @@ public class MovieView extends FrameLayout {
         refreshMovieDetails(movie);
     }
 
+    public Movie getMovie() {
+        return movie;
+    }
+
     private void initEventHandlers(Movie movie) {
         parentCardView.setOnClickListener(v -> {
             UiUtils.blinkView(parentCardView);

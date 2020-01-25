@@ -15,7 +15,7 @@
             android:id="@+id/notifications_recycler_view"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            tools:listitem="@layout/recycler_item_movie" />
+            tools:listitem="@layout/recycler_view_item_movie" />
 
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
@@ -45,7 +45,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:text="No notifications"
+                android:id="@+id/notifications_center_label"
+                android:text="@string/no_notifications"
                 app:textStyle="medium" />
 
         </LinearLayout>

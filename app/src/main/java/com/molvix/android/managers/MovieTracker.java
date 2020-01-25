@@ -30,6 +30,8 @@ import com.molvix.android.utils.CryptoUtils;
 import com.molvix.android.utils.RandomStringUtils;
 import com.molvix.android.utils.UiUtils;
 
+import org.apache.commons.lang3.text.WordUtils;
+
 import java.security.SecureRandom;
 import java.util.Collections;
 import java.util.List;
@@ -50,7 +52,7 @@ public class MovieTracker {
         Notification newNotification = new Notification();
         newNotification.setNotificationObjectId(notificationId);
         newNotification.setDestination(AppConstants.DESTINATION_DOWNLOADED_EPISODE);
-        newNotification.setMessage("<b>" + episode.getEpisodeName() + "</b>/<b>" + season.getSeasonName() + "</b> of <b>" + movie.getMovieName() + "</b> successfully downloaded");
+        newNotification.setMessage("<b>" + episode.getEpisodeName() + "</b>/<b>" + season.getSeasonName() + "</b> of <b>" + WordUtils.capitalize(movie.getMovieName()) + "</b> successfully downloaded");
         newNotification.setDestinationKey(episode.getEpisodeId());
         newNotification.setTimeStamp(System.currentTimeMillis());
         MolvixDB.createNewNotification(newNotification);

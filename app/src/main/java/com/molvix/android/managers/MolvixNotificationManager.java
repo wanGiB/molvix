@@ -62,7 +62,7 @@ class MolvixNotificationManager {
 
         Intent cancelIntent = new Intent(ApplicationLoader.getInstance(), EmptyContentActivity.class);
         cancelIntent.putExtra(AppConstants.EPISODE_ID, episodeId);
-        PendingIntent cancelPendingIntent = PendingIntent.getActivity(ApplicationLoader.getInstance(), 0, cancelIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        PendingIntent cancelPendingIntent = PendingIntent.getActivity(ApplicationLoader.getInstance(), identifier, cancelIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
         Intent mainIntent = new Intent(ApplicationLoader.getInstance(), MainActivity.class);
         mainIntent.putExtra(AppConstants.INVOCATION_TYPE, AppConstants.NAVIGATE_TO_SECOND_FRAGMENT);

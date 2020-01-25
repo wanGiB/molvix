@@ -14,7 +14,7 @@
             android:id="@+id/movies_recycler_view"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            tools:listitem="@layout/recycler_item_movie" />
+            tools:listitem="@layout/recycler_view_item_movie" />
 
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 

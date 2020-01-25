@@ -2,6 +2,7 @@ package com.molvix.android.ui.widgets;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.util.AttributeSet;
@@ -22,6 +23,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.molvix.android.R;
+import com.molvix.android.companions.AppConstants;
 import com.molvix.android.contracts.DoneCallback;
 import com.molvix.android.database.MolvixDB;
 import com.molvix.android.managers.ContentManager;
@@ -30,6 +32,7 @@ import com.molvix.android.managers.SeasonsManager;
 import com.molvix.android.models.Episode;
 import com.molvix.android.models.Movie;
 import com.molvix.android.models.Season;
+import com.molvix.android.preferences.AppPrefs;
 import com.molvix.android.ui.adapters.EpisodesAdapter;
 import com.molvix.android.utils.ConnectivityUtils;
 import com.molvix.android.utils.UiUtils;
@@ -116,6 +119,8 @@ public class MovieDetailsView extends FrameLayout {
         bottomSheetDialog.show();
     }
 
+    private SharedPreferences.OnSharedPreferenceChangeListener onSharedPreferenceChangeListener;
+
     private void fillInEpisodes(View rootView, Season season) {
         EpisodesAdapter bottomSheetRecyclerViewAdapter;
         TextView bottomSheetTitleView = rootView.findViewById(R.id.bottom_sheet_title_view);
@@ -126,6 +131,31 @@ public class MovieDetailsView extends FrameLayout {
         LinearLayoutManager bottomSheetLinearLayoutManager = new LinearLayoutManager(getContext());
         bottomSheetRecyclerView.setLayoutManager(bottomSheetLinearLayoutManager);
         bottomSheetRecyclerView.setAdapter(bottomSheetRecyclerViewAdapter);
+        onSharedPreferenceChangeListener = (sharedPreferences, key) -> {
+            if (key.contains(AppConstants.EPISODE_DOWNLOAD_PROGRESS)) {
+                String episodeId = key.replace(AppConstants.EPISODE_DOWNLOAD_PROGRESS, "").trim();
+                Episode dummyEpisode = new Episode();
+                dummyEpisode.setEpisodeId(episodeId);
+                if (seasonEpisodes.contains(dummyEpisode)) {
+                    int indexOfEpisode = seasonEpisodes.indexOf(dummyEpisode);
+                    bottomSheetRecyclerViewAdapter.notifyItemChanged(indexOfEpisode);
+                }
+            }
+        };
+        AppPrefs.getAppPreferences().registerOnSharedPreferenceChangeListener(onSharedPreferenceChangeListener);
+    }
+
+    @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        removeEpisodeListener();
+    }
+
+    public void removeEpisodeListener() {
+        if (onSharedPreferenceChangeListener != null) {
+            AppPrefs.getAppPreferences().unregisterOnSharedPreferenceChangeListener(onSharedPreferenceChangeListener);
+            onSharedPreferenceChangeListener = null;
+        }
     }
 
     private void loadMovieDetails(Movie movie) {

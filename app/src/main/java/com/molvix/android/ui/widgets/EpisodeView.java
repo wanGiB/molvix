@@ -3,10 +3,8 @@ package com.molvix.android.ui.widgets;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.os.Handler;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -82,7 +80,6 @@ public class EpisodeView extends FrameLayout {
     private Episode episode;
     private Season season;
     private Movie movie;
-    private SharedPreferences.OnSharedPreferenceChangeListener onSharedPreferenceChangeListener;
 
     public EpisodeView(@NonNull Context context) {
         super(context);
@@ -115,38 +112,6 @@ public class EpisodeView extends FrameLayout {
         checkEpisodeActiveDownloadStatus(episode);
         initDownloadOrPlayButtonEventListener(episode, episodeName);
         initCancelActiveDownloadButtonEventListener();
-        listenToEpisodeDownloadStatus();
-    }
-
-    private void listenToEpisodeDownloadStatus() {
-        onSharedPreferenceChangeListener = (sharedPreferences, key) -> {
-            if (key.contains(AppConstants.EPISODE_DOWNLOAD_PROGRESS)) {
-                String episodeId = key.replace(AppConstants.EPISODE_DOWNLOAD_PROGRESS, "").trim();
-                if (episodeId.equals(episode.getEpisodeId())) {
-                    new Handler().post(() -> checkEpisodeActiveDownloadStatus(episode));
-                }
-            }
-        };
-        AppPrefs.getAppPreferences().registerOnSharedPreferenceChangeListener(onSharedPreferenceChangeListener);
-    }
-
-    @Override
-    protected void onAttachedToWindow() {
-        super.onAttachedToWindow();
-        listenToEpisodeDownloadStatus();
-    }
-
-    @Override
-    protected void onDetachedFromWindow() {
-        super.onDetachedFromWindow();
-        removeEpisodeListener();
-    }
-
-    public void removeEpisodeListener() {
-        if (onSharedPreferenceChangeListener != null) {
-            AppPrefs.getAppPreferences().unregisterOnSharedPreferenceChangeListener(onSharedPreferenceChangeListener);
-            onSharedPreferenceChangeListener = null;
-        }
     }
 
     private void initCancelActiveDownloadButtonEventListener() {
@@ -221,19 +186,26 @@ public class EpisodeView extends FrameLayout {
                 downloadButtonOrPlayButton.setText(getContext().getString(R.string.preparing));
                 downloadButtonOrPlayButton.setCompoundDrawablesWithIntrinsicBounds(null, null, null, null);
                 UiUtils.toggleViewVisibility(downloadProgressContainer, false);
+                if (StringUtils.isNotEmpty(AppPrefs.getEpisodeDownloadProgressText(episode.getEpisodeId()))) {
+                    setToDownloadInProgress(episode);
+                }
             } else {
-                setToDownloadable();
-                downloadButtonOrPlayButton.setText(getContext().getString(R.string.downloading));
-                //Download has started
-                UiUtils.toggleViewVisibility(downloadProgressContainer, true);
-                downloadProgressBar.setProgress(AppPrefs.getEpisodeDownloadProgress(episode.getEpisodeId()));
-                downloadProgressTextView.setText(AppPrefs.getEpisodeDownloadProgressText(episode.getEpisodeId()));
+                setToDownloadInProgress(episode);
             }
         } else {
             downloadButtonOrPlayButton.clearAnimation();
             UiUtils.toggleViewVisibility(downloadProgressContainer, false);
             checkToSeeIfEpisodeAlreadyDownloaded(episode, episode.getEpisodeName());
         }
+    }
+
+    private void setToDownloadInProgress(Episode episode) {
+        setToDownloadable();
+        downloadButtonOrPlayButton.setText(getContext().getString(R.string.downloading));
+        //Download has started
+        UiUtils.toggleViewVisibility(downloadProgressContainer, true);
+        downloadProgressBar.setProgress(AppPrefs.getEpisodeDownloadProgress(episode.getEpisodeId()));
+        downloadProgressTextView.setText(AppPrefs.getEpisodeDownloadProgressText(episode.getEpisodeId()));
     }
 
     private void checkToSeeIfEpisodeAlreadyDownloaded(Episode episode, String episodeName) {

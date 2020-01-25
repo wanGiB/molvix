@@ -20,11 +20,11 @@ public class ApplicationLoader extends MultiDexApplication {
     @Override
     public void onCreate() {
         super.onCreate();
+        MultiDex.install(getBaseContext());
+        initContext();
         initDataBase();
         initPRDownloadManager();
         initAdMob();
-        initContext();
-        MultiDex.install(getBaseContext());
     }
 
     private void initDataBase() {

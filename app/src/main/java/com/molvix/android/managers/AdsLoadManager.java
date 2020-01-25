@@ -14,11 +14,8 @@ import com.molvix.android.BuildConfig;
 import com.molvix.android.R;
 import com.molvix.android.companions.AppConstants;
 import com.molvix.android.components.ApplicationLoader;
-import com.molvix.android.eventbuses.LoadAds;
-import com.molvix.android.preferences.AppPrefs;
 
 import org.apache.commons.lang3.StringUtils;
-import org.greenrobot.eventbus.EventBus;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,19 +23,8 @@ import java.util.List;
 public class AdsLoadManager {
 
     private static final int NUMBER_OF_ADS = 5;
-    public static List<UnifiedNativeAd> nativeAds = new ArrayList<>();
+    private static List<UnifiedNativeAd> nativeAds = new ArrayList<>();
     private static AdsLoadTask adsLoadTask;
-
-    public static void destroyAds() {
-        if (!nativeAds.isEmpty()) {
-            for (UnifiedNativeAd unifiedNativeAd : nativeAds) {
-                unifiedNativeAd.destroy();
-            }
-            nativeAds.clear();
-        }
-        AdsLoadManager.setAdConsumed(false);
-        EventBus.getDefault().post(new LoadAds(true));
-    }
 
     public static void loadAds() {
         if (adsLoadTask != null) {
@@ -49,34 +35,22 @@ public class AdsLoadManager {
         adsLoadTask.execute();
     }
 
-    public static boolean adConsumed() {
-        return AppPrefs.isAdAlreadyConsumed();
+    public static List<UnifiedNativeAd> getNativeAds() {
+        return nativeAds;
     }
 
-    public static void setAdConsumed(boolean value) {
-        AppPrefs.setAdConsumed(value);
+    public static UnifiedNativeAd getAvailableAd() {
+        UnifiedNativeAd currentAd = nativeAds.get(0);
+        nativeAds.clear();
+        return currentAd;
     }
 
     static class AdsLoadTask extends AsyncTask<Void, Void, Void> {
-
-        private void destroyAds() {
-            if (!nativeAds.isEmpty()) {
-                for (UnifiedNativeAd unifiedNativeAd : nativeAds) {
-                    unifiedNativeAd.destroy();
-                }
-                nativeAds.clear();
-            }
-            AdsLoadManager.setAdConsumed(false);
-            EventBus.getDefault().post(new LoadAds(true));
-        }
 
         private void loadAds(Context context) {
             AdLoader.Builder builder = new AdLoader.Builder(context, context.getString(R.string.native_ad_unit_id));
             builder.forUnifiedNativeAd(unifiedNativeAd -> {
                 Log.d("AdsLoadManager", "AdsLoaded");
-                // You must call destroy on old ads when you are done with them,
-                // otherwise you will have a memory leak.
-                destroyAds();
                 nativeAds.add(unifiedNativeAd);
             });
             VideoOptions videoOptions = new VideoOptions.Builder()

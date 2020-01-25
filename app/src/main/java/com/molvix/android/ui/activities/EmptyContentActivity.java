@@ -18,7 +18,6 @@ public class EmptyContentActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         Intent intent = getIntent();
         checkIntent(intent);
-        finish();
     }
 
     private void checkIntent(Intent intent) {
@@ -27,15 +26,8 @@ public class EmptyContentActivity extends AppCompatActivity {
             Episode episode = MolvixDB.getEpisode(episodeId);
             if (episode != null) {
                 FileDownloadManager.cancelDownload(episode);
+                finish();
             }
         }
     }
-
-    @Override
-    protected void onNewIntent(Intent intent) {
-        super.onNewIntent(intent);
-        checkIntent(intent);
-        finish();
-    }
-
 }

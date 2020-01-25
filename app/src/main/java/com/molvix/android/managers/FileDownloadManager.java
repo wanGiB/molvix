@@ -1,7 +1,5 @@
 package com.molvix.android.managers;
 
-import android.os.Handler;
-
 import com.downloader.Error;
 import com.downloader.OnDownloadListener;
 import com.downloader.PRDownloader;
@@ -24,8 +22,6 @@ import org.apache.commons.lang3.text.WordUtils;
 import java.io.File;
 
 public class FileDownloadManager {
-
-    private static Handler mUiHandler = new Handler();
 
     public static void downloadEpisode(Episode episode) {
         AppPrefs.addToInProgressDownloads(episode);
@@ -91,21 +87,19 @@ public class FileDownloadManager {
         long progressPercent = progress.currentBytes * 100 / progress.totalBytes;
         String progressMessage = FileUtils.getProgressDisplayLine(progress.currentBytes, progress.totalBytes);
         MolvixNotificationManager.showEpisodeDownloadProgressNotification(movieName, movieDescription, seasonId, episode.getEpisodeId(), episode.getEpisodeName() + "/" + seasonName + "/" + movieName, (int) progressPercent, progressMessage);
-        mUiHandler.postDelayed(() -> {
-            AppPrefs.updateEpisodeDownloadProgress(episode.getEpisodeId(), (int) progressPercent);
-            AppPrefs.updateEpisodeDownloadProgressMsg(episode.getEpisodeId(), progressMessage);
-        }, 1000);
+        AppPrefs.updateEpisodeDownloadProgress(episode.getEpisodeId(), (int) progressPercent);
+        AppPrefs.updateEpisodeDownloadProgressMsg(episode.getEpisodeId(), progressMessage);
     }
 
     public static void cancelDownload(Episode episode) {
         if (PRDownloader.getStatus(getDownloadKeyFromEpisode(episode)) == Status.RUNNING) {
             PRDownloader.cancel(getDownloadKeyFromEpisode(episode));
         }
+        MolvixNotification.with(ApplicationLoader.getInstance()).cancel(Math.abs(episode.getEpisodeId().hashCode()));
         Season season = episode.getSeason();
         Movie movie = season.getMovie();
         String movieName = WordUtils.capitalize(movie.getMovieName());
         String seasonName = WordUtils.capitalize(season.getSeasonName());
-        AppPrefs.updateEpisodeDownloadProgress(episode.getEpisodeId(), -1);
         MolvixDB.updateEpisode(episode);
         DownloadableEpisode downloadableEpisode = MolvixDB.getDownloadableEpisode(episode.getEpisodeId());
         if (downloadableEpisode != null) {
@@ -113,7 +107,6 @@ public class FileDownloadManager {
         }
         AppPrefs.removeFromInProgressDownloads(episode);
         resetEpisodeDownloadProgress(episode);
-        MolvixNotification.with(ApplicationLoader.getInstance()).cancel(Math.abs(episode.getEpisodeId().hashCode()));
         cleanUpTempFiles(movieName, seasonName);
     }
 

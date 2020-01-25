@@ -9,7 +9,9 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.molvix.android.R;
+import com.molvix.android.managers.AdsLoadManager;
 import com.molvix.android.models.Movie;
+import com.molvix.android.ui.widgets.AdMobNativeAdView;
 import com.molvix.android.ui.widgets.MovieView;
 
 import java.util.List;
@@ -22,8 +24,10 @@ public class MoviesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
 
     private List<Movie> movies;
     private LayoutInflater layoutInflater;
-
     private String searchString;
+
+    private static final int ITEM_TYPE_MOVIE = 0;
+    private static final int ITEM_TYPE_AD = 1;
 
     public MoviesAdapter(Context context, List<Movie> movies) {
         this.movies = movies;
@@ -33,13 +37,24 @@ public class MoviesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
     @NonNull
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        return new MoviesItemViewHolder(layoutInflater.inflate(R.layout.recycler_item_movie, parent, false));
+        return viewType == ITEM_TYPE_MOVIE ? new MoviesItemViewHolder(layoutInflater.inflate(R.layout.recycler_view_item_movie, parent, false)) : new AdsItemViewHolder(layoutInflater.inflate(R.layout.recycler_view_item_admob_ad, parent, false));
     }
 
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
-        MoviesItemViewHolder moviesItemViewHolder = (MoviesItemViewHolder) holder;
-        moviesItemViewHolder.bindData(movies.get(position), getSearchString());
+        if (holder instanceof MoviesItemViewHolder) {
+            MoviesItemViewHolder moviesItemViewHolder = (MoviesItemViewHolder) holder;
+            moviesItemViewHolder.bindData(movies.get(position), getSearchString());
+        } else {
+            AdsItemViewHolder adsItemViewHolder = (AdsItemViewHolder) holder;
+            adsItemViewHolder.loadAd();
+        }
+    }
+
+    @Override
+    public int getItemViewType(int position) {
+        Movie movie = movies.get(position);
+        return movie.isAd() ? ITEM_TYPE_AD : ITEM_TYPE_MOVIE;
     }
 
     public void setSearchString(String searchString) {
@@ -67,6 +82,22 @@ public class MoviesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         void bindData(Movie movie, String searchString) {
             movieView.setSearchString(searchString);
             movieView.setupMovie(movie);
+        }
+
+    }
+
+    static class AdsItemViewHolder extends RecyclerView.ViewHolder {
+
+        @BindView(R.id.admob_ad_view)
+        AdMobNativeAdView adMobNativeAdView;
+
+        AdsItemViewHolder(@NonNull View itemView) {
+            super(itemView);
+            ButterKnife.bind(this, itemView);
+        }
+
+        void loadAd() {
+//            adMobNativeAdView.loadInAd(AdsLoadManager.getAvailableAd());
         }
 
     }
