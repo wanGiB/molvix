@@ -6,8 +6,6 @@ import android.content.Context;
 import androidx.multidex.MultiDex;
 import androidx.multidex.MultiDexApplication;
 
-import com.downloader.PRDownloader;
-import com.downloader.PRDownloaderConfig;
 import com.google.android.gms.ads.MobileAds;
 import com.molvix.android.R;
 import com.molvix.android.database.ObjectBox;
@@ -23,19 +21,11 @@ public class ApplicationLoader extends MultiDexApplication {
         MultiDex.install(getBaseContext());
         initContext();
         initDataBase();
-        initPRDownloadManager();
         initAdMob();
     }
 
     private void initDataBase() {
         ObjectBox.init(this);
-    }
-
-    private void initPRDownloadManager() {
-        PRDownloaderConfig config = PRDownloaderConfig.newBuilder()
-                .setDatabaseEnabled(true)
-                .build();
-        PRDownloader.initialize(this, config);
     }
 
     private void initAdMob() {
