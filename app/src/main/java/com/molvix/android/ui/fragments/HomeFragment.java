@@ -148,7 +148,10 @@ public class HomeFragment extends BaseFragment {
                             moviesAdapter.notifyItemInserted(nextFifthPosition);
                         }
                     } catch (Exception e) {
-                        e.printStackTrace();
+                        Movie adMovie = new Movie();
+                        adMovie.setAd(true);
+                        movies.add(adMovie);
+                        moviesAdapter.notifyItemInserted(movies.size() - 1);
                     }
                 }
             }

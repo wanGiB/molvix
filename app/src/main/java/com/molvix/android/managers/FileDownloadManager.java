@@ -89,7 +89,6 @@ public class FileDownloadManager {
             @Override
             public void onWaitingNetwork(@NotNull Download download) {
                 MolvixLogger.d(ContentManager.class.getSimpleName(), "Download is waiting for network for " + episode.getEpisodeName() + "/" + episode.getSeason().getSeasonName() + "/" + episode.getSeason().getMovie().getMovieName());
-
             }
 
             @Override
@@ -115,6 +114,7 @@ public class FileDownloadManager {
             @Override
             public void onStarted(@NotNull Download download, @NotNull List<? extends DownloadBlock> list, int i) {
                 MolvixLogger.d(ContentManager.class.getSimpleName(), "Download is started for " + episode.getEpisodeName() + "/" + episode.getSeason().getSeasonName() + "/" + episode.getSeason().getMovie().getMovieName());
+                AppPrefs.setPaused(episodeId, false);
             }
 
             @Override
@@ -127,12 +127,13 @@ public class FileDownloadManager {
             @Override
             public void onPaused(@NotNull Download download) {
                 MolvixLogger.d(ContentManager.class.getSimpleName(), "Download is paused for " + episode.getEpisodeName() + "/" + episode.getSeason().getSeasonName() + "/" + episode.getSeason().getMovie().getMovieName());
+                AppPrefs.setPaused(episodeId, true);
             }
 
             @Override
             public void onResumed(@NotNull Download download) {
                 MolvixLogger.d(ContentManager.class.getSimpleName(), "Download is resumed for " + episode.getEpisodeName() + "/" + episode.getSeason().getSeasonName() + "/" + episode.getSeason().getMovie().getMovieName());
-
+                AppPrefs.setPaused(episodeId, false);
             }
 
             @Override
@@ -141,6 +142,7 @@ public class FileDownloadManager {
                 resetEpisodeDownloadProgress(episode);
                 deleteDirPath(dirPath);
                 cleanUpTempFiles(movieName, seasonName);
+                AppPrefs.setPaused(episodeId, false);
             }
 
             @Override
