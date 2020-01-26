@@ -21,20 +21,21 @@ public class SplashActivity extends BaseActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
-        if (Build.VERSION.SDK_INT >= 23) {
-            checkMarshmallowRuntimePermissions();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            checkRuntimePermissions();
         } else {
             navigateToMainActivity();
         }
     }
 
-    private void checkMarshmallowRuntimePermissions() {
+    private void checkRuntimePermissions() {
         Dexter.withActivity(this)
                 .withPermissions(
                         Manifest.permission.READ_PHONE_STATE,
                         Manifest.permission.WRITE_EXTERNAL_STORAGE,
                         Manifest.permission.READ_EXTERNAL_STORAGE,
-                        Manifest.permission.ACCESS_NETWORK_STATE)
+                        Manifest.permission.ACCESS_NETWORK_STATE,
+                        Manifest.permission.ACCESS_WIFI_STATE)
                 .withListener(new MultiplePermissionsListener() {
                     @Override
                     public void onPermissionsChecked(MultiplePermissionsReport report) {
