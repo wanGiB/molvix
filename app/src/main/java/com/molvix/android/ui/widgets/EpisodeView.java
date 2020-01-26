@@ -140,7 +140,7 @@ public class EpisodeView extends FrameLayout {
     }
 
     private void resumeDownload() {
-        FileDownloadManager.downloadEpisode(episode, true);
+        FileDownloadManager.downloadEpisode(episode);
         AppPrefs.setPaused(episode.getEpisodeId(), false);
     }
 

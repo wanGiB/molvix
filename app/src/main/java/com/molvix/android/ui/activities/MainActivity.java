@@ -139,7 +139,7 @@ public class MainActivity extends BaseActivity {
             for (String episodeId : pausedDownloads) {
                 Episode episode = MolvixDB.getEpisode(episodeId);
                 if (episode != null && AppPrefs.getEpisodeDownloadProgress(episodeId) == -1) {
-                    FileDownloadManager.downloadEpisode(episode, false);
+                    FileDownloadManager.downloadEpisode(episode);
                 }
             }
         }
@@ -296,7 +296,7 @@ public class MainActivity extends BaseActivity {
                         episode.setLowQualityDownloadLink(url);
                     }
                     MolvixDB.updateEpisode(episode);
-                    FileDownloadManager.downloadEpisode(episode, false);
+                    FileDownloadManager.downloadEpisode(episode);
                     hackWebView.onDestroy();
                     rootContainer.removeView(hackWebView);
                     EpisodesManager.popDownloadableEpisode(episode);

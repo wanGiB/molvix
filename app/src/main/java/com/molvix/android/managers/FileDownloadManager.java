@@ -33,7 +33,7 @@ import okhttp3.OkHttpClient;
 
 public class FileDownloadManager {
 
-    public static void downloadEpisode(Episode episode, boolean resume) {
+    public static void downloadEpisode(Episode episode) {
         MolvixLogger.d(ContentManager.class.getSimpleName(), "Download about to begin for " + episode.getSeason().getMovie().getMovieName() + "/" + episode.getSeason().getSeasonName() + "/" + episode.getEpisodeName());
         AppPrefs.addToInProgressDownloads(episode);
         String episodeId = episode.getEpisodeId();
@@ -58,8 +58,9 @@ public class FileDownloadManager {
         Request downloadRequest = new Request(downloadUrl, dirPath);
         downloadRequest.setPriority(Priority.HIGH);
         downloadRequest.setNetworkType(NetworkType.ALL);
+        boolean isPaused = AppPrefs.isPaused(episodeId);
         Fetch fetch = getFetch();
-        if (resume) {
+        if (isPaused) {
             fetch.resume(getDownloadIdFromEpisode(episode));
         } else {
             fetch.enqueue(downloadRequest, result -> {
@@ -103,7 +104,6 @@ public class FileDownloadManager {
             public void onError(@NotNull Download download, @NotNull com.tonyodev.fetch2.Error error, @Nullable Throwable throwable) {
                 MolvixLogger.d(ContentManager.class.getSimpleName(), "An error occurred while downloading " + episode.getEpisodeName() + "/" + episode.getSeason().getSeasonName() + "/" + episode.getSeason().getMovie().getMovieName());
                 resetEpisodeDownloadProgress(episode);
-                deleteDirPath(dirPath);
                 cleanUpTempFiles(movieName, seasonName);
             }
 
