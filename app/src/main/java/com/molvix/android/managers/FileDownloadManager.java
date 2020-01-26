@@ -1,7 +1,5 @@
 package com.molvix.android.managers;
 
-import android.util.Log;
-
 import com.molvix.android.companions.AppConstants;
 import com.molvix.android.components.ApplicationLoader;
 import com.molvix.android.database.MolvixDB;
@@ -36,7 +34,7 @@ import okhttp3.OkHttpClient;
 public class FileDownloadManager {
 
     public static void downloadEpisode(Episode episode, boolean resume) {
-        Log.d(ContentManager.class.getSimpleName(), "Download about to begin for " + episode.getSeason().getMovie().getMovieName() + "/" + episode.getSeason().getSeasonName() + "/" + episode.getEpisodeName());
+        MolvixLogger.d(ContentManager.class.getSimpleName(), "Download about to begin for " + episode.getSeason().getMovie().getMovieName() + "/" + episode.getSeason().getSeasonName() + "/" + episode.getEpisodeName());
         AppPrefs.addToInProgressDownloads(episode);
         String episodeId = episode.getEpisodeId();
         Season season = episode.getSeason();
@@ -66,18 +64,18 @@ public class FileDownloadManager {
         } else {
             fetch.enqueue(downloadRequest, result -> {
                 //Request was successfully enqueued for download.
-                MolvixLogger.d(ContentManager.class.getSimpleName(), "Download is has being enqueued for " + episode.getEpisodeName() + "/" + episode.getSeason().getSeasonName() + "/" + episode.getSeason().getMovie().getMovieName());
+                MolvixLogger.d(ContentManager.class.getSimpleName(), "Download has being enqueued for " + episode.getEpisodeName() + "/" + episode.getSeason().getSeasonName() + "/" + episode.getSeason().getMovie().getMovieName());
                 AppPrefs.saveDownloadId(getDownloadKey(episode), result.getId());
             }, error -> {
                 //An error occurred enqueuing the request.
-                Log.d(ContentManager.class.getSimpleName(), "An error occurred while queueing up file for download.Error is " + error.getThrowable());
+                MolvixLogger.d(ContentManager.class.getSimpleName(), "An error occurred while queueing up file for download.Error is " + error.getThrowable());
                 deleteDirPath(dirPath);
             });
         }
         fetch.addListener(new FetchListener() {
             @Override
             public void onAdded(@NotNull Download download) {
-                MolvixLogger.d(ContentManager.class.getSimpleName(), "Download is added for " + episode.getEpisodeName() + "/" + episode.getSeason().getSeasonName() + "/" + episode.getSeason().getMovie().getMovieName());
+                MolvixLogger.d(ContentManager.class.getSimpleName(), "Download is now added for " + episode.getEpisodeName() + "/" + episode.getSeason().getSeasonName() + "/" + episode.getSeason().getMovie().getMovieName());
                 AppPrefs.saveDownloadId(getDownloadKey(episode), download.getId());
             }
 
@@ -103,7 +101,7 @@ public class FileDownloadManager {
 
             @Override
             public void onError(@NotNull Download download, @NotNull com.tonyodev.fetch2.Error error, @Nullable Throwable throwable) {
-                MolvixLogger.d(ContentManager.class.getSimpleName(), "An error occurred while downloading the episode " + episode.getEpisodeName() + "/" + episode.getSeason().getSeasonName() + "/" + episode.getSeason().getMovie().getMovieName());
+                MolvixLogger.d(ContentManager.class.getSimpleName(), "An error occurred while downloading " + episode.getEpisodeName() + "/" + episode.getSeason().getSeasonName() + "/" + episode.getSeason().getMovie().getMovieName());
                 resetEpisodeDownloadProgress(episode);
                 deleteDirPath(dirPath);
                 cleanUpTempFiles(movieName, seasonName);
@@ -111,7 +109,7 @@ public class FileDownloadManager {
 
             @Override
             public void onDownloadBlockUpdated(@NotNull Download download, @NotNull DownloadBlock downloadBlock, int i) {
-                MolvixLogger.d(ContentManager.class.getSimpleName(), "Download is blocked " + episode.getEpisodeName() + "/" + episode.getSeason().getSeasonName() + "/" + episode.getSeason().getMovie().getMovieName());
+                MolvixLogger.d(ContentManager.class.getSimpleName(), "DownloadBlock Updated for  " + episode.getEpisodeName() + "/" + episode.getSeason().getSeasonName() + "/" + episode.getSeason().getMovie().getMovieName());
             }
 
             @Override
@@ -196,7 +194,7 @@ public class FileDownloadManager {
     }
 
     private static void updateDownloadProgress(Episode episode, String movieName, String movieDescription, String seasonName, String seasonId, long downloaded, long totalBytes) {
-        Log.d(ContentManager.class.getSimpleName(), "Downloading in Progress");
+        MolvixLogger.d(ContentManager.class.getSimpleName(), "Downloading in Progress");
         long progressPercent = downloaded * 100 / totalBytes;
         String progressMessage = FileUtils.getProgressDisplayLine(downloaded, totalBytes);
         MolvixNotificationManager.showEpisodeDownloadProgressNotification(movieName, movieDescription, seasonId, episode.getEpisodeId(), episode.getEpisodeName() + "/" + seasonName + "/" + movieName, (int) progressPercent, progressMessage);

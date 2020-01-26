@@ -7,7 +7,7 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
-import android.util.Log;
+import android.os.Handler;
 import android.view.ViewGroup;
 import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
@@ -26,6 +26,7 @@ import com.molvix.android.database.MolvixDB;
 import com.molvix.android.eventbuses.CheckForDownloadableEpisodes;
 import com.molvix.android.eventbuses.LoadEpisodesForSeason;
 import com.molvix.android.eventbuses.SearchEvent;
+import com.molvix.android.eventbuses.UpdateNotification;
 import com.molvix.android.managers.ContentManager;
 import com.molvix.android.managers.EpisodesManager;
 import com.molvix.android.managers.FileDownloadManager;
@@ -40,6 +41,7 @@ import com.molvix.android.ui.fragments.NotificationsFragment;
 import com.molvix.android.ui.widgets.MolvixSearchView;
 import com.molvix.android.ui.widgets.MovieDetailsView;
 import com.molvix.android.utils.FileUtils;
+import com.molvix.android.utils.MolvixLogger;
 import com.molvix.android.utils.UiUtils;
 
 import org.apache.commons.lang3.StringUtils;
@@ -88,19 +90,36 @@ public class MainActivity extends BaseActivity {
 
     private void cleanUpUnLinkedDownloadKeys() {
         Map<String, ?> allPrefs = AppPrefs.getAppPreferences().getAll();
+        List<String> removables = new ArrayList<>();
         if (!allPrefs.isEmpty()) {
             //Let's get keys with episode progress
             Set<String> keySet = allPrefs.keySet();
             for (String key : keySet) {
                 if (key.contains(AppConstants.EPISODE_DOWNLOAD_PROGRESS)) {
                     Object value = allPrefs.get(key);
-                    if ((int) value == 0) {
-                        DownloadableEpisode downloadableEpisode = MolvixDB.getDownloadableEpisode(extractEpisodeIdFromKey(key).trim());
-                        if (downloadableEpisode == null) {
-                            AppPrefs.updateEpisodeDownloadProgress(extractEpisodeIdFromKey(key).trim(), -1);
+                    MolvixLogger.d(ContentManager.class.getSimpleName(), "Value=" + value);
+                    if (value != null) {
+                        String valueString = String.valueOf(value);
+                        if (StringUtils.isNotEmpty(valueString)) {
+                            if (Integer.parseInt(valueString) == 0) {
+                                DownloadableEpisode downloadableEpisode = MolvixDB.getDownloadableEpisode(extractEpisodeIdFromKey(key).trim());
+                                if (downloadableEpisode == null) {
+                                    AppPrefs.updateEpisodeDownloadProgress(extractEpisodeIdFromKey(key).trim(), -1);
+                                }
+                            }
+                        } else {
+                            MolvixLogger.d(ContentManager.class.getSimpleName(), "Value seems to be empty here");
+                            removables.add(key);
                         }
+                    } else {
+                        MolvixLogger.d(ContentManager.class.getSimpleName(), "Value seems to be null here");
                     }
                 }
+            }
+        }
+        if (!removables.isEmpty()) {
+            for (String key : removables) {
+                AppPrefs.removeKey(key);
             }
         }
     }
@@ -142,6 +161,9 @@ public class MainActivity extends BaseActivity {
                 }
             } else if (event instanceof CheckForDownloadableEpisodes) {
                 fetchDownloadableEpisodes();
+            } else if (event instanceof UpdateNotification) {
+                UpdateNotification updateNotification = (UpdateNotification) event;
+                new Handler().postDelayed(() -> MolvixDB.updateNotification(updateNotification.getNotification()), 5000);
             }
         });
     }
@@ -238,7 +260,7 @@ public class MainActivity extends BaseActivity {
                         "}\n" +
                         "clickCaptchaButton();";
         if (Build.VERSION.SDK_INT >= 19) {
-            hackWebView.evaluateJavascript(javascriptCodeInjection, value -> Log.d(ContentManager.class.getSimpleName(), "Result after evaluating JavaScript=" + value));
+            hackWebView.evaluateJavascript(javascriptCodeInjection, value -> MolvixLogger.d(ContentManager.class.getSimpleName(), "Result after evaluating JavaScript=" + value));
         } else {
             hackWebView.loadUrl(javascriptCodeInjection);
         }
@@ -250,7 +272,7 @@ public class MainActivity extends BaseActivity {
             @Override
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
-                Log.d(ContentManager.class.getSimpleName(), "OnPageFinished and url=" + url);
+                MolvixLogger.d(ContentManager.class.getSimpleName(), "OnPageFinished and url=" + url);
                 if (url.toLowerCase().contains("areyouhuman")) {
                     injectMagicScript(hackWebView);
                 }
@@ -259,7 +281,7 @@ public class MainActivity extends BaseActivity {
             @Override
             public void onPageStarted(WebView view, String url, Bitmap favicon) {
                 super.onPageStarted(view, url, favicon);
-                Log.d(ContentManager.class.getSimpleName(), "OnPageStarted and url=" + url);
+                MolvixLogger.d(ContentManager.class.getSimpleName(), "OnPageStarted and url=" + url);
                 String mimeTypeOfUrl = FileUtils.getMimeType(url);
                 if (mimeTypeOfUrl == null) {
                     return;

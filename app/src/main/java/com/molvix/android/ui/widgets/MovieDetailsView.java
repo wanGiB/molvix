@@ -31,6 +31,7 @@ import com.molvix.android.managers.MovieManager;
 import com.molvix.android.managers.SeasonsManager;
 import com.molvix.android.models.Episode;
 import com.molvix.android.models.Movie;
+import com.molvix.android.models.Notification;
 import com.molvix.android.models.Season;
 import com.molvix.android.preferences.AppPrefs;
 import com.molvix.android.ui.adapters.EpisodesAdapter;
@@ -111,6 +112,17 @@ public class MovieDetailsView extends FrameLayout {
         }
     }
 
+    private void updateTheRelevantNotificationKeyHolderForMovie(Movie movie) {
+        Notification associatedNotification = MolvixDB.getNotification(movie.getMovieId());
+        if (associatedNotification != null) {
+            boolean seenStatus = associatedNotification.isSeen();
+            if (!seenStatus) {
+                associatedNotification.setSeen(true);
+                MolvixDB.updateNotification(associatedNotification);
+            }
+        }
+    }
+
     public void loadEpisodesForSeason(Season season) {
         @SuppressLint("InflateParams") View bottomSheetRootView = LayoutInflater.from(getContext()).inflate(R.layout.bottom_sheet_content_view, null);
         bottomSheetDialog = new BottomSheetDialog(getContext());
@@ -166,6 +178,7 @@ public class MovieDetailsView extends FrameLayout {
                 movie.setRecommendedToUser(true);
                 MolvixDB.updateMovie(movie);
             }
+            updateTheRelevantNotificationKeyHolderForMovie(movie);
         });
     }
 

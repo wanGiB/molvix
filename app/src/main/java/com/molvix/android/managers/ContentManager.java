@@ -91,8 +91,7 @@ public class ContentManager {
                             newMovieAvailableNotification.setDestination(AppConstants.DESTINATION_NEW_EPISODE_AVAILABLE);
                             newMovieAvailableNotification.setDestinationKey(result.getMovieId());
                             MolvixDB.createNewNotification(newMovieAvailableNotification);
-                            MolvixNotificationManager.displayNewMovieNotification(result, newMovieAvailableNotification);
-                            AppPrefs.setHasBeenNotified(checkKey);
+                            MolvixNotificationManager.displayNewMovieNotification(result, newMovieAvailableNotification,checkKey);
                         }
                     }
                 }

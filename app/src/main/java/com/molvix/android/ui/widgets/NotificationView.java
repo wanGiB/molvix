@@ -19,6 +19,7 @@ import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat;
 
 import com.molvix.android.R;
 import com.molvix.android.companions.AppConstants;
+import com.molvix.android.eventbuses.UpdateNotification;
 import com.molvix.android.models.Episode;
 import com.molvix.android.models.Movie;
 import com.molvix.android.models.Notification;
@@ -30,6 +31,7 @@ import com.molvix.android.utils.UiUtils;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.text.WordUtils;
+import org.greenrobot.eventbus.EventBus;
 
 import java.io.File;
 import java.util.Date;
@@ -86,6 +88,9 @@ public class NotificationView extends FrameLayout {
             VectorDrawableCompat newReleaseIcon = VectorDrawableCompat.create(getResources(), R.drawable.ic_new_releases_black_24dp, null);
             notificationIconView.setImageDrawable(newReleaseIcon);
         }
+        if (notification.isSeen()) {
+            notificationRootView.setBackgroundColor(ContextCompat.getColor(getContext(), R.color.white));
+        }
         notificationTimeView.setText(AppConstants.DATE_FORMATTER_IN_12HRS.format(new Date(notification.getTimeStamp())));
         View.OnClickListener onClickListener = v -> {
             UiUtils.blinkView(notificationRootView);
@@ -109,6 +114,8 @@ public class NotificationView extends FrameLayout {
                     String fileName = episodeName + "." + fileExtension;
                     File downloadedFile = FileUtils.getFilePath(fileName, WordUtils.capitalize(movie.getMovieName()), WordUtils.capitalize(season.getSeasonName()));
                     if (downloadedFile.exists()) {
+                        notification.setSeen(true);
+                        EventBus.getDefault().post(new UpdateNotification(notification));
                         Intent videoIntent = new Intent(Intent.ACTION_VIEW);
                         videoIntent.setDataAndType(Uri.fromFile(downloadedFile), "video/*");
                         getContext().startActivity(videoIntent);

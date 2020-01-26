@@ -22,8 +22,10 @@ import com.liucanwen.app.headerfooterrecyclerview.OnRecyclerViewScrollListener;
 import com.liucanwen.app.headerfooterrecyclerview.RecyclerViewUtils;
 import com.molvix.android.R;
 import com.molvix.android.database.MolvixDB;
+import com.molvix.android.eventbuses.AttachLoadedAd;
 import com.molvix.android.eventbuses.ConnectivityChangedEvent;
 import com.molvix.android.eventbuses.SearchEvent;
+import com.molvix.android.managers.AdsLoadManager;
 import com.molvix.android.managers.ContentManager;
 import com.molvix.android.managers.MovieManager;
 import com.molvix.android.models.Movie;
@@ -132,6 +134,23 @@ public class HomeFragment extends BaseFragment {
                     contentLoadingProgressMessageView.setText(getString(R.string.loading_msg));
                     spinMoviesDownloadJob();
                 }
+            } else if (event instanceof AttachLoadedAd) {
+                AttachLoadedAd attachLoadedAd = (AttachLoadedAd) event;
+                if (attachLoadedAd.canAttach()) {
+                    int currentVisiblePosition = homeLinearLayoutManager.findFirstVisibleItemPosition();
+                    int nextFifthPosition = currentVisiblePosition + 5;
+                    try {
+                        Movie movie = movies.get(nextFifthPosition);
+                        if (movie != null) {
+                            Movie adMovie = new Movie();
+                            adMovie.setAd(true);
+                            movies.add(nextFifthPosition, adMovie);
+                            moviesAdapter.notifyItemInserted(nextFifthPosition);
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
             }
         });
     }
@@ -200,7 +219,7 @@ public class HomeFragment extends BaseFragment {
 
             @Override
             public void onScrollDown() {
-                UiUtils.showSafeToast("Current Position=" + homeLinearLayoutManager.findFirstVisibleItemPosition());
+
             }
 
             @Override
@@ -210,9 +229,17 @@ public class HomeFragment extends BaseFragment {
 
             @Override
             public void onMoved(int distanceX, int distanceY) {
-
+                loadAdsLazily();
             }
+
         });
+
+    }
+
+    private void loadAdsLazily() {
+        if (AdsLoadManager.canAdBeLoaded()) {
+            AdsLoadManager.loadAds();
+        }
     }
 
     @Override

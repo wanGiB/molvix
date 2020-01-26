@@ -57,15 +57,6 @@ public class AppPrefs {
         getAppPreferences().edit().putBoolean(AppConstants.DOWNLOADED_MOVIES_UPDATE, newValue).commit();
     }
 
-    public static boolean isAdAlreadyConsumed() {
-        return getAppPreferences().getBoolean(AppConstants.AD_CONSUMED, false);
-    }
-
-    @SuppressLint("ApplySharedPref")
-    public static void setAdConsumed(boolean value) {
-        getAppPreferences().edit().putBoolean(AppConstants.AD_CONSUMED, value).commit();
-    }
-
     public static long getLastMovieRecommendationTime() {
         return getAppPreferences().getLong(AppConstants.LAST_MOVIES_RECOMMENDATION_TIME, -1);
     }
@@ -182,6 +173,10 @@ public class AppPrefs {
 
     public static int getEpisodeDownloadProgress(String episodeId) {
         return getAppPreferences().getInt(AppConstants.EPISODE_DOWNLOAD_PROGRESS + episodeId, -1);
+    }
+
+    public static void removeKey(String key) {
+        getAppPreferences().edit().remove(key).apply();
     }
 
 }

@@ -109,6 +109,10 @@ public class MolvixDB {
         getNotificationBox().put(newNotification);
     }
 
+    public static void updateNotification(Notification associatedNotification) {
+        getNotificationBox().put(associatedNotification);
+    }
+
     static class BulkSaveTask extends AsyncTask<MoviesToSave, Void, Void> {
 
         @Override

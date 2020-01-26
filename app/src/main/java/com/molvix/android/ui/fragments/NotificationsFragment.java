@@ -70,8 +70,8 @@ public class NotificationsFragment extends BaseFragment {
             notifications.clear();
             notificationsAdapter.notifyDataSetChanged();
             MolvixDB.getNotificationBox().removeAll();
-            invalidateUI();
             notificationsCenterLabel.setText(getString(R.string.all_caught_up));
+            invalidateUI();
         });
     }
 
@@ -127,6 +127,12 @@ public class NotificationsFragment extends BaseFragment {
                     notificationsAdapter.notifyDataSetChanged();
                 } else {
                     notificationsAdapter.notifyItemInserted(notifications.size() - 1);
+                }
+            } else {
+                int indexOfNotification = results.indexOf(notification);
+                if (indexOfNotification != -1) {
+                    notifications.set(indexOfNotification, notification);
+                    notificationsAdapter.notifyItemChanged(indexOfNotification);
                 }
             }
         }

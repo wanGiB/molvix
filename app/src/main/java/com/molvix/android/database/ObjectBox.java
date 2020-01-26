@@ -1,10 +1,10 @@
 package com.molvix.android.database;
 
 import android.content.Context;
-import android.util.Log;
 
 import com.molvix.android.BuildConfig;
 import com.molvix.android.models.MyObjectBox;
+import com.molvix.android.utils.MolvixLogger;
 
 import io.objectbox.BoxStore;
 
@@ -17,7 +17,7 @@ public class ObjectBox {
                 .androidContext(context.getApplicationContext())
                 .build();
         if (BuildConfig.DEBUG) {
-            Log.d(ObjectBox.class.getSimpleName(), String.format("Using ObjectBox %s (%s)",
+            MolvixLogger.d(ObjectBox.class.getSimpleName(), String.format("Using ObjectBox %s (%s)",
                     BoxStore.getVersion(), BoxStore.getVersionNative()));
         }
     }

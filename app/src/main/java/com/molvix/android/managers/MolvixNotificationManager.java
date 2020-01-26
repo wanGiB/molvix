@@ -8,7 +8,6 @@ import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Build;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -33,6 +32,7 @@ import com.molvix.android.ui.activities.CancelDownloadActivity;
 import com.molvix.android.ui.activities.MainActivity;
 import com.molvix.android.ui.notifications.notification.Load;
 import com.molvix.android.ui.notifications.notification.MolvixNotification;
+import com.molvix.android.utils.MolvixLogger;
 import com.molvix.android.utils.UiUtils;
 
 import org.apache.commons.lang3.text.WordUtils;
@@ -118,22 +118,24 @@ class MolvixNotificationManager {
         }
     }
 
-    static void displayNewMovieNotification(Movie updatedMovie, Notification newMovieAvailableNotification) {
+    static void displayNewMovieNotification(Movie updatedMovie, Notification newMovieAvailableNotification, String checkKey) {
         String movieArtUrl = updatedMovie.getMovieArtUrl();
         if (movieArtUrl != null) {
-            Log.d(ContentManager.class.getSimpleName(), "Movie Art Url for next notification is not null.About to display notification for the movie");
-            new BitmapLoadTask(newMovieAvailableNotification).execute(movieArtUrl);
+            MolvixLogger.d(ContentManager.class.getSimpleName(), "Movie Art Url for next notification is not null.About to display notification for the movie");
+            new BitmapLoadTask(newMovieAvailableNotification, checkKey).execute(movieArtUrl);
         } else {
-            new MovieContentsExtractionTask(newMovieAvailableNotification).execute(updatedMovie);
+            new MovieContentsExtractionTask(newMovieAvailableNotification, checkKey).execute(updatedMovie);
         }
     }
 
     private static class MovieContentsExtractionTask extends AsyncTask<Movie, Void, Void> {
 
         private Notification notification;
+        private String checkKey;
 
-        MovieContentsExtractionTask(Notification notification) {
+        MovieContentsExtractionTask(Notification notification, String checkKey) {
             this.notification = notification;
+            this.checkKey = checkKey;
         }
 
         @Override
@@ -142,7 +144,7 @@ class MolvixNotificationManager {
                 if (e == null && result != null) {
                     String movieArtUrl = result.getMovieArtUrl();
                     if (movieArtUrl != null) {
-                        new BitmapLoadTask(notification).execute(movieArtUrl);
+                        new BitmapLoadTask(notification, checkKey).execute(movieArtUrl);
                     }
                 }
             });
@@ -154,9 +156,11 @@ class MolvixNotificationManager {
     private static class BitmapLoadTask extends AsyncTask<String, Void, Void> {
 
         private Notification notification;
+        private String checkKey;
 
-        BitmapLoadTask(Notification notification) {
+        BitmapLoadTask(Notification notification, String checkKey) {
             this.notification = notification;
+            this.checkKey = checkKey;
         }
 
         @Override
@@ -183,7 +187,7 @@ class MolvixNotificationManager {
                     .into(new CustomTarget<Bitmap>() {
                         @Override
                         public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
-                            UiUtils.runOnMain(() -> MolvixNotificationManager.displayUpdatedMovieNotification(resource, notification));
+                            UiUtils.runOnMain(() -> MolvixNotificationManager.displayUpdatedMovieNotification(resource, notification, checkKey));
                         }
 
                         @Override
@@ -197,7 +201,7 @@ class MolvixNotificationManager {
 
     }
 
-    private static void displayUpdatedMovieNotification(Bitmap movieBitmap, Notification notification) {
+    private static void displayUpdatedMovieNotification(Bitmap movieBitmap, Notification notification, String checkKey) {
         String messageDisplay = notification.getMessage();
         Intent movieDetailsIntent = new Intent(ApplicationLoader.getInstance(), MainActivity.class);
         movieDetailsIntent.putExtra(AppConstants.INVOCATION_TYPE, AppConstants.DISPLAY_MOVIE);
@@ -219,6 +223,8 @@ class MolvixNotificationManager {
                 .background(movieBitmap)
                 .setPlaceholder(R.drawable.ic_placeholder)
                 .build();
+        AppPrefs.setHasBeenNotified(checkKey);
+
     }
 
 }

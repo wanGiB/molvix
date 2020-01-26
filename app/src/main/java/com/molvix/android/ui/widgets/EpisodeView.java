@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -32,6 +31,7 @@ import com.molvix.android.models.Season;
 import com.molvix.android.preferences.AppPrefs;
 import com.molvix.android.utils.ConnectivityUtils;
 import com.molvix.android.utils.FileUtils;
+import com.molvix.android.utils.MolvixLogger;
 import com.molvix.android.utils.UiUtils;
 
 import org.apache.commons.lang3.StringUtils;
@@ -300,7 +300,7 @@ public class EpisodeView extends FrameLayout {
                         String episodeFileName = link.text();
                         String episodeDownloadLink = link.attr("href");
                         if (episodeDownloadLink.contains(AppConstants.DOWNLOADABLE)) {
-                            Log.d(TAG, episodeFileName + ", " + episodeDownloadLink);
+                            MolvixLogger.d(TAG, episodeFileName + ", " + episodeDownloadLink);
                             downloadOptions.add(episodeDownloadLink);
                         }
                     }
