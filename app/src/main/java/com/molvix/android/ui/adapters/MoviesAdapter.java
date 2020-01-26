@@ -97,7 +97,7 @@ public class MoviesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         }
 
         void loadAd() {
-//            adMobNativeAdView.loadInAd(AdsLoadManager.getAvailableAd());
+            adMobNativeAdView.loadInAd(AdsLoadManager.getAvailableAd());
         }
 
     }

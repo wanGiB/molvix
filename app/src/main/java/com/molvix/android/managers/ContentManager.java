@@ -72,6 +72,7 @@ public class ContentManager {
                     Movie result = MolvixDB.getMovieBox()
                             .query()
                             .equal(Movie_.movieName, realMovieTitle.toLowerCase())
+                            .equal(Movie_.seenByUser, true)
                             .build()
                             .findFirst();
                     if (result != null) {
@@ -91,7 +92,7 @@ public class ContentManager {
                             newMovieAvailableNotification.setDestination(AppConstants.DESTINATION_NEW_EPISODE_AVAILABLE);
                             newMovieAvailableNotification.setDestinationKey(result.getMovieId());
                             MolvixDB.createNewNotification(newMovieAvailableNotification);
-                            MolvixNotificationManager.displayNewMovieNotification(result, newMovieAvailableNotification,checkKey);
+                            MolvixNotificationManager.displayNewMovieNotification(result, newMovieAvailableNotification, checkKey);
                         }
                     }
                 }

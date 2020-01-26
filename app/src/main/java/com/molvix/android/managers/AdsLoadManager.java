@@ -48,7 +48,7 @@ public class AdsLoadManager {
     }
 
     public static boolean canAdBeLoaded() {
-        return /*ConnectivityUtils.isDeviceConnectedToTheInternet() &&*/ nativeAds.isEmpty() && !adsLoadProgress.get();
+        return ConnectivityUtils.isDeviceConnectedToTheInternet() && nativeAds.isEmpty() && !adsLoadProgress.get();
     }
 
     static class AdsLoadTask extends AsyncTask<Void, Void, Void> {
@@ -73,8 +73,6 @@ public class AdsLoadManager {
                 @Override
                 public void onAdFailedToLoad(int errorCode) {
                     MolvixLogger.d(ContentManager.class.getSimpleName(), "Error loading ads due to " + errorCode);
-                    //TODO To be removed
-                    EventBus.getDefault().post(new AttachLoadedAd(true));
                 }
             }).build();
             AdRequest.Builder adRequestBuilder = new AdRequest.Builder();
