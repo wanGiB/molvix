@@ -179,4 +179,13 @@ public class AppPrefs {
         getAppPreferences().edit().remove(key).apply();
     }
 
+    public static boolean isPaused(String episodeId) {
+        return getAppPreferences().getBoolean(AppConstants.DOWNLOAD_PAUSED + episodeId, false);
+    }
+
+    @SuppressLint("ApplySharedPref")
+    public static void setPaused(String episodeId, boolean value) {
+        getAppPreferences().edit().putBoolean(AppConstants.DOWNLOAD_PAUSED + episodeId, value).commit();
+    }
+
 }

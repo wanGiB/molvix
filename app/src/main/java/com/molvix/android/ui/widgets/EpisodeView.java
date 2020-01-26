@@ -9,8 +9,8 @@ import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -71,8 +71,11 @@ public class EpisodeView extends FrameLayout {
     @BindView(R.id.download_progress_text_view)
     TextView downloadProgressTextView;
 
-    @BindView(R.id.cancel_download_btn)
-    Button cancelDownloadBtn;
+    @BindView(R.id.cancel_download)
+    ImageView cancelDownloadBtn;
+
+    @BindView(R.id.pause_or_resume_download_btn)
+    ImageView pauseOrResumeBtn;
 
     @BindView(R.id.clickable_dummy_view)
     View clickableDummyView;
@@ -111,11 +114,46 @@ public class EpisodeView extends FrameLayout {
         initSpinner(episode);
         checkEpisodeActiveDownloadStatus(episode);
         initDownloadOrPlayButtonEventListener(episode, episodeName);
-        initCancelActiveDownloadButtonEventListener();
+        initActionButtonsEventListener();
     }
 
-    private void initCancelActiveDownloadButtonEventListener() {
-        cancelDownloadBtn.setOnClickListener(v -> cancelActiveDownload());
+    private void initActionButtonsEventListener() {
+        cancelDownloadBtn.setOnClickListener(v -> {
+            UiUtils.blinkView(v);
+            cancelActiveDownload();
+        });
+        pauseOrResumeBtn.setOnClickListener(v -> {
+            UiUtils.blinkView(v);
+            boolean isPaused = AppPrefs.isPaused(episode.getEpisodeId());
+            if (isPaused) {
+                resumeDownload();
+                showPauseButton();
+            } else {
+                pauseDownload();
+                showResumeButton();
+            }
+        });
+    }
+
+    private void pauseDownload() {
+        FileDownloadManager.pauseDownload(episode);
+    }
+
+    private void resumeDownload() {
+        FileDownloadManager.downloadEpisode(episode, true);
+        AppPrefs.setPaused(episode.getEpisodeId(), false);
+    }
+
+    private void showPauseButton() {
+        VectorDrawableCompat pauseBtn = VectorDrawableCompat.create(getResources(), R.drawable.ic_pause_black_24dp, null);
+        pauseOrResumeBtn.setImageDrawable(pauseBtn);
+        downloadButtonOrPlayButton.setText(getContext().getString(R.string.downloading));
+    }
+
+    private void showResumeButton() {
+        VectorDrawableCompat resumeBtn = VectorDrawableCompat.create(getResources(), R.drawable.ic_resume_download, null);
+        pauseOrResumeBtn.setImageDrawable(resumeBtn);
+        downloadButtonOrPlayButton.setText(getContext().getString(R.string.paused));
     }
 
     private void cancelActiveDownload() {
@@ -201,7 +239,12 @@ public class EpisodeView extends FrameLayout {
 
     private void setToDownloadInProgress(Episode episode) {
         setToDownloadable();
-        downloadButtonOrPlayButton.setText(getContext().getString(R.string.downloading));
+        boolean paused = AppPrefs.isPaused(episode.getEpisodeId());
+        if (paused) {
+            downloadButtonOrPlayButton.setText(getContext().getString(R.string.paused));
+        } else {
+            downloadButtonOrPlayButton.setText(getContext().getString(R.string.downloading));
+        }
         //Download has started
         UiUtils.toggleViewVisibility(downloadProgressContainer, true);
         downloadProgressBar.setProgress(AppPrefs.getEpisodeDownloadProgress(episode.getEpisodeId()));

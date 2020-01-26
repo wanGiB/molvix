@@ -60,7 +60,7 @@ public class FileDownloadManager {
         downloadRequest.setNetworkType(NetworkType.ALL);
         Fetch fetch = getFetch();
         if (resume) {
-            fetch.resume(getDownloadKeyFromEpisode(episode));
+            fetch.resume(getDownloadIdFromEpisode(episode));
         } else {
             fetch.enqueue(downloadRequest, result -> {
                 //Request was successfully enqueued for download.
@@ -190,6 +190,7 @@ public class FileDownloadManager {
         }
         MovieTracker.recordEpisodeAsDownloaded(episode);
         AppPrefs.removeFromInProgressDownloads(episode);
+        AppPrefs.setPaused(episodeId, false);
         MolvixNotificationManager.showEpisodeDownloadProgressNotification(movieName, movieDescription, seasonId, episodeId, movieName + "/" + seasonName + "/" + episode.getEpisodeName(), 100, "");
     }
 
@@ -203,7 +204,7 @@ public class FileDownloadManager {
     }
 
     public static void cancelDownload(Episode episode) {
-        int downloadKeyFromEpisode = getDownloadKeyFromEpisode(episode);
+        int downloadKeyFromEpisode = getDownloadIdFromEpisode(episode);
         Fetch fetch = getFetch();
         fetch.cancel(downloadKeyFromEpisode);
         MolvixNotification.with(ApplicationLoader.getInstance()).cancel(Math.abs(episode.getEpisodeId().hashCode()));
@@ -238,7 +239,7 @@ public class FileDownloadManager {
         }
     }
 
-    private static int getDownloadKeyFromEpisode(Episode episode) {
+    private static int getDownloadIdFromEpisode(Episode episode) {
         String downloadIdKey = getDownloadKey(episode);
         return AppPrefs.getDownloadId(downloadIdKey);
     }
@@ -261,6 +262,14 @@ public class FileDownloadManager {
         String fileName = episode.getEpisodeName() + "." + fileExtension;
         String dirPath = FileUtils.getFilePath(movieName, seasonName).getPath();
         return dirPath + fileName;
+    }
+
+    public static void pauseDownload(Episode episode) {
+        MolvixNotification.with(ApplicationLoader.getInstance()).cancel(Math.abs(episode.getEpisodeId().hashCode()));
+        int downloadKeyFromEpisode = getDownloadIdFromEpisode(episode);
+        Fetch fetch = getFetch();
+        fetch.pause(downloadKeyFromEpisode);
+        AppPrefs.setPaused(episode.getEpisodeId(), true);
     }
 
 }

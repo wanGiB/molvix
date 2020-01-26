@@ -78,4 +78,5 @@ public class AppConstants {
 
     public static final String EPISODE_FROM_MOVIE = "Episode_From_Movie_";
     public static final String MOVIE_EPISODES_DOWNLOADING = "MovieEpisodesDownloading";
+    public static final String DOWNLOAD_PAUSED = "DownloadPaused_";
 }

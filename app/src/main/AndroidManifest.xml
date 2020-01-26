@@ -46,6 +46,7 @@
         </activity>
 
         <activity android:name=".ui.activities.CancelDownloadActivity" />
+        <activity android:name=".ui.activities.PauseDownloadActivity" />
 
         <receiver
             android:name=".receivers.ConnectivityChangeReceiver"
