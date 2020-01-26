@@ -29,7 +29,7 @@ import com.molvix.android.database.MolvixDB;
 import com.molvix.android.models.Movie;
 import com.molvix.android.models.Notification;
 import com.molvix.android.preferences.AppPrefs;
-import com.molvix.android.ui.activities.EmptyContentActivity;
+import com.molvix.android.ui.activities.CancelDownloadActivity;
 import com.molvix.android.ui.activities.MainActivity;
 import com.molvix.android.ui.notifications.notification.Load;
 import com.molvix.android.ui.notifications.notification.MolvixNotification;
@@ -60,7 +60,7 @@ class MolvixNotificationManager {
 
         int identifier = Math.abs(episodeId.hashCode());
 
-        Intent cancelIntent = new Intent(ApplicationLoader.getInstance(), EmptyContentActivity.class);
+        Intent cancelIntent = new Intent(ApplicationLoader.getInstance(), CancelDownloadActivity.class);
         cancelIntent.putExtra(AppConstants.EPISODE_ID, episodeId);
         PendingIntent cancelPendingIntent = PendingIntent.getActivity(ApplicationLoader.getInstance(), identifier, cancelIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 

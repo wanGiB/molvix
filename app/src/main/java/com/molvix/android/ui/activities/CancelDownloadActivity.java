@@ -11,7 +11,7 @@ import com.molvix.android.database.MolvixDB;
 import com.molvix.android.managers.FileDownloadManager;
 import com.molvix.android.models.Episode;
 
-public class EmptyContentActivity extends AppCompatActivity {
+public class CancelDownloadActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {

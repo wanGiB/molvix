@@ -48,8 +48,32 @@ public abstract class BaseActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        checkAndUnRegisterEventBus();
+    }
+
+    @Override
     public void onResume() {
         super.onResume();
+        checkAndRegisterEventBus();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        checkAndRegisterEventBus();
+    }
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        checkAndRegisterEventBus();
+    }
+
+    @Override
+    protected void onPostCreate(@Nullable Bundle savedInstanceState) {
+        super.onPostCreate(savedInstanceState);
         checkAndRegisterEventBus();
     }
 

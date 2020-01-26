@@ -43,9 +43,12 @@ import com.molvix.android.utils.FileUtils;
 import com.molvix.android.utils.UiUtils;
 
 import org.apache.commons.lang3.StringUtils;
+import org.greenrobot.eventbus.EventBus;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import butterknife.BindView;
@@ -80,6 +83,31 @@ public class MainActivity extends BaseActivity {
         observeNewIntent(getIntent());
         fetchDownloadableEpisodes();
         checkAndResumePausedDownloads();
+        cleanUpUnLinkedDownloadKeys();
+    }
+
+    private void cleanUpUnLinkedDownloadKeys() {
+        Map<String, ?> allPrefs = AppPrefs.getAppPreferences().getAll();
+        if (!allPrefs.isEmpty()) {
+            //Let's get keys with episode progress
+            Set<String> keySet = allPrefs.keySet();
+            for (String key : keySet) {
+                if (key.contains(AppConstants.EPISODE_DOWNLOAD_PROGRESS)) {
+                    Object value = allPrefs.get(key);
+                    if ((int) value == 0) {
+                        DownloadableEpisode downloadableEpisode = MolvixDB.getDownloadableEpisode(extractEpisodeIdFromKey(key).trim());
+                        if (downloadableEpisode == null) {
+                            AppPrefs.updateEpisodeDownloadProgress(extractEpisodeIdFromKey(key).trim(), -1);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    @NotNull
+    private String extractEpisodeIdFromKey(String key) {
+        return key.replace(AppConstants.EPISODE_DOWNLOAD_PROGRESS, "");
     }
 
     private void unLockAppCaptchaSolver() {
@@ -222,7 +250,7 @@ public class MainActivity extends BaseActivity {
             @Override
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
-                Log.d(ContentManager.class.getSimpleName(),"OnPageFinished and url="+url);
+                Log.d(ContentManager.class.getSimpleName(), "OnPageFinished and url=" + url);
                 if (url.toLowerCase().contains("areyouhuman")) {
                     injectMagicScript(hackWebView);
                 }
@@ -231,7 +259,7 @@ public class MainActivity extends BaseActivity {
             @Override
             public void onPageStarted(WebView view, String url, Bitmap favicon) {
                 super.onPageStarted(view, url, favicon);
-                Log.d(ContentManager.class.getSimpleName(),"OnPageStarted and url="+url);
+                Log.d(ContentManager.class.getSimpleName(), "OnPageStarted and url=" + url);
                 String mimeTypeOfUrl = FileUtils.getMimeType(url);
                 if (mimeTypeOfUrl == null) {
                     return;
@@ -257,6 +285,7 @@ public class MainActivity extends BaseActivity {
             public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
                 super.onReceivedError(view, request, error);
                 unLockAppCaptchaSolver();
+                EventBus.getDefault().post(new CheckForDownloadableEpisodes());
             }
 
         });

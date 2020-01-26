@@ -71,6 +71,7 @@ public class FileDownloadManager {
             }, error -> {
                 //An error occurred enqueuing the request.
                 Log.d(ContentManager.class.getSimpleName(), "An error occurred while queueing up file for download.Error is " + error.getThrowable());
+                deleteDirPath(dirPath);
             });
         }
         fetch.addListener(new FetchListener() {
@@ -104,6 +105,7 @@ public class FileDownloadManager {
             public void onError(@NotNull Download download, @NotNull com.tonyodev.fetch2.Error error, @Nullable Throwable throwable) {
                 MolvixLogger.d(ContentManager.class.getSimpleName(), "An error occurred while downloading the episode " + episode.getEpisodeName() + "/" + episode.getSeason().getSeasonName() + "/" + episode.getSeason().getMovie().getMovieName());
                 resetEpisodeDownloadProgress(episode);
+                deleteDirPath(dirPath);
                 cleanUpTempFiles(movieName, seasonName);
             }
 
@@ -139,6 +141,7 @@ public class FileDownloadManager {
             public void onCancelled(@NotNull Download download) {
                 MolvixLogger.d(ContentManager.class.getSimpleName(), "Download is cancelled for " + episode.getEpisodeName() + "/" + episode.getSeason().getSeasonName() + "/" + episode.getSeason().getMovie().getMovieName());
                 resetEpisodeDownloadProgress(episode);
+                deleteDirPath(dirPath);
                 cleanUpTempFiles(movieName, seasonName);
             }
 
@@ -154,6 +157,14 @@ public class FileDownloadManager {
 
         });
 
+    }
+
+    @SuppressWarnings("ResultOfMethodCallIgnored")
+    private static void deleteDirPath(String dirPath) {
+        File dirPathFile = new File(dirPath);
+        if (dirPathFile.exists()) {
+            dirPathFile.delete();
+        }
     }
 
     private static Fetch getFetch() {
