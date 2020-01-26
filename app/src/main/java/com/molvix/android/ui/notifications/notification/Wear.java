@@ -20,7 +20,7 @@ public class Wear extends Builder {
     private NotificationCompat.WearableExtender wearableExtender;
     private RemoteInput remoteInput;
 
-    public Wear(NotificationCompat.Builder builder, int identifier, String tag) {
+    Wear(NotificationCompat.Builder builder, int identifier, String tag) {
         super(builder, identifier, tag);
         this.wearableExtender = new NotificationCompat.WearableExtender();
     }

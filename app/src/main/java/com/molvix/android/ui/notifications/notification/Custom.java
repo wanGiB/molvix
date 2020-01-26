@@ -22,7 +22,7 @@ public class Custom extends Builder {
     private int mPlaceHolderResourceId;
     private Bitmap backgroundBitmap;
 
-    public Custom(NotificationCompat.Builder builder, int identifier, String title, String message, Spanned messageSpanned, int smallIcon, String tag) {
+    Custom(NotificationCompat.Builder builder, int identifier, String title, String message, Spanned messageSpanned, int smallIcon, String tag) {
         super(builder, identifier, tag);
         this.mRemoteView = new RemoteViews(MolvixNotification.mSingleton.mContext.getPackageName(), R.layout.notification_custom);
         this.mTitle = title;

@@ -14,7 +14,7 @@
 
     <RelativeLayout
         android:id="@+id/notification_content_information"
-        android:layout_width="fill_parent"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
         android:background="@color/notification_background"
@@ -22,10 +22,9 @@
 
         <TextView
             android:id="@+id/notification_text_title"
-            android:layout_width="fill_parent"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_toStartOf="@+id/notification_img_icon"
-            android:layout_toLeftOf="@+id/notification_img_icon"
             android:ellipsize="end"
             android:maxLines="1"
             android:textColor="@color/color_white"
@@ -33,11 +32,10 @@
 
         <TextView
             android:id="@+id/notification_text_message"
-            android:layout_width="fill_parent"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_below="@+id/notification_text_title"
             android:layout_toStartOf="@+id/notification_img_icon"
-            android:layout_toLeftOf="@+id/notification_img_icon"
             android:ellipsize="end"
             android:maxLines="2"
             android:textColor="@color/color_white"
@@ -48,9 +46,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentEnd="false"
-            android:layout_alignParentRight="true"
             android:layout_centerInParent="true"
             android:contentDescription="@string/text_description_image_icon" />
+
     </RelativeLayout>
 
 </FrameLayout>
