@@ -222,6 +222,7 @@ public class MainActivity extends BaseActivity {
             @Override
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
+                Log.d(ContentManager.class.getSimpleName(),"OnPageFinished and url="+url);
                 if (url.toLowerCase().contains("areyouhuman")) {
                     injectMagicScript(hackWebView);
                 }
@@ -230,6 +231,7 @@ public class MainActivity extends BaseActivity {
             @Override
             public void onPageStarted(WebView view, String url, Bitmap favicon) {
                 super.onPageStarted(view, url, favicon);
+                Log.d(ContentManager.class.getSimpleName(),"OnPageStarted and url="+url);
                 String mimeTypeOfUrl = FileUtils.getMimeType(url);
                 if (mimeTypeOfUrl == null) {
                     return;

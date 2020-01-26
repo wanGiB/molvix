@@ -1,5 +1,7 @@
 package com.molvix.android.managers;
 
+import android.util.Log;
+
 import com.downloader.Error;
 import com.downloader.OnDownloadListener;
 import com.downloader.PRDownloader;
@@ -24,6 +26,7 @@ import java.io.File;
 public class FileDownloadManager {
 
     public static void downloadEpisode(Episode episode) {
+        Log.d(ContentManager.class.getSimpleName(), "Download about to begin for " + episode.getSeason().getMovie().getMovieName() + "/" + episode.getSeason().getSeasonName() + "/" + episode.getEpisodeName());
         AppPrefs.addToInProgressDownloads(episode);
         String episodeId = episode.getEpisodeId();
         Season season = episode.getSeason();
@@ -56,6 +59,7 @@ public class FileDownloadManager {
 
                     @Override
                     public void onError(Error error) {
+                        Log.d(ContentManager.class.getSimpleName(), "An error occurred, Server Error=" + error.getServerErrorMessage() + ", ConnectionException=" + error.getConnectionException() + ", ResponseCode=" + error.getResponseCode() + ",HeaderFields=" + error.getHeaderFields());
                         resetEpisodeDownloadProgress(episode);
                         cleanUpTempFiles(movieName, seasonName);
                     }
@@ -84,6 +88,7 @@ public class FileDownloadManager {
     }
 
     private static void updateDownloadProgress(Episode episode, String movieName, String movieDescription, String seasonName, String seasonId, Progress progress) {
+        Log.d(ContentManager.class.getSimpleName(), "Downloading in Progress");
         long progressPercent = progress.currentBytes * 100 / progress.totalBytes;
         String progressMessage = FileUtils.getProgressDisplayLine(progress.currentBytes, progress.totalBytes);
         MolvixNotificationManager.showEpisodeDownloadProgressNotification(movieName, movieDescription, seasonId, episode.getEpisodeId(), episode.getEpisodeName() + "/" + seasonName + "/" + movieName, (int) progressPercent, progressMessage);
