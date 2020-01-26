@@ -2,9 +2,12 @@ package com.molvix.android.companions;
 
 import android.annotation.SuppressLint;
 
+import com.google.android.gms.ads.formats.UnifiedNativeAd;
+
 import java.text.SimpleDateFormat;
 import java.util.Locale;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class AppConstants {
 
@@ -79,4 +82,5 @@ public class AppConstants {
     public static final String EPISODE_FROM_MOVIE = "Episode_From_Movie_";
     public static final String MOVIE_EPISODES_DOWNLOADING = "MovieEpisodesDownloading";
     public static final String DOWNLOAD_PAUSED = "DownloadPaused_";
+    public static AtomicReference<UnifiedNativeAd>unifiedNativeAdAtomicReference=new AtomicReference<>();
 }

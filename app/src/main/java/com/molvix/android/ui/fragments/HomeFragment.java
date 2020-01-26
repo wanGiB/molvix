@@ -233,6 +233,15 @@ public class HomeFragment extends BaseFragment {
             @Override
             public void onMoved(int distanceX, int distanceY) {
                 loadAdsLazily();
+                try {
+                    int firstVisibleItemPosition = homeLinearLayoutManager.findFirstVisibleItemPosition();
+                    Movie movie = movies.get(firstVisibleItemPosition);
+                    if (movie.isAd()) {
+                        AdsLoadManager.clearAds();
+                    }
+                } catch (Exception ignored) {
+
+                }
             }
 
         });

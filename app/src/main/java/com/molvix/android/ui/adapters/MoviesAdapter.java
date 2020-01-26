@@ -8,8 +8,9 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.gms.ads.formats.UnifiedNativeAd;
 import com.molvix.android.R;
-import com.molvix.android.managers.AdsLoadManager;
+import com.molvix.android.companions.AppConstants;
 import com.molvix.android.models.Movie;
 import com.molvix.android.ui.widgets.AdMobNativeAdView;
 import com.molvix.android.ui.widgets.MovieView;
@@ -97,7 +98,10 @@ public class MoviesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         }
 
         void loadAd() {
-            adMobNativeAdView.loadInAd(AdsLoadManager.getAvailableAd());
+            UnifiedNativeAd unifiedNativeAd = AppConstants.unifiedNativeAdAtomicReference.get();
+            if (unifiedNativeAd != null) {
+                adMobNativeAdView.loadInAd(unifiedNativeAd);
+            }
         }
 
     }

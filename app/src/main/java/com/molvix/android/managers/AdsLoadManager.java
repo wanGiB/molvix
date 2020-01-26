@@ -40,11 +40,9 @@ public class AdsLoadManager {
         adsLoadTask.execute();
     }
 
-    public static UnifiedNativeAd getAvailableAd() {
-        UnifiedNativeAd currentAd = nativeAds.get(0);
+    public static void clearAds() {
         nativeAds.clear();
         adsLoadProgress.set(false);
-        return currentAd;
     }
 
     public static boolean canAdBeLoaded() {
@@ -59,7 +57,9 @@ public class AdsLoadManager {
             AdLoader.Builder builder = new AdLoader.Builder(context, context.getString(R.string.native_ad_unit_id));
             builder.forUnifiedNativeAd(unifiedNativeAd -> {
                 MolvixLogger.d(ContentManager.class.getSimpleName(), "Native Ads Loaded");
+                nativeAds.clear();
                 nativeAds.add(unifiedNativeAd);
+                AppConstants.unifiedNativeAdAtomicReference.set(unifiedNativeAd);
                 EventBus.getDefault().post(new AttachLoadedAd(true));
             });
             VideoOptions videoOptions = new VideoOptions.Builder()
