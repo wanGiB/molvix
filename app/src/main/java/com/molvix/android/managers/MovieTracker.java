@@ -27,7 +27,6 @@ import com.molvix.android.models.Notification;
 import com.molvix.android.models.Season;
 import com.molvix.android.preferences.AppPrefs;
 import com.molvix.android.utils.CryptoUtils;
-import com.molvix.android.utils.RandomStringUtils;
 import com.molvix.android.utils.UiUtils;
 
 import org.apache.commons.lang3.text.WordUtils;
@@ -44,7 +43,7 @@ public class MovieTracker {
         //Add to user notifications pane
         Season season = episode.getSeason();
         Movie movie = season.getMovie();
-        String notificationId = CryptoUtils.getSha256Digest(RandomStringUtils.random(256) + System.currentTimeMillis());
+        String notificationId = CryptoUtils.getSha256Digest(season.getSeasonId() + movie.getMovieId() + episode.getEpisodeId());
         Notification existingNotification = MolvixDB.getNotification(notificationId);
         if (existingNotification != null) {
             return;

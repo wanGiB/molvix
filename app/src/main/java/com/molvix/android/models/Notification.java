@@ -71,4 +71,28 @@ public class Notification {
     public void setSeen(boolean seen) {
         this.seen = seen;
     }
+
+    @Override
+    public int hashCode() {
+        int result;
+        result = this.notificationObjectId.hashCode();
+        final String name = getClass().getName();
+        result = 31 * result + name.hashCode();
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (obj == this) {
+            return true;
+        }
+        if (obj.getClass() != getClass()) {
+            return false;
+        }
+        Notification another = (Notification) obj;
+        return this.getNotificationObjectId().equals(another.getNotificationObjectId());
+    }
 }

@@ -82,5 +82,6 @@ public class AppConstants {
     public static final String EPISODE_FROM_MOVIE = "Episode_From_Movie_";
     public static final String MOVIE_EPISODES_DOWNLOADING = "MovieEpisodesDownloading";
     public static final String DOWNLOAD_PAUSED = "DownloadPaused_";
+    public static final String DOWNLOAD_ID_KEY = "DownloadIdKey_";
     public static AtomicReference<UnifiedNativeAd>unifiedNativeAdAtomicReference=new AtomicReference<>();
 }

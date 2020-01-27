@@ -195,7 +195,16 @@ public class EpisodeView extends FrameLayout {
             } else {
                 if (ConnectivityUtils.isDeviceConnectedToTheInternet()) {
                     if (AppPrefs.getEpisodeDownloadProgress(episode.getEpisodeId()) > -1) {
-                        UiUtils.showSafeToast("Download already in progress");
+                        String progressMessage = AppPrefs.getEpisodeDownloadProgressText(episode.getEpisodeId());
+                        if (StringUtils.isNotEmpty(progressMessage)) {
+                            if (AppPrefs.isPaused(episode.getEpisodeId())) {
+                                pauseOrResumeBtn.performClick();
+                            } else {
+                                return;
+                            }
+                        } else {
+                            UiUtils.showSafeToast("Download already in progress");
+                        }
                         return;
                     }
                     int episodeQualitySelection = episodeDownloadOptionsSpinner.getSelectedItemPosition();
@@ -242,8 +251,10 @@ public class EpisodeView extends FrameLayout {
         boolean paused = AppPrefs.isPaused(episode.getEpisodeId());
         if (paused) {
             downloadButtonOrPlayButton.setText(getContext().getString(R.string.paused));
+            showResumeButton();
         } else {
             downloadButtonOrPlayButton.setText(getContext().getString(R.string.downloading));
+            showPauseButton();
         }
         //Download has started
         UiUtils.toggleViewVisibility(downloadProgressContainer, true);

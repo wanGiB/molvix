@@ -139,13 +139,21 @@ public class AppPrefs {
         return getAppPreferences().getStringSet(AppConstants.IN_PROGRESS_DOWNLOADS, new HashSet<>());
     }
 
-    public static int getDownloadId(String s) {
-        return getAppPreferences().getInt(AppConstants.DOWNLOAD + CryptoUtils.getSha256Digest(s), 0);
+    public static int getDownloadIdFromEpisodeId(String episodeId) {
+        return getAppPreferences().getInt(AppConstants.DOWNLOAD + CryptoUtils.getSha256Digest(episodeId), 0);
     }
 
-    @SuppressLint("ApplySharedPref")
-    public static void saveDownloadId(String s, int downloadId) {
-        getAppPreferences().edit().putInt(AppConstants.DOWNLOAD + CryptoUtils.getSha256Digest(s), downloadId).commit();
+    public static void mapEpisodeIdToDownloadId(String episodeId, int downloadId) {
+        getAppPreferences().edit().putInt(AppConstants.DOWNLOAD + CryptoUtils.getSha256Digest(episodeId), downloadId).apply();
+        mapDownloadIdToEpisodeId(downloadId, episodeId);
+    }
+
+    private static void mapDownloadIdToEpisodeId(int downloadId, String episodeId) {
+        getAppPreferences().edit().putString(AppConstants.DOWNLOAD_ID_KEY + downloadId, episodeId).apply();
+    }
+
+    public static String getEpisodeIdFromDownloadId(int downloadId) {
+        return getAppPreferences().getString(AppConstants.DOWNLOAD_ID_KEY + downloadId, null);
     }
 
     public static boolean hasBeenNotified(String checkKey) {
@@ -157,14 +165,12 @@ public class AppPrefs {
         getAppPreferences().edit().putBoolean(AppConstants.NOTIFICATION + checkKey, true).commit();
     }
 
-    @SuppressLint("ApplySharedPref")
     public static void updateEpisodeDownloadProgress(String episodeId, int progress) {
-        getAppPreferences().edit().putInt(AppConstants.EPISODE_DOWNLOAD_PROGRESS + episodeId, progress).commit();
+        getAppPreferences().edit().putInt(AppConstants.EPISODE_DOWNLOAD_PROGRESS + episodeId, progress).apply();
     }
 
-    @SuppressLint("ApplySharedPref")
     public static void updateEpisodeDownloadProgressMsg(String episodeId, String progressText) {
-        getAppPreferences().edit().putString(AppConstants.EPISODE_DOWNLOAD_PROGRESS_TEXT + episodeId, progressText).commit();
+        getAppPreferences().edit().putString(AppConstants.EPISODE_DOWNLOAD_PROGRESS_TEXT + episodeId, progressText).apply();
     }
 
     public static String getEpisodeDownloadProgressText(String episodeId) {

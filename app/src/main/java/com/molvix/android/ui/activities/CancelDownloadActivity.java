@@ -30,4 +30,5 @@ public class CancelDownloadActivity extends AppCompatActivity {
             }
         }
     }
+
 }

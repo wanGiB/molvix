@@ -24,6 +24,7 @@ import com.molvix.android.R;
 import com.molvix.android.companions.AppConstants;
 import com.molvix.android.database.MolvixDB;
 import com.molvix.android.eventbuses.CheckForDownloadableEpisodes;
+import com.molvix.android.eventbuses.EpisodeDownloadErrorException;
 import com.molvix.android.eventbuses.LoadEpisodesForSeason;
 import com.molvix.android.eventbuses.SearchEvent;
 import com.molvix.android.eventbuses.UpdateNotification;
@@ -45,6 +46,7 @@ import com.molvix.android.utils.MolvixLogger;
 import com.molvix.android.utils.UiUtils;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.text.WordUtils;
 import org.greenrobot.eventbus.EventBus;
 import org.jetbrains.annotations.NotNull;
 
@@ -101,11 +103,15 @@ public class MainActivity extends BaseActivity {
                     if (value != null) {
                         String valueString = String.valueOf(value);
                         if (StringUtils.isNotEmpty(valueString)) {
-                            if (Integer.parseInt(valueString) == 0) {
-                                DownloadableEpisode downloadableEpisode = MolvixDB.getDownloadableEpisode(extractEpisodeIdFromKey(key).trim());
-                                if (downloadableEpisode == null) {
-                                    AppPrefs.updateEpisodeDownloadProgress(extractEpisodeIdFromKey(key).trim(), -1);
+                            try {
+                                if (Integer.parseInt(valueString) == 0) {
+                                    DownloadableEpisode downloadableEpisode = MolvixDB.getDownloadableEpisode(extractEpisodeIdFromKey(key).trim());
+                                    if (downloadableEpisode == null) {
+                                        AppPrefs.updateEpisodeDownloadProgress(extractEpisodeIdFromKey(key).trim(), -1);
+                                    }
                                 }
+                            } catch (NumberFormatException ignore) {
+
                             }
                         } else {
                             MolvixLogger.d(ContentManager.class.getSimpleName(), "Value seems to be empty here");
@@ -164,6 +170,10 @@ public class MainActivity extends BaseActivity {
             } else if (event instanceof UpdateNotification) {
                 UpdateNotification updateNotification = (UpdateNotification) event;
                 new Handler().postDelayed(() -> MolvixDB.updateNotification(updateNotification.getNotification()), 5000);
+            } else if (event instanceof EpisodeDownloadErrorException) {
+                EpisodeDownloadErrorException episodeDownloadErrorException = (EpisodeDownloadErrorException) event;
+                Episode episode = episodeDownloadErrorException.getEpisode();
+                UiUtils.snackMessage("Sorry, an error occurred while downloading " + episode.getEpisodeName() + "/" + episode.getSeason().getSeasonName() + " of " + WordUtils.capitalize(episode.getSeason().getMovie().getMovieName()) + ".Please try again", rootContainer, true, null, null);
             }
         });
     }
@@ -307,6 +317,9 @@ public class MainActivity extends BaseActivity {
             public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
                 super.onReceivedError(view, request, error);
                 unLockAppCaptchaSolver();
+                UiUtils.showSafeToast("An error occurred while trying to download " + episode.getEpisodeName() + "/" + episode.getSeason().getSeasonName() + " of " + WordUtils.capitalize(episode.getSeason().getMovie().getMovieName() + ".Please try again"));
+                AppPrefs.updateEpisodeDownloadProgress(episode.getEpisodeId(), -1);
+                AppPrefs.updateEpisodeDownloadProgressMsg(episode.getEpisodeId(), "");
                 EventBus.getDefault().post(new CheckForDownloadableEpisodes());
             }
 

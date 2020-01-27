@@ -150,7 +150,12 @@ public class MovieDetailsView extends FrameLayout {
                 dummyEpisode.setEpisodeId(episodeId);
                 if (seasonEpisodes.contains(dummyEpisode)) {
                     int indexOfEpisode = seasonEpisodes.indexOf(dummyEpisode);
-                    bottomSheetRecyclerViewAdapter.notifyItemChanged(indexOfEpisode);
+                    int currentProgress = AppPrefs.getEpisodeDownloadProgress(episodeId);
+                    if (currentProgress == -1) {
+                        bottomSheetRecyclerViewAdapter.notifyDataSetChanged();
+                    } else {
+                        bottomSheetRecyclerViewAdapter.notifyItemChanged(indexOfEpisode);
+                    }
                 }
             }
         };
