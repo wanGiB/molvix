@@ -97,6 +97,7 @@ public class FileDownloadManager {
 
         @Override
         public void onStarted(@NotNull Download download, @NotNull List<? extends DownloadBlock> list, int i) {
+
         }
 
         @Override
@@ -105,6 +106,11 @@ public class FileDownloadManager {
             if (episodeId != null) {
                 Episode episode = MolvixDB.getEpisode(episodeId);
                 updateDownloadProgress(episode, download.getDownloaded(), download.getTotal());
+                long savedFileLength = AppPrefs.getEstimatedFileLengthForEpisode(episodeId);
+                long totalLength = download.getTotal();
+                if (savedFileLength != totalLength) {
+                    AppPrefs.saveEstimatedFileLengthForEpisode(episodeId, totalLength);
+                }
             }
         }
 
@@ -268,7 +274,6 @@ public class FileDownloadManager {
         int downloadKeyFromEpisode = getDownloadIdFromEpisode(episode);
         getFetch().cancel(downloadKeyFromEpisode);
         MolvixNotification.with(ApplicationLoader.getInstance()).cancel(Math.abs(episode.getEpisodeId().hashCode()));
-        MolvixDB.updateEpisode(episode);
         DownloadableEpisode downloadableEpisode = MolvixDB.getDownloadableEpisode(episode.getEpisodeId());
         if (downloadableEpisode != null) {
             MolvixDB.deleteDownloadableEpisode(downloadableEpisode);

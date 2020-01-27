@@ -23,6 +23,7 @@ import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat;
 import com.molvix.android.R;
 import com.molvix.android.companions.AppConstants;
 import com.molvix.android.database.MolvixDB;
+import com.molvix.android.managers.ContentManager;
 import com.molvix.android.managers.EpisodesManager;
 import com.molvix.android.managers.FileDownloadManager;
 import com.molvix.android.models.Episode;
@@ -60,7 +61,7 @@ public class EpisodeView extends FrameLayout {
     Spinner episodeDownloadOptionsSpinner;
 
     @BindView(R.id.episode_download_button_view)
-    TextView downloadButtonOrPlayButton;
+    TextView downloadOrPlayButton;
 
     @BindView(R.id.download_progress_container)
     View downloadProgressContainer;
@@ -147,13 +148,13 @@ public class EpisodeView extends FrameLayout {
     private void showPauseButton() {
         VectorDrawableCompat pauseBtn = VectorDrawableCompat.create(getResources(), R.drawable.ic_pause_black_24dp, null);
         pauseOrResumeBtn.setImageDrawable(pauseBtn);
-        downloadButtonOrPlayButton.setText(getContext().getString(R.string.downloading));
+        downloadOrPlayButton.setText(getContext().getString(R.string.downloading));
     }
 
     private void showResumeButton() {
         VectorDrawableCompat resumeBtn = VectorDrawableCompat.create(getResources(), R.drawable.ic_resume_download, null);
         pauseOrResumeBtn.setImageDrawable(resumeBtn);
-        downloadButtonOrPlayButton.setText(getContext().getString(R.string.paused));
+        downloadOrPlayButton.setText(getContext().getString(R.string.paused));
     }
 
     private void cancelActiveDownload() {
@@ -169,9 +170,9 @@ public class EpisodeView extends FrameLayout {
     }
 
     private void initDownloadOrPlayButtonEventListener(Episode episode, String episodeName) {
-        downloadButtonOrPlayButton.setOnClickListener(v -> {
+        downloadOrPlayButton.setOnClickListener(v -> {
             UiUtils.blinkView(v);
-            String text = downloadButtonOrPlayButton.getText().toString().trim();
+            String text = downloadOrPlayButton.getText().toString().trim();
             if (text.equals(getContext().getString(R.string.play))) {
                 String downloadUrl;
                 int episodeQuality = episode.getEpisodeQuality();
@@ -223,15 +224,15 @@ public class EpisodeView extends FrameLayout {
                 }
             }
         });
-        clickableDummyView.setOnClickListener(v -> downloadButtonOrPlayButton.performClick());
+        clickableDummyView.setOnClickListener(v -> downloadOrPlayButton.performClick());
     }
 
     private void checkEpisodeActiveDownloadStatus(Episode episode) {
         int episodeActiveDownloadProgress = AppPrefs.getEpisodeDownloadProgress(episode.getEpisodeId());
         if (episodeActiveDownloadProgress != -1) {
             if (episodeActiveDownloadProgress == 0) {
-                downloadButtonOrPlayButton.setText(getContext().getString(R.string.preparing));
-                downloadButtonOrPlayButton.setCompoundDrawablesWithIntrinsicBounds(null, null, null, null);
+                downloadOrPlayButton.setText(getContext().getString(R.string.preparing));
+                downloadOrPlayButton.setCompoundDrawablesWithIntrinsicBounds(null, null, null, null);
                 UiUtils.toggleViewVisibility(downloadProgressContainer, false);
                 if (StringUtils.isNotEmpty(AppPrefs.getEpisodeDownloadProgressText(episode.getEpisodeId()))) {
                     setToDownloadInProgress(episode);
@@ -240,7 +241,7 @@ public class EpisodeView extends FrameLayout {
                 setToDownloadInProgress(episode);
             }
         } else {
-            downloadButtonOrPlayButton.clearAnimation();
+            downloadOrPlayButton.clearAnimation();
             UiUtils.toggleViewVisibility(downloadProgressContainer, false);
             checkToSeeIfEpisodeAlreadyDownloaded(episode, episode.getEpisodeName());
         }
@@ -250,10 +251,8 @@ public class EpisodeView extends FrameLayout {
         setToDownloadable();
         boolean paused = AppPrefs.isPaused(episode.getEpisodeId());
         if (paused) {
-            downloadButtonOrPlayButton.setText(getContext().getString(R.string.paused));
             showResumeButton();
         } else {
-            downloadButtonOrPlayButton.setText(getContext().getString(R.string.downloading));
             showPauseButton();
         }
         //Download has started
@@ -264,24 +263,20 @@ public class EpisodeView extends FrameLayout {
 
     private void checkToSeeIfEpisodeAlreadyDownloaded(Episode episode, String episodeName) {
         int episodeQuality = episode.getEpisodeQuality();
-        if (episodeQuality != 0) {
-            String downloadUrl;
-            if (episodeQuality == AppConstants.STANDARD_QUALITY) {
-                downloadUrl = episode.getStandardQualityDownloadLink();
-            } else if (episodeQuality == AppConstants.HIGH_QUALITY) {
-                downloadUrl = episode.getHighQualityDownloadLink();
-            } else {
-                downloadUrl = episode.getLowQualityDownloadLink();
-            }
-            if (downloadUrl != null) {
-                String fileExtension = StringUtils.substringAfterLast(downloadUrl, ".");
-                String fileName = episodeName + "." + fileExtension;
-                File existingFile = FileUtils.getFilePath(fileName, WordUtils.capitalize(movie.getMovieName()), WordUtils.capitalize(season.getSeasonName()));
-                if (existingFile.exists()) {
-                    setToPlayable();
-                } else {
-                    setToDownloadable();
-                }
+        String downloadUrl;
+        if (episodeQuality == AppConstants.STANDARD_QUALITY) {
+            downloadUrl = episode.getStandardQualityDownloadLink();
+        } else if (episodeQuality == AppConstants.HIGH_QUALITY) {
+            downloadUrl = episode.getHighQualityDownloadLink();
+        } else {
+            downloadUrl = episode.getLowQualityDownloadLink();
+        }
+        if (downloadUrl != null) {
+            String fileExtension = StringUtils.substringAfterLast(downloadUrl, ".");
+            String fileName = episodeName + "." + fileExtension;
+            File existingFile = FileUtils.getFilePath(fileName, WordUtils.capitalize(movie.getMovieName()), WordUtils.capitalize(season.getSeasonName()));
+            if (existingFile.exists()) {
+                setToPlayable(existingFile);
             } else {
                 setToDownloadable();
             }
@@ -312,17 +307,25 @@ public class EpisodeView extends FrameLayout {
     private void setToDownloadable() {
         episodeNameView.setTextColor(ContextCompat.getColor(getContext(), R.color.blue_grey_active));
         VectorDrawableCompat downloadIcon = VectorDrawableCompat.create(getResources(), R.drawable.ic_file_download_white_24dp, null);
-        downloadButtonOrPlayButton.setText(getContext().getString(R.string.download));
-        downloadButtonOrPlayButton.setCompoundDrawablesWithIntrinsicBounds(downloadIcon, null, null, null);
-        downloadButtonOrPlayButton.setTextColor(ContextCompat.getColor(getContext(), R.color.colorAccent));
+        downloadOrPlayButton.setText(getContext().getString(R.string.download));
+        downloadOrPlayButton.setCompoundDrawablesWithIntrinsicBounds(downloadIcon, null, null, null);
+        downloadOrPlayButton.setTextColor(ContextCompat.getColor(getContext(), R.color.colorAccent));
     }
 
-    private void setToPlayable() {
-        downloadButtonOrPlayButton.setText(getContext().getString(R.string.play));
-        VectorDrawableCompat playIcon = VectorDrawableCompat.create(getResources(), R.drawable.ic_play_arrow_blue_24dp, null);
-        downloadButtonOrPlayButton.setCompoundDrawablesWithIntrinsicBounds(playIcon, null, null, null);
-        episodeNameView.setTextColor(ContextCompat.getColor(getContext(), R.color.colorGreen));
-        downloadButtonOrPlayButton.setTextColor(ContextCompat.getColor(getContext(), R.color.colorGreen));
+    private void setToPlayable(File existingFile) {
+        long estimatedFileLength = AppPrefs.getEstimatedFileLengthForEpisode(episode.getEpisodeId());
+        long existingFileLength = existingFile.length();
+        if (existingFileLength == estimatedFileLength) {
+            float ratio = (float) estimatedFileLength / existingFileLength;
+            MolvixLogger.d(ContentManager.class.getSimpleName(), "EstimatedFileLength=" + estimatedFileLength + ",Found FileLength=" + existingFileLength + ",Ratio=" + ratio);
+            downloadOrPlayButton.setText(getContext().getString(R.string.play));
+            VectorDrawableCompat playIcon = VectorDrawableCompat.create(getResources(), R.drawable.ic_play_arrow_blue_24dp, null);
+            downloadOrPlayButton.setCompoundDrawablesWithIntrinsicBounds(playIcon, null, null, null);
+            episodeNameView.setTextColor(ContextCompat.getColor(getContext(), R.color.colorGreen));
+            downloadOrPlayButton.setTextColor(ContextCompat.getColor(getContext(), R.color.colorGreen));
+        } else {
+            setToDownloadable();
+        }
     }
 
     private void extractEpisodeDownloadOptions(Episode episode) {
@@ -408,5 +411,4 @@ public class EpisodeView extends FrameLayout {
             }
         }
     }
-
 }

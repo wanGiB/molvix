@@ -150,10 +150,10 @@ public class MovieDetailsView extends FrameLayout {
                 dummyEpisode.setEpisodeId(episodeId);
                 if (seasonEpisodes.contains(dummyEpisode)) {
                     int indexOfEpisode = seasonEpisodes.indexOf(dummyEpisode);
-                    int currentProgress = AppPrefs.getEpisodeDownloadProgress(episodeId);
-                    if (currentProgress == -1) {
-                        bottomSheetRecyclerViewAdapter.notifyDataSetChanged();
-                    } else {
+                    if (indexOfEpisode != -1) {
+                        if (AppPrefs.getEpisodeDownloadProgress(episodeId) == -1) {
+                            seasonEpisodes.set(indexOfEpisode, MolvixDB.getEpisode(episodeId));
+                        }
                         bottomSheetRecyclerViewAdapter.notifyItemChanged(indexOfEpisode);
                     }
                 }

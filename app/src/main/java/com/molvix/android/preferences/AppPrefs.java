@@ -194,4 +194,12 @@ public class AppPrefs {
         getAppPreferences().edit().putBoolean(AppConstants.DOWNLOAD_PAUSED + episodeId, value).commit();
     }
 
+    public static long getEstimatedFileLengthForEpisode(String episodeId) {
+        return getAppPreferences().getLong(AppConstants.ESTIMATED_FILE_LENGTH + episodeId, 0);
+    }
+
+    public static void saveEstimatedFileLengthForEpisode(String episodeId, long fileLength) {
+        getAppPreferences().edit().putLong(AppConstants.ESTIMATED_FILE_LENGTH + episodeId, fileLength).apply();
+    }
+
 }
