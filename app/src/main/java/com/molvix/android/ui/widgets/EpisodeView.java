@@ -363,7 +363,9 @@ public class EpisodeView extends FrameLayout {
                     }
                     if (!downloadOptions.isEmpty()) {
                         String episodeCaptchaSolverLink = null;
-                        if (downloadOptions.size() == 2) {
+                        if (downloadOptions.size() == 1) {
+                            episodeCaptchaSolverLink = downloadOptions.get(0);
+                        } else if (downloadOptions.size() == 2) {
                             try {
                                 String standard = downloadOptions.get(0);
                                 String lowest = downloadOptions.get(1);
