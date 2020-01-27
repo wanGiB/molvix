@@ -70,6 +70,7 @@ public class FileDownloadManager {
                     if (result.isEmpty()) {
                         fetch.removeListener(fetchListener);
                         fetch.close();
+                        fetchListenerAttached.set(false);
                     }
                 });
             }

@@ -1,13 +1,11 @@
 package com.molvix.android.ui.fragments;
 
-import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.SwitchPreferenceCompat;
 
-import com.google.android.gms.oss.licenses.OssLicensesMenuActivity;
 import com.molvix.android.R;
 import com.molvix.android.preferences.AppPrefs;
 import com.morsebyte.shailesh.twostagerating.TwoStageRate;
@@ -37,20 +35,6 @@ public class MoreContentsFragment extends PreferenceFragmentCompat implements Pr
                 return true;
             });
         }
-        Preference thirdPartySoftwareAttrPref = findPreference(getString(R.string.third_party_software_attr));
-        if (thirdPartySoftwareAttrPref != null) {
-            thirdPartySoftwareAttrPref.setOnPreferenceClickListener(preference -> {
-                //Display third party software used
-                displayThirdPartySoftwareUsed();
-                return true;
-            });
-        }
-    }
-
-    private void displayThirdPartySoftwareUsed() {
-        OssLicensesMenuActivity.setActivityTitle("Notices for Files");
-        Intent licencesIntent = new Intent(getActivity(), OssLicensesMenuActivity.class);
-        startActivity(licencesIntent);
     }
 
     private void initAppRater() {

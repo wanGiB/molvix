@@ -25,6 +25,13 @@
         android:layout_height="0.5dp"
         android:background="@color/light_gray" />
 
+    <Button
+        android:id="@+id/metadata_extractor"
+        android:text="MetaData Extractor"
+        android:layout_width="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_height="wrap_content"/>
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/bottom_sheet_recycler_view"
         android:layout_width="match_parent"

@@ -27,15 +27,6 @@
 
     </PreferenceCategory>
 
-    <PreferenceCategory android:title="Legal">
-
-        <Preference
-            android:key="@string/third_party_software_attr"
-            android:summary="Attributions to third party software"
-            android:title="Thank You" />
-
-    </PreferenceCategory>
-
     <PreferenceCategory android:title="About">
 
         <Preference

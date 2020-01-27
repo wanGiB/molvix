@@ -66,4 +66,8 @@ public class FileUtils {
         return String.format(Locale.ENGLISH, "%.2fMb", bytes / (1024.00 * 1024.00));
     }
 
+    public static float getFileSizeInMB(long fileLength) {
+        return (float) (fileLength / (1024.00 * 1024.00));
+    }
+
 }

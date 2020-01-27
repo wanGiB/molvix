@@ -62,20 +62,20 @@ public class UiUtils {
                 .load(photoUrl)
                 .apply(imageLoadRequestOptions)
                 .listener(new RequestListener<Drawable>() {
-            @Override
-            public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
-                return false;
-            }
+                    @Override
+                    public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
+                        return false;
+                    }
 
-            @Override
-            public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
-                if (imageView instanceof LoadingImageView) {
-                    LoadingImageView loadingImageView = (LoadingImageView) imageView;
-                    loadingImageView.stopLoading();
-                }
-                return false;
-            }
-        }).into(imageView);
+                    @Override
+                    public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
+                        if (imageView instanceof LoadingImageView) {
+                            LoadingImageView loadingImageView = (LoadingImageView) imageView;
+                            loadingImageView.stopLoading();
+                        }
+                        return false;
+                    }
+                }).into(imageView);
     }
 
     public static void showSafeToast(final String toastMessage) {
@@ -120,7 +120,11 @@ public class UiUtils {
         if (anchorView != null) {
             Snackbar snackbar = Snackbar.make(anchorView, message, actionMessage != null ? Snackbar.LENGTH_INDEFINITE : (shortDuration ? Snackbar.LENGTH_SHORT : Snackbar.LENGTH_LONG));
             if (actionMessage != null) {
-                snackbar.setAction(actionMessage, view -> snackBarActionClickedListener.onSnackActionClicked());
+                snackbar.setAction(actionMessage, view -> {
+                    if (snackBarActionClickedListener != null) {
+                        snackBarActionClickedListener.onSnackActionClicked();
+                    }
+                });
             }
             snackbar.show();
         }

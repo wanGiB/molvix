@@ -23,7 +23,6 @@ import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat;
 import com.molvix.android.R;
 import com.molvix.android.companions.AppConstants;
 import com.molvix.android.database.MolvixDB;
-import com.molvix.android.managers.ContentManager;
 import com.molvix.android.managers.EpisodesManager;
 import com.molvix.android.managers.FileDownloadManager;
 import com.molvix.android.models.Episode;
@@ -313,11 +312,9 @@ public class EpisodeView extends FrameLayout {
     }
 
     private void setToPlayable(File existingFile) {
-        long estimatedFileLength = AppPrefs.getEstimatedFileLengthForEpisode(episode.getEpisodeId());
-        long existingFileLength = existingFile.length();
-        if (existingFileLength == estimatedFileLength) {
-            float ratio = (float) estimatedFileLength / existingFileLength;
-            MolvixLogger.d(ContentManager.class.getSimpleName(), "EstimatedFileLength=" + estimatedFileLength + ",Found FileLength=" + existingFileLength + ",Ratio=" + ratio);
+        float existingFileLength = FileUtils.getFileSizeInMB(existingFile.length());
+        //A successfully Downloaded Video should be at least 10MB in size
+        if (existingFileLength >= 10) {
             downloadOrPlayButton.setText(getContext().getString(R.string.play));
             VectorDrawableCompat playIcon = VectorDrawableCompat.create(getResources(), R.drawable.ic_play_arrow_blue_24dp, null);
             downloadOrPlayButton.setCompoundDrawablesWithIntrinsicBounds(playIcon, null, null, null);
@@ -368,11 +365,10 @@ public class EpisodeView extends FrameLayout {
                         } else if (downloadOptions.size() == 2) {
                             try {
                                 String standard = downloadOptions.get(0);
-                                String lowest = downloadOptions.get(1);
                                 if (episode.getEpisodeQuality() == AppConstants.HIGH_QUALITY || episode.getEpisodeQuality() == AppConstants.STANDARD_QUALITY) {
                                     episodeCaptchaSolverLink = standard;
                                 } else {
-                                    episodeCaptchaSolverLink = lowest;
+                                    episodeCaptchaSolverLink = standard;
                                 }
                             } catch (Exception ignored) {
 
@@ -381,13 +377,12 @@ public class EpisodeView extends FrameLayout {
                             try {
                                 String standard = downloadOptions.get(0);
                                 String highest = downloadOptions.get(1);
-                                String lowest = downloadOptions.get(2);
                                 if (episode.getEpisodeQuality() == AppConstants.HIGH_QUALITY) {
                                     episodeCaptchaSolverLink = highest;
                                 } else if (episode.getEpisodeQuality() == AppConstants.STANDARD_QUALITY) {
                                     episodeCaptchaSolverLink = standard;
                                 } else {
-                                    episodeCaptchaSolverLink = lowest;
+                                    episodeCaptchaSolverLink = standard;
                                 }
                             } catch (Exception e) {
                                 e.printStackTrace();
