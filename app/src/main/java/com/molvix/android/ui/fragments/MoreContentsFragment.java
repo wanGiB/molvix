@@ -1,7 +1,5 @@
 package com.molvix.android.ui.fragments;
 
-import android.content.ClipData;
-import android.content.ClipboardManager;
 import android.content.Intent;
 import android.os.Bundle;
 
@@ -12,12 +10,7 @@ import androidx.preference.SwitchPreferenceCompat;
 import com.google.android.gms.oss.licenses.OssLicensesMenuActivity;
 import com.molvix.android.R;
 import com.molvix.android.preferences.AppPrefs;
-import com.molvix.android.utils.UiUtils;
 import com.morsebyte.shailesh.twostagerating.TwoStageRate;
-
-import java.util.Objects;
-
-import static android.content.Context.CLIPBOARD_SERVICE;
 
 public class MoreContentsFragment extends PreferenceFragmentCompat implements Preference.OnPreferenceChangeListener {
 
@@ -29,35 +22,14 @@ public class MoreContentsFragment extends PreferenceFragmentCompat implements Pr
         setPreferencesFromResource(R.xml.more_content, rootKey);
         dailyMovieRecommendationSwitch = findPreference(getString(R.string.daily_movie_recommendation_key));
         downloadedMoviesUpdateSwitch = findPreference(getString(R.string.downloaded_movies_update_key));
-
-        Preference bitcoinDonationsPref = findPreference(getString(R.string.donation_key));
-        if (bitcoinDonationsPref != null) {
-            bitcoinDonationsPref.setOnPreferenceClickListener(preference -> {
-                copyBitcoinAddress();
-                UiUtils.showSafeToast("Bitcoin address copied!\nThank You.");
-                return true;
-            });
-        }
-        Preference donationsView = findPreference(getString(R.string.donation_view));
-        if (donationsView != null) {
-            donationsView.setLayoutResource(R.layout.bitcoin_donation_page);
-            donationsView.setOnPreferenceClickListener(preference -> {
-                copyBitcoinAddress();
-                UiUtils.showSafeToast("Bitcoin address copied!\nThank You");
-                return true;
-            });
-        }
-
         if (downloadedMoviesUpdateSwitch != null) {
             downloadedMoviesUpdateSwitch.setDefaultValue(AppPrefs.canBeUpdatedOnDownloadedMovies());
             downloadedMoviesUpdateSwitch.setOnPreferenceChangeListener(this);
         }
-
         if (dailyMovieRecommendationSwitch != null) {
             dailyMovieRecommendationSwitch.setDefaultValue(AppPrefs.canDailyMoviesBeRecommended());
             dailyMovieRecommendationSwitch.setOnPreferenceChangeListener(this);
         }
-
         Preference feedBackPref = findPreference(getString(R.string.feedback_key));
         if (feedBackPref != null) {
             feedBackPref.setOnPreferenceClickListener(preference -> {
@@ -86,16 +58,6 @@ public class MoreContentsFragment extends PreferenceFragmentCompat implements Pr
             TwoStageRate twoStageRate = TwoStageRate.with(getActivity());
             twoStageRate.setShowAppIcon(true);
             twoStageRate.showRatePromptDialog();
-        }
-    }
-
-    private void copyBitcoinAddress() {
-        ClipboardManager myClipboard = (ClipboardManager) Objects.requireNonNull(getActivity()).getSystemService(CLIPBOARD_SERVICE);
-        ClipData myClip;
-        String text = getString(R.string.bitcoin_address);
-        myClip = ClipData.newPlainText("text", text);
-        if (myClipboard != null) {
-            myClipboard.setPrimaryClip(myClip);
         }
     }
 
