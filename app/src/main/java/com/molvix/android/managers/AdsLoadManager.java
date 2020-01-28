@@ -92,6 +92,9 @@ public class AdsLoadManager {
                 }
             }).build();
             AdRequest.Builder adRequestBuilder = new AdRequest.Builder();
+            if (BuildConfig.DEBUG) {
+                adRequestBuilder.addTestDevice("53D46815EE1FBEED38704D3C418F4402");
+            }
             adLoader.loadAds(adRequestBuilder.build(), NUMBER_OF_ADS);
         }
 

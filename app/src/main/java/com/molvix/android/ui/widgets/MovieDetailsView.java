@@ -171,7 +171,11 @@ public class MovieDetailsView extends FrameLayout {
         } else {
             adView.setAdUnitId(getContext().getString(R.string.banner_release_ad_unit_id));
         }
-        AdRequest adRequest = new AdRequest.Builder().build();
+        AdRequest.Builder builder = new AdRequest.Builder();
+        if (BuildConfig.DEBUG) {
+            builder.addTestDevice("53D46815EE1FBEED38704D3C418F4402");
+        }
+        AdRequest adRequest = builder.build();
         adView.loadAd(adRequest);
     }
 

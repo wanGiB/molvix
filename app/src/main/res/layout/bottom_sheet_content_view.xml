@@ -13,7 +13,9 @@
     <com.google.android.gms.ads.AdView
         android:id="@+id/adView"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        app:adSize="BANNER"
+        app:adUnitId="@string/banner_release_ad_unit_id" />
 
     <com.molvix.android.ui.widgets.MolvixTextView
         android:id="@+id/bottom_sheet_title_view"
