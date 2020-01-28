@@ -18,6 +18,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 
 public class EpisodesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+
     private List<Episode> episodes;
     private Context context;
 
@@ -36,7 +37,7 @@ public class EpisodesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         EpisodesViewHolder episodesViewHolder = (EpisodesViewHolder) holder;
-        episodesViewHolder.bindEpisode(episodes.get(position));
+        episodesViewHolder.bindEpisode(episodes.get(position), position, episodes.size());
     }
 
     @Override
@@ -54,8 +55,13 @@ public class EpisodesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             ButterKnife.bind(this, itemView);
         }
 
-        void bindEpisode(Episode episode) {
+        void bindEpisode(Episode episode, int position, int size) {
             episodeView.bindEpisode(episode);
+            if (position == size - 1) {
+                episodeView.showDownloadDirInstr();
+            } else {
+                episodeView.hideDownloadDir();
+            }
         }
 
     }

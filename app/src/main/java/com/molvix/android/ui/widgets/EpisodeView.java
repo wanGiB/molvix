@@ -80,6 +80,9 @@ public class EpisodeView extends FrameLayout {
     @BindView(R.id.clickable_dummy_view)
     View clickableDummyView;
 
+    @BindView(R.id.download_directory_disclaimer)
+    MolvixTextView downloadDirectoryFolderView;
+
     private Episode episode;
     private Season season;
     private Movie movie;
@@ -115,6 +118,16 @@ public class EpisodeView extends FrameLayout {
         checkEpisodeActiveDownloadStatus(episode);
         initDownloadOrPlayButtonEventListener(episode, episodeName);
         initActionButtonsEventListener();
+    }
+
+    public void showDownloadDirInstr() {
+        String message = "Videos would be downloaded to <b>.../Molvix/" + WordUtils.capitalize(movie.getMovieName()) + "/" + season.getSeasonName() + "/" + episode.getEpisodeName() + ".mp4</b>";
+        UiUtils.toggleViewVisibility(downloadDirectoryFolderView, true);
+        downloadDirectoryFolderView.setText(UiUtils.fromHtml(message));
+    }
+
+    public void hideDownloadDir() {
+        downloadDirectoryFolderView.setVisibility(GONE);
     }
 
     private void initActionButtonsEventListener() {
