@@ -20,18 +20,16 @@ import com.molvix.android.utils.MolvixLogger;
 import org.apache.commons.lang3.StringUtils;
 import org.greenrobot.eventbus.EventBus;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class AdsLoadManager {
 
     private static final int NUMBER_OF_ADS = 5;
-    private static List<UnifiedNativeAd> nativeAds = new ArrayList<>();
-    private static AtomicBoolean adsLoadProgress = new AtomicBoolean(false);
     private static AdsLoadTask adsLoadTask;
+    private static Timer adsLoadTimer = new Timer();
 
-    public static void loadAds() {
+    private static void loadAds() {
         if (adsLoadTask != null) {
             adsLoadTask.cancel(true);
             adsLoadTask = null;
@@ -40,25 +38,29 @@ public class AdsLoadManager {
         adsLoadTask.execute();
     }
 
-    public static void clearAds() {
-        nativeAds.clear();
-        adsLoadProgress.set(false);
-    }
-
-    public static boolean canAdBeLoaded() {
-        return ConnectivityUtils.isDeviceConnectedToTheInternet() && nativeAds.isEmpty() && !adsLoadProgress.get();
+    public static void spin() {
+        //Load ads every 15seconds
+        adsLoadTimer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                if (ConnectivityUtils.isDeviceConnectedToTheInternet()) {
+                    loadAds();
+                }
+            }
+        }, 0, 15000);
     }
 
     static class AdsLoadTask extends AsyncTask<Void, Void, Void> {
 
         private void loadAds(Context context) {
-            adsLoadProgress.set(true);
             MolvixLogger.d(ContentManager.class.getSimpleName(), "Loading ads");
             AdLoader.Builder builder = new AdLoader.Builder(context, context.getString(R.string.native_ad_unit_id));
             builder.forUnifiedNativeAd(unifiedNativeAd -> {
                 MolvixLogger.d(ContentManager.class.getSimpleName(), "Native Ads Loaded");
-                nativeAds.clear();
-                nativeAds.add(unifiedNativeAd);
+                UnifiedNativeAd existingAd = AppConstants.unifiedNativeAdAtomicReference.get();
+                if (existingAd != null) {
+                    existingAd.destroy();
+                }
                 AppConstants.unifiedNativeAdAtomicReference.set(unifiedNativeAd);
                 EventBus.getDefault().post(new AttachLoadedAd(true));
             });

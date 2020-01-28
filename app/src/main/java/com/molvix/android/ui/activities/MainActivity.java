@@ -28,6 +28,7 @@ import com.molvix.android.eventbuses.EpisodeDownloadErrorException;
 import com.molvix.android.eventbuses.LoadEpisodesForSeason;
 import com.molvix.android.eventbuses.SearchEvent;
 import com.molvix.android.eventbuses.UpdateNotification;
+import com.molvix.android.managers.AdsLoadManager;
 import com.molvix.android.managers.ContentManager;
 import com.molvix.android.managers.EpisodesManager;
 import com.molvix.android.managers.FileDownloadManager;
@@ -89,6 +90,7 @@ public class MainActivity extends BaseActivity {
         fetchDownloadableEpisodes();
         checkAndResumePausedDownloads();
         cleanUpUnLinkedDownloadKeys();
+        AdsLoadManager.spin();
     }
 
     private void cleanUpUnLinkedDownloadKeys() {
@@ -100,7 +102,6 @@ public class MainActivity extends BaseActivity {
             for (String key : keySet) {
                 if (key.contains(AppConstants.EPISODE_DOWNLOAD_PROGRESS)) {
                     Object value = allPrefs.get(key);
-                    MolvixLogger.d(ContentManager.class.getSimpleName(), "Value=" + value);
                     if (value != null) {
                         String valueString = String.valueOf(value);
                         if (StringUtils.isNotEmpty(valueString)) {
@@ -115,11 +116,8 @@ public class MainActivity extends BaseActivity {
 
                             }
                         } else {
-                            MolvixLogger.d(ContentManager.class.getSimpleName(), "Value seems to be empty here");
                             removables.add(key);
                         }
-                    } else {
-                        MolvixLogger.d(ContentManager.class.getSimpleName(), "Value seems to be null here");
                     }
                 }
             }

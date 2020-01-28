@@ -3,14 +3,12 @@ package com.molvix.android.ui.widgets;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.media.MediaMetadataRetriever;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -38,14 +36,10 @@ import com.molvix.android.models.Season;
 import com.molvix.android.preferences.AppPrefs;
 import com.molvix.android.ui.adapters.EpisodesAdapter;
 import com.molvix.android.utils.ConnectivityUtils;
-import com.molvix.android.utils.FileUtils;
-import com.molvix.android.utils.MolvixLogger;
 import com.molvix.android.utils.UiUtils;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.text.WordUtils;
 
-import java.io.File;
 import java.util.List;
 
 import butterknife.BindView;
@@ -142,7 +136,6 @@ public class MovieDetailsView extends FrameLayout {
     private void fillInEpisodes(View rootView, Season season) {
         EpisodesAdapter bottomSheetRecyclerViewAdapter;
         TextView bottomSheetTitleView = rootView.findViewById(R.id.bottom_sheet_title_view);
-        Button metadataExtractor = rootView.findViewById(R.id.metadata_extractor);
         RecyclerView bottomSheetRecyclerView = rootView.findViewById(R.id.bottom_sheet_recycler_view);
         bottomSheetTitleView.setText(WordUtils.capitalize(season.getSeasonName()));
         List<Episode> seasonEpisodes = season.getEpisodes();
@@ -167,30 +160,6 @@ public class MovieDetailsView extends FrameLayout {
             }
         };
         AppPrefs.getAppPreferences().registerOnSharedPreferenceChangeListener(onSharedPreferenceChangeListener);
-        metadataExtractor.setOnClickListener(v -> {
-            Episode episode = seasonEpisodes.get(0);
-            String downloadUrl;
-            int episodeQuality = episode.getEpisodeQuality();
-            if (episodeQuality == AppConstants.STANDARD_QUALITY) {
-                downloadUrl = episode.getStandardQualityDownloadLink();
-            } else if (episodeQuality == AppConstants.HIGH_QUALITY) {
-                downloadUrl = episode.getHighQualityDownloadLink();
-            } else {
-                downloadUrl = episode.getLowQualityDownloadLink();
-            }
-            String episodeName = episode.getEpisodeName();
-            String fileExtension = StringUtils.substringAfterLast(downloadUrl, ".");
-            String fileName = episodeName + "." + fileExtension;
-            File downloadedFile = FileUtils.getFilePath(fileName, WordUtils.capitalize(season.getMovie().getMovieName()), season.getSeasonName());
-            if (downloadedFile.exists()) {
-                MediaMetadataRetriever mediaMetadataRetriever = new MediaMetadataRetriever();
-                mediaMetadataRetriever.setDataSource(downloadedFile.getPath());
-                for (int i = 0; i < 40; i++) {
-                    String metaDataAtI = mediaMetadataRetriever.extractMetadata(i);
-                    MolvixLogger.d("MetaTag", "MetaData at " + i + "=" + metaDataAtI);
-                }
-            }
-        });
     }
 
     @Override

@@ -6,7 +6,7 @@
     <string name="search_movies">Search Movies</string>
     <string name="download">DOWNLOAD</string>
     <string name="admob_app_id">ca-app-pub-2997746677651129~9657919826</string>
-    <string name="native_ad_unit_id">ca-app-pub-2997746677651129/3877859979</string>
+    <string name="native_ad_unit_id"><!--ca-app-pub-2997746677651129/3877859979-->ca-app-pub-3940256099942544/2247696110</string>
     <string name="sorry_no_result_found">Sorry, no result found</string>
     <string name="cancel" tools:ignore="ButtonCase">CANCEL</string>
     <string name="play">PLAY</string>
@@ -58,6 +58,7 @@
     <string name="no_notifications">No notifications</string>
     <string name="all_caught_up">All Caught Up!</string>
     <string name="paused">Paused</string>
+    <string name="your_favourite_tv_series_at_your_fingertips">Your favourite TV Series at Your fingertips</string>
     <string-array name="reply_choices">
         <item>Yes</item>
         <item>No</item>

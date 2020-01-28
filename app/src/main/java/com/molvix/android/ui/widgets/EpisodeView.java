@@ -242,7 +242,7 @@ public class EpisodeView extends FrameLayout {
         } else {
             downloadOrPlayButton.clearAnimation();
             UiUtils.toggleViewVisibility(downloadProgressContainer, false);
-            checkToSeeIfEpisodeAlreadyDownloaded(episode, episode.getEpisodeName());
+            checkToSeeIfEpisodeAlreadyDownloaded(episode.getEpisodeName());
         }
     }
 
@@ -260,25 +260,11 @@ public class EpisodeView extends FrameLayout {
         downloadProgressTextView.setText(AppPrefs.getEpisodeDownloadProgressText(episode.getEpisodeId()));
     }
 
-    private void checkToSeeIfEpisodeAlreadyDownloaded(Episode episode, String episodeName) {
-        int episodeQuality = episode.getEpisodeQuality();
-        String downloadUrl;
-        if (episodeQuality == AppConstants.STANDARD_QUALITY) {
-            downloadUrl = episode.getStandardQualityDownloadLink();
-        } else if (episodeQuality == AppConstants.HIGH_QUALITY) {
-            downloadUrl = episode.getHighQualityDownloadLink();
-        } else {
-            downloadUrl = episode.getLowQualityDownloadLink();
-        }
-        if (downloadUrl != null) {
-            String fileExtension = StringUtils.substringAfterLast(downloadUrl, ".");
-            String fileName = episodeName + "." + fileExtension;
-            File existingFile = FileUtils.getFilePath(fileName, WordUtils.capitalize(movie.getMovieName()), WordUtils.capitalize(season.getSeasonName()));
-            if (existingFile.exists()) {
-                setToPlayable(existingFile);
-            } else {
-                setToDownloadable();
-            }
+    private void checkToSeeIfEpisodeAlreadyDownloaded(String episodeName) {
+        String fileName = episodeName + ".mp4";
+        File existingFile = FileUtils.getFilePath(fileName, WordUtils.capitalize(movie.getMovieName()), WordUtils.capitalize(season.getSeasonName()));
+        if (existingFile.exists()) {
+            setToPlayable(existingFile);
         } else {
             setToDownloadable();
         }

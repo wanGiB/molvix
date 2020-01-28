@@ -18,14 +18,12 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.liucanwen.app.headerfooterrecyclerview.HeaderAndFooterRecyclerViewAdapter;
-import com.liucanwen.app.headerfooterrecyclerview.OnRecyclerViewScrollListener;
 import com.liucanwen.app.headerfooterrecyclerview.RecyclerViewUtils;
 import com.molvix.android.R;
 import com.molvix.android.database.MolvixDB;
 import com.molvix.android.eventbuses.AttachLoadedAd;
 import com.molvix.android.eventbuses.ConnectivityChangedEvent;
 import com.molvix.android.eventbuses.SearchEvent;
-import com.molvix.android.managers.AdsLoadManager;
 import com.molvix.android.managers.ContentManager;
 import com.molvix.android.managers.MovieManager;
 import com.molvix.android.models.Movie;
@@ -73,7 +71,6 @@ public class HomeFragment extends BaseFragment {
     private TextView headerTextView;
     private String searchString;
     private DataSubscription moviesSubscription;
-    private LinearLayoutManager homeLinearLayoutManager;
 
     private void setSearchString(String searchString) {
         this.searchString = searchString;
@@ -135,25 +132,22 @@ public class HomeFragment extends BaseFragment {
                     spinMoviesDownloadJob();
                 }
             } else if (event instanceof AttachLoadedAd) {
-                AttachLoadedAd attachLoadedAd = (AttachLoadedAd) event;
-                if (attachLoadedAd.canAttach()) {
-                    int currentVisiblePosition = homeLinearLayoutManager.findFirstVisibleItemPosition();
-                    int nextFifthPosition = currentVisiblePosition + 5;
+                mUiHandler.post(() -> {
                     try {
+                        int currentPosition = ((LinearLayoutManager) moviesRecyclerView.getLayoutManager()).findFirstVisibleItemPosition();
+                        int nextFifthPosition = currentPosition + 5;
                         Movie movie = movies.get(nextFifthPosition);
-                        if (movie != null) {
-                            Movie adMovie = new Movie();
-                            adMovie.setAd(true);
-                            movies.add(nextFifthPosition, adMovie);
+                        Movie fourthMovie = movies.get(nextFifthPosition - 1);
+                        if (movie != null && !movie.isAd() && !fourthMovie.isAd()) {
+                            Movie adView = new Movie();
+                            adView.setAd(true);
+                            movies.add(nextFifthPosition, adView);
                             moviesAdapter.notifyItemInserted(nextFifthPosition);
                         }
-                    } catch (Exception e) {
-                        Movie adMovie = new Movie();
-                        adMovie.setAd(true);
-                        movies.add(adMovie);
-                        moviesAdapter.notifyItemInserted(movies.size() - 1);
+                    } catch (Exception ignore) {
+
                     }
-                }
+                });
             }
         });
     }
@@ -214,44 +208,6 @@ public class HomeFragment extends BaseFragment {
         setupSwipeRefreshLayoutColorScheme();
         initMoviesAdapter();
         fetchMovies();
-        moviesRecyclerView.addOnScrollListener(new OnRecyclerViewScrollListener() {
-            @Override
-            public void onScrollUp() {
-
-            }
-
-            @Override
-            public void onScrollDown() {
-
-            }
-
-            @Override
-            public void onBottom() {
-
-            }
-
-            @Override
-            public void onMoved(int distanceX, int distanceY) {
-                loadAdsLazily();
-                try {
-                    int firstVisibleItemPosition = homeLinearLayoutManager.findFirstVisibleItemPosition();
-                    Movie movie = movies.get(firstVisibleItemPosition);
-                    if (movie.isAd()) {
-                        AdsLoadManager.clearAds();
-                    }
-                } catch (Exception ignored) {
-
-                }
-            }
-
-        });
-
-    }
-
-    private void loadAdsLazily() {
-        if (AdsLoadManager.canAdBeLoaded()) {
-            AdsLoadManager.loadAds();
-        }
     }
 
     @Override
@@ -279,7 +235,7 @@ public class HomeFragment extends BaseFragment {
         headerTextView = headerView.findViewById(R.id.header_text_view);
         moviesAdapter = new MoviesAdapter(getActivity(), movies);
         HeaderAndFooterRecyclerViewAdapter headerAndFooterRecyclerViewAdapter = new HeaderAndFooterRecyclerViewAdapter(moviesAdapter);
-        homeLinearLayoutManager = new LinearLayoutManager(getActivity());
+        LinearLayoutManager homeLinearLayoutManager = new LinearLayoutManager(getActivity());
         moviesRecyclerView.setLayoutManager(homeLinearLayoutManager);
         moviesRecyclerView.setItemAnimator(new ScaleInAnimator());
         moviesRecyclerView.setAdapter(headerAndFooterRecyclerViewAdapter);

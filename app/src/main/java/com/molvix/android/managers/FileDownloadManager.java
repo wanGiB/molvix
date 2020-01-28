@@ -175,7 +175,7 @@ public class FileDownloadManager {
             downloadUrl = episode.getLowQualityDownloadLink();
         }
         String fileExtension = StringUtils.substringAfterLast(downloadUrl, ".");
-        String fileName = episode.getEpisodeName() + "." + fileExtension;
+        String fileName = episode.getEpisodeName() + "." + fileExtension.toLowerCase();
         String dirPath = FileUtils.getFilePath(fileName, movieName, seasonName).getPath();
         return new Pair<>(downloadUrl, dirPath);
     }
