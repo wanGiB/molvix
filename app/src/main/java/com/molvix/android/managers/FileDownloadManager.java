@@ -143,6 +143,7 @@ public class FileDownloadManager {
                 AppPrefs.setPaused(episodeId, false);
                 AppPrefs.removeKey(AppConstants.DOWNLOAD_ID_KEY + download.getId());
                 resetEpisodeDownloadProgress(episode);
+                AppPrefs.removeFromInProgressDownloads(episode);
             }
         }
 

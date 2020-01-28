@@ -42,7 +42,6 @@ public class AdsLoadManager {
 
     public static void spin() {
         try {
-
             //Load ads every 20seconds
             adsLoadTimer.scheduleAtFixedRate(new TimerTask() {
                 @Override
@@ -53,7 +52,7 @@ public class AdsLoadManager {
                     long timeDiffInSecs = TimeUnit.MILLISECONDS.toSeconds(timeDiff);
                     MolvixLogger.d(ContentManager.class.getSimpleName(), "TimeDiff=" + timeDiffInSecs);
                     if (ConnectivityUtils.isDeviceConnectedToTheInternet()
-                            && timeDiffInSecs >= 30) {
+                            && timeDiffInSecs >= 20) {
                         loadAds();
                     }
                 }
