@@ -19,6 +19,7 @@ import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat;
 
 import com.molvix.android.R;
 import com.molvix.android.companions.AppConstants;
+import com.molvix.android.database.MolvixDB;
 import com.molvix.android.eventbuses.UpdateNotification;
 import com.molvix.android.models.Episode;
 import com.molvix.android.models.Movie;
@@ -26,10 +27,8 @@ import com.molvix.android.models.Notification;
 import com.molvix.android.models.Season;
 import com.molvix.android.ui.activities.MainActivity;
 import com.molvix.android.utils.FileUtils;
-import com.molvix.android.database.MolvixDB;
 import com.molvix.android.utils.UiUtils;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.text.WordUtils;
 import org.greenrobot.eventbus.EventBus;
 
@@ -100,18 +99,7 @@ public class NotificationView extends FrameLayout {
                 Season season = episode.getSeason();
                 if (episode != null) {
                     String episodeName = episode.getEpisodeName();
-                    //Open the download movie file
-                    String downloadUrl;
-                    int episodeQuality = episode.getEpisodeQuality();
-                    if (episodeQuality == AppConstants.STANDARD_QUALITY) {
-                        downloadUrl = episode.getStandardQualityDownloadLink();
-                    } else if (episodeQuality == AppConstants.HIGH_QUALITY) {
-                        downloadUrl = episode.getHighQualityDownloadLink();
-                    } else {
-                        downloadUrl = episode.getLowQualityDownloadLink();
-                    }
-                    String fileExtension = StringUtils.substringAfterLast(downloadUrl, ".");
-                    String fileName = episodeName + "." + fileExtension;
+                    String fileName = episodeName + ".mp4";
                     File downloadedFile = FileUtils.getFilePath(fileName, WordUtils.capitalize(movie.getMovieName()), WordUtils.capitalize(season.getSeasonName()));
                     if (downloadedFile.exists()) {
                         notification.setSeen(true);

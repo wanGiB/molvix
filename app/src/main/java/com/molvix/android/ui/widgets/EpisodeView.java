@@ -186,17 +186,7 @@ public class EpisodeView extends FrameLayout {
             UiUtils.blinkView(v);
             String text = downloadOrPlayButton.getText().toString().trim();
             if (text.equals(getContext().getString(R.string.play))) {
-                String downloadUrl;
-                int episodeQuality = episode.getEpisodeQuality();
-                if (episodeQuality == AppConstants.STANDARD_QUALITY) {
-                    downloadUrl = episode.getStandardQualityDownloadLink();
-                } else if (episodeQuality == AppConstants.HIGH_QUALITY) {
-                    downloadUrl = episode.getHighQualityDownloadLink();
-                } else {
-                    downloadUrl = episode.getLowQualityDownloadLink();
-                }
-                String fileExtension = StringUtils.substringAfterLast(downloadUrl, ".");
-                String fileName = episodeName + "." + fileExtension;
+                String fileName = episodeName + ".mp4";
                 File downloadedFile = FileUtils.getFilePath(fileName, WordUtils.capitalize(movie.getMovieName()), season.getSeasonName());
                 if (downloadedFile.exists()) {
                     Intent videoIntent = new Intent(Intent.ACTION_VIEW);

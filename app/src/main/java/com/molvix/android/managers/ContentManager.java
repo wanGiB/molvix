@@ -120,19 +120,7 @@ public class ContentManager {
     }
 
     private static boolean isContentDeleted(Episode episode) {
-        //Open the download movie file
-        String downloadUrl;
-        String episodeName = episode.getEpisodeName();
-        int episodeQuality = episode.getEpisodeQuality();
-        if (episodeQuality == AppConstants.STANDARD_QUALITY) {
-            downloadUrl = episode.getStandardQualityDownloadLink();
-        } else if (episodeQuality == AppConstants.HIGH_QUALITY) {
-            downloadUrl = episode.getHighQualityDownloadLink();
-        } else {
-            downloadUrl = episode.getLowQualityDownloadLink();
-        }
-        String fileExtension = StringUtils.substringAfterLast(downloadUrl, ".");
-        String fileName = episodeName + "." + fileExtension;
+        String fileName = episode.getEpisodeName() + ".mp4";
         File downloadedFile = FileUtils.getFilePath(fileName, WordUtils.capitalize(episode.getSeason().getMovie().getMovieName()), WordUtils.capitalize(episode.getSeason().getSeasonName()));
         return downloadedFile.exists();
     }
