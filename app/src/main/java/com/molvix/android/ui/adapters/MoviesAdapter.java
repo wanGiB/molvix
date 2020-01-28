@@ -14,6 +14,8 @@ import com.molvix.android.companions.AppConstants;
 import com.molvix.android.models.Movie;
 import com.molvix.android.ui.widgets.AdMobNativeAdView;
 import com.molvix.android.ui.widgets.MovieView;
+import com.molvix.android.utils.ConnectivityUtils;
+import com.molvix.android.utils.UiUtils;
 
 import java.util.List;
 
@@ -99,8 +101,11 @@ public class MoviesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
 
         void loadAd() {
             UnifiedNativeAd unifiedNativeAd = AppConstants.unifiedNativeAdAtomicReference.get();
-            if (unifiedNativeAd != null) {
+            if (unifiedNativeAd != null && ConnectivityUtils.isDeviceConnectedToTheInternet()) {
+                UiUtils.toggleViewVisibility(adMobNativeAdView, true);
                 adMobNativeAdView.loadInAd(unifiedNativeAd);
+            } else {
+                UiUtils.toggleViewVisibility(adMobNativeAdView, false);
             }
         }
 

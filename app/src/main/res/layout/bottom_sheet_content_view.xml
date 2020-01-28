@@ -10,6 +10,11 @@
     app:behavior_peekHeight="100dp"
     app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
 
+    <com.google.android.gms.ads.AdView
+        android:id="@+id/adView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
     <com.molvix.android.ui.widgets.MolvixTextView
         android:id="@+id/bottom_sheet_title_view"
         android:layout_width="wrap_content"

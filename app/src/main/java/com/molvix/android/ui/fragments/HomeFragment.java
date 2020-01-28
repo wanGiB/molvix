@@ -21,7 +21,6 @@ import com.liucanwen.app.headerfooterrecyclerview.HeaderAndFooterRecyclerViewAda
 import com.liucanwen.app.headerfooterrecyclerview.RecyclerViewUtils;
 import com.molvix.android.R;
 import com.molvix.android.database.MolvixDB;
-import com.molvix.android.eventbuses.AttachLoadedAd;
 import com.molvix.android.eventbuses.ConnectivityChangedEvent;
 import com.molvix.android.eventbuses.SearchEvent;
 import com.molvix.android.managers.ContentManager;
@@ -131,23 +130,6 @@ public class HomeFragment extends BaseFragment {
                     contentLoadingProgressMessageView.setText(getString(R.string.loading_msg));
                     spinMoviesDownloadJob();
                 }
-            } else if (event instanceof AttachLoadedAd) {
-                mUiHandler.post(() -> {
-                    try {
-                        int currentPosition = ((LinearLayoutManager) moviesRecyclerView.getLayoutManager()).findFirstVisibleItemPosition();
-                        int nextFifthPosition = currentPosition + 5;
-                        Movie movie = movies.get(nextFifthPosition);
-                        Movie fourthMovie = movies.get(nextFifthPosition - 1);
-                        if (movie != null && !movie.isAd() && !fourthMovie.isAd()) {
-                            Movie adView = new Movie();
-                            adView.setAd(true);
-                            movies.add(nextFifthPosition, adView);
-                            moviesAdapter.notifyItemInserted(nextFifthPosition);
-                        }
-                    } catch (Exception ignore) {
-
-                    }
-                });
             }
         });
     }
@@ -251,21 +233,27 @@ public class HomeFragment extends BaseFragment {
         });
     }
 
+    private void checkAndAddAd() {
+        int nextPosition = movies.size();
+        int nextAdPosition = nextPosition + 1;
+        if (nextAdPosition % 5 == 0) {
+            Movie adView = new Movie();
+            adView.setAd(true);
+            movies.add(adView);
+        }
+    }
+
     private void loadMovies(List<Movie> result) {
         mUiHandler.post(() -> {
-            if (movies.isEmpty()) {
-                movies.addAll(result);
-                moviesAdapter.notifyDataSetChanged();
-            } else {
-                for (Movie movie : result) {
-                    if (!movies.contains(movie)) {
-                        movies.add(movie);
-                        moviesAdapter.notifyItemInserted(movies.size() - 1);
-                    } else {
-                        int indexOfMovie = movies.indexOf(movie);
-                        movies.set(indexOfMovie, movie);
-                        moviesAdapter.notifyItemChanged(indexOfMovie);
-                    }
+            for (Movie movie : result) {
+                if (!movies.contains(movie)) {
+                    checkAndAddAd();
+                    movies.add(movie);
+                    moviesAdapter.notifyItemInserted(movies.size() - 1);
+                } else {
+                    int indexOfMovie = movies.indexOf(movie);
+                    movies.set(indexOfMovie, movie);
+                    moviesAdapter.notifyItemChanged(indexOfMovie);
                 }
             }
             postCreateUI();

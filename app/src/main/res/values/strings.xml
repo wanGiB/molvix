@@ -1,12 +1,15 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">Molvix</string>
-    <string name="title_home">Movies</string>
+    <string name="title_home">Series</string>
     <string name="title_notifications">Notifications</string>
     <string name="title_more">More</string>
-    <string name="search_movies">Search Movies</string>
+    <string name="search_movies">Search Series</string>
     <string name="download">DOWNLOAD</string>
-    <string name="admob_app_id">ca-app-pub-2997746677651129~9657919826</string>
-    <string name="native_ad_unit_id"><!--ca-app-pub-2997746677651129/3877859979-->ca-app-pub-3940256099942544/2247696110</string>
+    <string name="admob_app_id">ca-app-pub-6135856587983989~3935873179</string>
+    <string name="banner_release_ad_unit_id">ca-app-pub-6135856587983989/1197835674</string>
+    <string name="native_release_ad_unit_id">ca-app-pub-6135856587983989/4094342197</string>
+    <string name="native_debug_ad_unit_id">ca-app-pub-3940256099942544/2247696110</string>
+    <string name="banner_debug_ad_unit_id">ca-app-pub-3940256099942544/6300978111</string>
     <string name="sorry_no_result_found">Sorry, no result found</string>
     <string name="cancel" tools:ignore="ButtonCase">CANCEL</string>
     <string name="play">PLAY</string>

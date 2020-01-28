@@ -21,7 +21,11 @@ import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdSize;
+import com.google.android.gms.ads.AdView;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.molvix.android.BuildConfig;
 import com.molvix.android.R;
 import com.molvix.android.companions.AppConstants;
 import com.molvix.android.contracts.DoneCallback;
@@ -136,6 +140,7 @@ public class MovieDetailsView extends FrameLayout {
     private void fillInEpisodes(View rootView, Season season) {
         EpisodesAdapter bottomSheetRecyclerViewAdapter;
         TextView bottomSheetTitleView = rootView.findViewById(R.id.bottom_sheet_title_view);
+        AdView adView = rootView.findViewById(R.id.adView);
         RecyclerView bottomSheetRecyclerView = rootView.findViewById(R.id.bottom_sheet_recycler_view);
         bottomSheetTitleView.setText(WordUtils.capitalize(season.getSeasonName()));
         List<Episode> seasonEpisodes = season.getEpisodes();
@@ -160,6 +165,14 @@ public class MovieDetailsView extends FrameLayout {
             }
         };
         AppPrefs.getAppPreferences().registerOnSharedPreferenceChangeListener(onSharedPreferenceChangeListener);
+        adView.setAdSize(AdSize.BANNER);
+        if (BuildConfig.DEBUG) {
+            adView.setAdUnitId(getContext().getString(R.string.banner_debug_ad_unit_id));
+        } else {
+            adView.setAdUnitId(getContext().getString(R.string.banner_release_ad_unit_id));
+        }
+        AdRequest adRequest = new AdRequest.Builder().build();
+        adView.loadAd(adRequest);
     }
 
     @Override

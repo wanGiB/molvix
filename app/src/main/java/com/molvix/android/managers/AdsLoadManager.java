@@ -13,13 +13,9 @@ import com.molvix.android.BuildConfig;
 import com.molvix.android.R;
 import com.molvix.android.companions.AppConstants;
 import com.molvix.android.components.ApplicationLoader;
-import com.molvix.android.eventbuses.AttachLoadedAd;
 import com.molvix.android.preferences.AppPrefs;
 import com.molvix.android.utils.ConnectivityUtils;
 import com.molvix.android.utils.MolvixLogger;
-
-import org.apache.commons.lang3.StringUtils;
-import org.greenrobot.eventbus.EventBus;
 
 import java.util.Timer;
 import java.util.TimerTask;
@@ -52,7 +48,7 @@ public class AdsLoadManager {
                     long timeDiffInSecs = TimeUnit.MILLISECONDS.toSeconds(timeDiff);
                     MolvixLogger.d(ContentManager.class.getSimpleName(), "TimeDiff=" + timeDiffInSecs);
                     if (ConnectivityUtils.isDeviceConnectedToTheInternet()
-                            && timeDiffInSecs >= 20) {
+                            && timeDiffInSecs >= 60) {
                         loadAds();
                     }
                 }
@@ -71,7 +67,7 @@ public class AdsLoadManager {
 
         private void loadAds(Context context) {
             MolvixLogger.d(ContentManager.class.getSimpleName(), "Loading ads");
-            AdLoader.Builder builder = new AdLoader.Builder(context, context.getString(R.string.native_ad_unit_id));
+            AdLoader.Builder builder = new AdLoader.Builder(context, BuildConfig.DEBUG ? context.getString(R.string.native_debug_ad_unit_id) : context.getString(R.string.native_release_ad_unit_id));
             builder.forUnifiedNativeAd(unifiedNativeAd -> {
                 MolvixLogger.d(ContentManager.class.getSimpleName(), "Native Ads Loaded");
                 UnifiedNativeAd existingAd = AppConstants.unifiedNativeAdAtomicReference.get();
@@ -79,7 +75,6 @@ public class AdsLoadManager {
                     existingAd.destroy();
                 }
                 AppConstants.unifiedNativeAdAtomicReference.set(unifiedNativeAd);
-                EventBus.getDefault().post(new AttachLoadedAd(true));
                 AppPrefs.persistLastAdLoadTime(System.currentTimeMillis());
             });
             VideoOptions videoOptions = new VideoOptions.Builder()
@@ -97,9 +92,6 @@ public class AdsLoadManager {
                 }
             }).build();
             AdRequest.Builder adRequestBuilder = new AdRequest.Builder();
-            if (StringUtils.isNotEmpty(AppConstants.TEST_DEVICE_ID) && BuildConfig.DEBUG) {
-                adRequestBuilder.addTestDevice(AppConstants.TEST_DEVICE_ID);
-            }
             adLoader.loadAds(adRequestBuilder.build(), NUMBER_OF_ADS);
         }
 
