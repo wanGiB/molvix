@@ -37,7 +37,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import okhttp3.OkHttpClient;
 
 public class FileDownloadManager {
-    private static AtomicBoolean fetchListenerAttached = new AtomicBoolean(false);
     private static Fetch fetch;
     private static FetchListener fetchListener = new FetchListener() {
 
@@ -63,15 +62,6 @@ public class FileDownloadManager {
                 MolvixLogger.d(ContentManager.class.getSimpleName(), "Download is completed for " + episode.getEpisodeName() + "/" + episode.getSeason().getSeasonName() + "/" + episode.getSeason().getMovie().getMovieName());
                 finalizeDownload(episode);
                 AppPrefs.removeKey(AppConstants.DOWNLOAD_ID_KEY + download.getId());
-            }
-            if (fetch != null) {
-                fetch.getDownloads(result -> {
-                    if (result.isEmpty()) {
-                        fetch.removeListener(fetchListener);
-                        fetch.close();
-                        fetchListenerAttached.set(false);
-                    }
-                });
             }
         }
 
@@ -205,10 +195,7 @@ public class FileDownloadManager {
     }
 
     private static void attachFetchListener(Fetch fetch) {
-        if (!fetchListenerAttached.get()) {
-            fetch.addListener(fetchListener);
-            fetchListenerAttached.set(true);
-        }
+        fetch.addListener(fetchListener);
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")

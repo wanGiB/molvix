@@ -67,7 +67,7 @@ public class AdsLoadManager {
 
         private void loadAds(Context context) {
             MolvixLogger.d(ContentManager.class.getSimpleName(), "Loading ads");
-            AdLoader.Builder builder = new AdLoader.Builder(context, BuildConfig.DEBUG ? context.getString(R.string.native_debug_ad_unit_id) : context.getString(R.string.native_release_ad_unit_id));
+            AdLoader.Builder builder = new AdLoader.Builder(context, context.getString(R.string.native_release_ad_unit_id));
             builder.forUnifiedNativeAd(unifiedNativeAd -> {
                 MolvixLogger.d(ContentManager.class.getSimpleName(), "Native Ads Loaded");
                 UnifiedNativeAd existingAd = AppConstants.unifiedNativeAdAtomicReference.get();

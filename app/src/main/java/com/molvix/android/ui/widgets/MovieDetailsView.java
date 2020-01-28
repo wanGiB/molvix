@@ -22,7 +22,6 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.gms.ads.AdRequest;
-import com.google.android.gms.ads.AdSize;
 import com.google.android.gms.ads.AdView;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.molvix.android.BuildConfig;
@@ -160,17 +159,12 @@ public class MovieDetailsView extends FrameLayout {
                             seasonEpisodes.set(indexOfEpisode, MolvixDB.getEpisode(episodeId));
                         }
                         bottomSheetRecyclerViewAdapter.notifyItemChanged(indexOfEpisode);
+                        new Handler().postDelayed(() -> bottomSheetRecyclerViewAdapter.notifyItemChanged(indexOfEpisode), 1000);
                     }
                 }
             }
         };
         AppPrefs.getAppPreferences().registerOnSharedPreferenceChangeListener(onSharedPreferenceChangeListener);
-        adView.setAdSize(AdSize.BANNER);
-        if (BuildConfig.DEBUG) {
-            adView.setAdUnitId(getContext().getString(R.string.banner_debug_ad_unit_id));
-        } else {
-            adView.setAdUnitId(getContext().getString(R.string.banner_release_ad_unit_id));
-        }
         AdRequest.Builder builder = new AdRequest.Builder();
         if (BuildConfig.DEBUG) {
             builder.addTestDevice("53D46815EE1FBEED38704D3C418F4402");

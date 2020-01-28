@@ -26,7 +26,7 @@ public class AppPrefs {
 
     @SuppressLint("ApplySharedPref")
     public static void lockCaptchaSolver(String episodeId) {
-        getAppPreferences().edit().putString(AppConstants.CAPTCHA_SOLVING, episodeId).commit();
+        getAppPreferences().edit().putString(AppConstants.CAPTCHA_SOLVING, episodeId).apply();
     }
 
     public static boolean isCaptchaSolvable() {
@@ -36,12 +36,12 @@ public class AppPrefs {
 
     @SuppressLint("ApplySharedPref")
     public static void unLockCaptchaSolver() {
-        getAppPreferences().edit().putString(AppConstants.CAPTCHA_SOLVING, null).commit();
+        getAppPreferences().edit().putString(AppConstants.CAPTCHA_SOLVING, null).apply();
     }
 
     @SuppressLint("ApplySharedPref")
     public static void setDailyMoviesRecommendability(boolean newValue) {
-        getAppPreferences().edit().putBoolean(AppConstants.DAILY_MOVIES_RECOMMENDABILITY, newValue).commit();
+        getAppPreferences().edit().putBoolean(AppConstants.DAILY_MOVIES_RECOMMENDABILITY, newValue).apply();
     }
 
     public static boolean canDailyMoviesBeRecommended() {
@@ -54,7 +54,7 @@ public class AppPrefs {
 
     @SuppressLint("ApplySharedPref")
     public static void setDownloadedMoviesUpdatable(boolean newValue) {
-        getAppPreferences().edit().putBoolean(AppConstants.DOWNLOADED_MOVIES_UPDATE, newValue).commit();
+        getAppPreferences().edit().putBoolean(AppConstants.DOWNLOADED_MOVIES_UPDATE, newValue).apply();
     }
 
     public static long getLastMovieRecommendationTime() {
@@ -63,7 +63,7 @@ public class AppPrefs {
 
     @SuppressLint("ApplySharedPref")
     public static void setLastMovieRecommendationTime(long time) {
-        getAppPreferences().edit().putLong(AppConstants.LAST_MOVIES_RECOMMENDATION_TIME, time).commit();
+        getAppPreferences().edit().putLong(AppConstants.LAST_MOVIES_RECOMMENDATION_TIME, time).apply();
     }
 
     public static boolean canRefreshMovieDetails(String movieId) {
@@ -75,14 +75,14 @@ public class AppPrefs {
     public static void addToRefreshedMovies(String movieId) {
         Set<String> refreshedMovies = getAppPreferences().getStringSet(AppConstants.REFRESHED_MOVIES, new HashSet<>());
         refreshedMovies.add(movieId);
-        getAppPreferences().edit().putStringSet(AppConstants.REFRESHED_MOVIES, refreshedMovies).commit();
+        getAppPreferences().edit().putStringSet(AppConstants.REFRESHED_MOVIES, refreshedMovies).apply();
     }
 
     @SuppressLint("ApplySharedPref")
     public static void clearAllRefreshedMovies() {
         Set<String> refreshedMovies = getAppPreferences().getStringSet(AppConstants.REFRESHED_MOVIES, new HashSet<>());
         refreshedMovies.clear();
-        getAppPreferences().edit().putStringSet(AppConstants.REFRESHED_MOVIES, refreshedMovies).commit();
+        getAppPreferences().edit().putStringSet(AppConstants.REFRESHED_MOVIES, refreshedMovies).apply();
     }
 
     public static boolean canRefreshSeasonDetails(String seasonId) {
@@ -94,21 +94,21 @@ public class AppPrefs {
     public static void addToRefreshedSeasons(String seasonId) {
         Set<String> refreshedSeasons = getAppPreferences().getStringSet(AppConstants.REFRESHED_SEASONS, new HashSet<>());
         refreshedSeasons.add(seasonId);
-        getAppPreferences().edit().putStringSet(AppConstants.REFRESHED_SEASONS, refreshedSeasons).commit();
+        getAppPreferences().edit().putStringSet(AppConstants.REFRESHED_SEASONS, refreshedSeasons).apply();
     }
 
     @SuppressLint("ApplySharedPref")
     public static void setSeasonRefreshable(String seasonId) {
         Set<String> refreshedSeasons = getAppPreferences().getStringSet(AppConstants.REFRESHED_SEASONS, new HashSet<>());
         refreshedSeasons.remove(seasonId);
-        getAppPreferences().edit().putStringSet(AppConstants.REFRESHED_SEASONS, refreshedSeasons).commit();
+        getAppPreferences().edit().putStringSet(AppConstants.REFRESHED_SEASONS, refreshedSeasons).apply();
     }
 
     @SuppressLint("ApplySharedPref")
     public static void setMovieRefreshable(String movieId) {
         Set<String> refreshedMovies = getAppPreferences().getStringSet(AppConstants.REFRESHED_MOVIES, new HashSet<>());
         refreshedMovies.remove(movieId);
-        getAppPreferences().edit().putStringSet(AppConstants.REFRESHED_MOVIES, refreshedMovies).commit();
+        getAppPreferences().edit().putStringSet(AppConstants.REFRESHED_MOVIES, refreshedMovies).apply();
     }
 
     public static long getLastMoviesSize() {
@@ -117,21 +117,21 @@ public class AppPrefs {
 
     @SuppressLint("ApplySharedPref")
     public static void setLastMoviesSize(long newSize) {
-        getAppPreferences().edit().putLong(AppConstants.LAST_MOVIES_SIZE, newSize).commit();
+        getAppPreferences().edit().putLong(AppConstants.LAST_MOVIES_SIZE, newSize).apply();
     }
 
     @SuppressLint("ApplySharedPref")
     public static void addToInProgressDownloads(Episode episode) {
         Set<String> inProgressDownloads = getAppPreferences().getStringSet(AppConstants.IN_PROGRESS_DOWNLOADS, new HashSet<>());
         inProgressDownloads.add(episode.getEpisodeId());
-        getAppPreferences().edit().putStringSet(AppConstants.IN_PROGRESS_DOWNLOADS, inProgressDownloads).commit();
+        getAppPreferences().edit().putStringSet(AppConstants.IN_PROGRESS_DOWNLOADS, inProgressDownloads).apply();
     }
 
     @SuppressLint("ApplySharedPref")
     public static void removeFromInProgressDownloads(Episode episode) {
         Set<String> inProgressDownloads = getAppPreferences().getStringSet(AppConstants.IN_PROGRESS_DOWNLOADS, new HashSet<>());
         inProgressDownloads.remove(episode.getEpisodeId());
-        getAppPreferences().edit().putStringSet(AppConstants.IN_PROGRESS_DOWNLOADS, inProgressDownloads).commit();
+        getAppPreferences().edit().putStringSet(AppConstants.IN_PROGRESS_DOWNLOADS, inProgressDownloads).apply();
     }
 
 
@@ -162,7 +162,7 @@ public class AppPrefs {
 
     @SuppressLint("ApplySharedPref")
     public static void setHasBeenNotified(String checkKey) {
-        getAppPreferences().edit().putBoolean(AppConstants.NOTIFICATION + checkKey, true).commit();
+        getAppPreferences().edit().putBoolean(AppConstants.NOTIFICATION + checkKey, true).apply();
     }
 
     public static void updateEpisodeDownloadProgress(String episodeId, int progress) {
@@ -191,7 +191,7 @@ public class AppPrefs {
 
     @SuppressLint("ApplySharedPref")
     public static void setPaused(String episodeId, boolean value) {
-        getAppPreferences().edit().putBoolean(AppConstants.DOWNLOAD_PAUSED + episodeId, value).commit();
+        getAppPreferences().edit().putBoolean(AppConstants.DOWNLOAD_PAUSED + episodeId, value).apply();
     }
 
     public static long getEstimatedFileLengthForEpisode(String episodeId) {

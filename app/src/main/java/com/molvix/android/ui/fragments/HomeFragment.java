@@ -272,7 +272,7 @@ public class HomeFragment extends BaseFragment {
             if (!movies.isEmpty()) {
                 int totalNumberOfMovies = movies.size();
                 DecimalFormat moviesNoFormatter = new DecimalFormat("#,###");
-                headerTextView.setText("Over " + moviesNoFormatter.format(totalNumberOfMovies) + " movies available");
+                headerTextView.setText("Over " + moviesNoFormatter.format(totalNumberOfMovies) + " series available");
             }
         });
     }

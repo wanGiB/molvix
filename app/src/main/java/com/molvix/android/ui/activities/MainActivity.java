@@ -151,7 +151,10 @@ public class MainActivity extends BaseActivity {
             for (String episodeId : pausedDownloads) {
                 Episode episode = MolvixDB.getEpisode(episodeId);
                 if (episode != null && AppPrefs.getEpisodeDownloadProgress(episodeId) == -1) {
-                    FileDownloadManager.downloadEpisode(episode);
+                    boolean paused = AppPrefs.isPaused(episodeId);
+                    if (!paused) {
+                        FileDownloadManager.downloadEpisode(episode);
+                    }
                 }
             }
         }

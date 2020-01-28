@@ -8,13 +8,11 @@
     <string name="admob_app_id">ca-app-pub-6135856587983989~3935873179</string>
     <string name="banner_release_ad_unit_id">ca-app-pub-6135856587983989/1197835674</string>
     <string name="native_release_ad_unit_id">ca-app-pub-6135856587983989/4094342197</string>
-    <string name="native_debug_ad_unit_id">ca-app-pub-3940256099942544/2247696110</string>
-    <string name="banner_debug_ad_unit_id">ca-app-pub-3940256099942544/6300978111</string>
     <string name="sorry_no_result_found">Sorry, no result found</string>
     <string name="cancel" tools:ignore="ButtonCase">CANCEL</string>
     <string name="play">PLAY</string>
     <string name="please_wait">Please wait…</string>
-    <string name="preparing">PREPARING</string>
+    <string name="preparing">PREPARING…</string>
     <string name="downloading">DOWNLOADING…</string>
     <string name="Today">Today</string>
     <string name="molvix_app_version">molvix_app_version</string>
@@ -57,7 +55,7 @@
     <string name="downloaded_movies_update_key">downloaded_movies_update_key</string>
     <string name="season">Season</string>
     <string name="network_error_msg">Network error.Please review your data connection and tap here to try again.</string>
-    <string name="loading_msg">Loading...</string>
+    <string name="loading_msg">Loading…</string>
     <string name="no_notifications">No notifications</string>
     <string name="all_caught_up">All Caught Up!</string>
     <string name="paused">Paused</string>
