@@ -14,6 +14,7 @@ import com.molvix.android.R;
 import com.molvix.android.companions.AppConstants;
 import com.molvix.android.components.ApplicationLoader;
 import com.molvix.android.eventbuses.AttachLoadedAd;
+import com.molvix.android.preferences.AppPrefs;
 import com.molvix.android.utils.ConnectivityUtils;
 import com.molvix.android.utils.MolvixLogger;
 
@@ -22,6 +23,7 @@ import org.greenrobot.eventbus.EventBus;
 
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.TimeUnit;
 
 public class AdsLoadManager {
 
@@ -39,15 +41,31 @@ public class AdsLoadManager {
     }
 
     public static void spin() {
-        //Load ads every 15seconds
-        adsLoadTimer.scheduleAtFixedRate(new TimerTask() {
-            @Override
-            public void run() {
-                if (ConnectivityUtils.isDeviceConnectedToTheInternet()) {
-                    loadAds();
+        try {
+
+            //Load ads every 20seconds
+            adsLoadTimer.scheduleAtFixedRate(new TimerTask() {
+                @Override
+                public void run() {
+                    long lastAdLoadTime = AppPrefs.getLastAdLoadTime();
+                    long currentTime = System.currentTimeMillis();
+                    long timeDiff = Math.abs(currentTime - lastAdLoadTime);
+                    long timeDiffInSecs = TimeUnit.MILLISECONDS.toSeconds(timeDiff);
+                    MolvixLogger.d(ContentManager.class.getSimpleName(), "TimeDiff=" + timeDiffInSecs);
+                    if (ConnectivityUtils.isDeviceConnectedToTheInternet()
+                            && timeDiffInSecs >= 30) {
+                        loadAds();
+                    }
                 }
-            }
-        }, 0, 15000);
+            }, 0, 20000);
+        } catch (Exception ignored) {
+
+        }
+    }
+
+    public static void destroy() {
+        adsLoadTimer.cancel();
+        adsLoadTimer.purge();
     }
 
     static class AdsLoadTask extends AsyncTask<Void, Void, Void> {
@@ -63,6 +81,7 @@ public class AdsLoadManager {
                 }
                 AppConstants.unifiedNativeAdAtomicReference.set(unifiedNativeAd);
                 EventBus.getDefault().post(new AttachLoadedAd(true));
+                AppPrefs.persistLastAdLoadTime(System.currentTimeMillis());
             });
             VideoOptions videoOptions = new VideoOptions.Builder()
                     .setStartMuted(true)
@@ -75,6 +94,7 @@ public class AdsLoadManager {
                 @Override
                 public void onAdFailedToLoad(int errorCode) {
                     MolvixLogger.d(ContentManager.class.getSimpleName(), "Error loading ads due to " + errorCode);
+                    AppPrefs.persistLastAdLoadTime(System.currentTimeMillis());
                 }
             }).build();
             AdRequest.Builder adRequestBuilder = new AdRequest.Builder();

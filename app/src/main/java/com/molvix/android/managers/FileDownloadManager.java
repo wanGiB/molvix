@@ -25,7 +25,6 @@ import com.tonyodev.fetch2.Request;
 import com.tonyodev.fetch2core.DownloadBlock;
 import com.tonyodev.fetch2okhttp.OkHttpDownloader;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.text.WordUtils;
 import org.greenrobot.eventbus.EventBus;
 import org.jetbrains.annotations.NotNull;
@@ -139,11 +138,11 @@ public class FileDownloadManager {
                 MolvixNotification.with(ApplicationLoader.getInstance()).cancel(Math.abs(episode.getEpisodeId().hashCode()));
                 Pair<String, String> downloadUrlAndDirPair = getDownloadUrlAndDirPathFrom(episode);
                 MolvixLogger.d(ContentManager.class.getSimpleName(), "Download is cancelled for " + episode.getEpisodeName() + "/" + episode.getSeason().getSeasonName() + "/" + episode.getSeason().getMovie().getMovieName());
-                resetEpisodeDownloadProgress(episode);
                 deleteDirPath(downloadUrlAndDirPair.second);
                 cleanUpTempFiles(episode);
                 AppPrefs.setPaused(episodeId, false);
                 AppPrefs.removeKey(AppConstants.DOWNLOAD_ID_KEY + download.getId());
+                resetEpisodeDownloadProgress(episode);
             }
         }
 
@@ -174,8 +173,7 @@ public class FileDownloadManager {
         } else {
             downloadUrl = episode.getLowQualityDownloadLink();
         }
-        String fileExtension = StringUtils.substringAfterLast(downloadUrl, ".");
-        String fileName = episode.getEpisodeName() + "." + fileExtension.toLowerCase();
+        String fileName = episode.getEpisodeName() + ".mp4";
         String dirPath = FileUtils.getFilePath(fileName, movieName, seasonName).getPath();
         return new Pair<>(downloadUrl, dirPath);
     }

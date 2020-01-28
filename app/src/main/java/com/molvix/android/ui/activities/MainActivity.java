@@ -90,7 +90,14 @@ public class MainActivity extends BaseActivity {
         fetchDownloadableEpisodes();
         checkAndResumePausedDownloads();
         cleanUpUnLinkedDownloadKeys();
+        AppPrefs.persistLastAdLoadTime(System.currentTimeMillis());
         AdsLoadManager.spin();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        AdsLoadManager.destroy();
     }
 
     private void cleanUpUnLinkedDownloadKeys() {

@@ -29,7 +29,7 @@ public class Custom extends Builder {
         this.mMessage = message;
         this.mMessageSpanned = messageSpanned;
         this.mSmallIcon = smallIcon;
-        this.mPlaceHolderResourceId = R.drawable.ic_launcher;
+        this.mPlaceHolderResourceId = R.mipmap.ic_launcher;
         this.init();
     }
 
@@ -53,7 +53,7 @@ public class Custom extends Builder {
 
     private void setSmallIcon() {
         if (mSmallIcon <= 0) {
-            mRemoteView.setImageViewResource(R.id.notification_img_icon, R.drawable.ic_launcher);
+            mRemoteView.setImageViewResource(R.id.notification_img_icon, R.mipmap.ic_launcher);
         }
         mRemoteView.setImageViewResource(R.id.notification_img_icon, mSmallIcon);
     }

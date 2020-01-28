@@ -202,4 +202,12 @@ public class AppPrefs {
         getAppPreferences().edit().putLong(AppConstants.ESTIMATED_FILE_LENGTH + episodeId, fileLength).apply();
     }
 
+    public static void persistLastAdLoadTime(long lastAdLoadTime) {
+        getAppPreferences().edit().putLong(AppConstants.LAST_AD_LOAD_TIME, lastAdLoadTime).apply();
+    }
+
+    public static long getLastAdLoadTime() {
+        return getAppPreferences().getLong(AppConstants.LAST_AD_LOAD_TIME, 0);
+    }
+
 }

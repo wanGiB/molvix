@@ -72,7 +72,7 @@ class MolvixNotificationManager {
         Load mLoad = MolvixNotification.with(ApplicationLoader.getInstance()).load();
         mLoad.notificationChannelId(seasonId)
                 .title(title)
-                .largeIcon(R.drawable.ic_launcher);
+                .largeIcon(R.mipmap.ic_launcher);
         mLoad.identifier(identifier);
 
         if (progress == 100) {
@@ -105,8 +105,8 @@ class MolvixNotificationManager {
                     .autoCancel(true)
                     .click(movieDetailsPendingIntent)
                     .bigTextStyle("Have you seen the Movie \"" + WordUtils.capitalize(recommendableMovie.getMovieName()) + "\"", "Recommended For You")
-                    .smallIcon(R.drawable.ic_launcher)
-                    .largeIcon(R.drawable.ic_launcher)
+                    .smallIcon(R.drawable.ic_stat_molvix_logo)
+                    .largeIcon(R.mipmap.ic_launcher)
                     .color(android.R.color.background_dark)
                     .custom()
                     .background(bitmap)
@@ -216,8 +216,8 @@ class MolvixNotificationManager {
                 .autoCancel(true)
                 .click(movieDetailsPendingIntent)
                 .bigTextStyle(UiUtils.fromHtml(messageDisplay), "From Your Downloads")
-                .smallIcon(R.drawable.ic_launcher)
-                .largeIcon(R.drawable.ic_launcher)
+                .smallIcon(R.drawable.ic_stat_molvix_logo)
+                .largeIcon(R.mipmap.ic_launcher)
                 .color(android.R.color.background_dark)
                 .custom()
                 .background(movieBitmap)
