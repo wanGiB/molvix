@@ -24,6 +24,16 @@
         tools:replace="android:icon"
         tools:targetApi="n">
 
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="com.molvix.android.provider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/provider_paths" />
+        </provider>
+
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
             android:value="@string/admob_app_id" />

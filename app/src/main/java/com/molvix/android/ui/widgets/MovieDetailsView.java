@@ -70,6 +70,7 @@ public class MovieDetailsView extends FrameLayout {
 
     private Handler mUIHandler = new Handler();
     private BottomSheetDialog bottomSheetDialog;
+    private EpisodesAdapter bottomSheetRecyclerViewAdapter;
 
     public MovieDetailsView(@NonNull Context context) {
         super(context);
@@ -137,7 +138,6 @@ public class MovieDetailsView extends FrameLayout {
     private SharedPreferences.OnSharedPreferenceChangeListener onSharedPreferenceChangeListener;
 
     private void fillInEpisodes(View rootView, Season season) {
-        EpisodesAdapter bottomSheetRecyclerViewAdapter;
         TextView bottomSheetTitleView = rootView.findViewById(R.id.bottom_sheet_title_view);
         AdView adView = rootView.findViewById(R.id.adView);
         RecyclerView bottomSheetRecyclerView = rootView.findViewById(R.id.bottom_sheet_recycler_view);
@@ -171,6 +171,14 @@ public class MovieDetailsView extends FrameLayout {
         }
         AdRequest adRequest = builder.build();
         adView.loadAd(adRequest);
+    }
+
+    @Override
+    protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        if (bottomSheetRecyclerViewAdapter != null) {
+            bottomSheetRecyclerViewAdapter.notifyDataSetChanged();
+        }
     }
 
     @Override
