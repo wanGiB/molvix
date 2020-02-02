@@ -210,4 +210,12 @@ public class AppPrefs {
         return getAppPreferences().getLong(AppConstants.LAST_AD_LOAD_TIME, 0);
     }
 
+    public static void refreshSeasonEpisodes(String seasonId, boolean value) {
+        getAppPreferences().edit().putBoolean(AppConstants.SEASON_EPISODES_REFRESHED + seasonId, value).apply();
+    }
+
+    public static boolean isSeasonEpisodesRefreshed(String seasonId) {
+        return getAppPreferences().getBoolean(AppConstants.SEASON_EPISODES_REFRESHED + seasonId, false);
+    }
+
 }

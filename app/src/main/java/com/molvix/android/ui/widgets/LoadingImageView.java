@@ -2,7 +2,6 @@ package com.molvix.android.ui.widgets;
 
 import android.content.Context;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Paint;
 import android.util.AttributeSet;
 
@@ -13,12 +12,13 @@ import com.molvix.android.R;
 /**
  * @author Wan Clem
  */
-
 public class LoadingImageView extends RoundedImageView {
+
     private boolean isLoading = false;
     private int width, height, x, y, rX, rY, rWidth, rHeight;
     private Paint loadingPaint;
     private Paint ripplePaint;
+    private static final int OFFSET = 15;
 
     public LoadingImageView(Context context) {
         super(context);
@@ -32,9 +32,9 @@ public class LoadingImageView extends RoundedImageView {
 
     private void init(Context context) {
         loadingPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        loadingPaint.setColor(ContextCompat.getColor(getContext(), R.color.colorPrimary));
+        loadingPaint.setColor(ContextCompat.getColor(context, R.color.gray5));
         ripplePaint = new Paint();
-        ripplePaint.setColor(ContextCompat.getColor(getContext(), R.color.icons_unselected_color));
+        ripplePaint.setColor(ContextCompat.getColor(context, R.color.icons_unselected_color));
     }
 
     @Override
@@ -44,7 +44,7 @@ public class LoadingImageView extends RoundedImageView {
         } else {
             canvas.drawRect(x, y, x + width, y + height, loadingPaint);
             canvas.drawRect(rX, rY, rX + rWidth, rY + rHeight, ripplePaint);
-            rX = (rX < width) ? rX + 5 : x - rWidth;
+            rX = (rX < width) ? rX + OFFSET : x - rWidth;
             post(rippleRunner);
         }
     }
@@ -58,7 +58,7 @@ public class LoadingImageView extends RoundedImageView {
         height = h;
         x = 0;
         y = 0;
-        rWidth = width - 5;
+        rWidth = width - OFFSET;
         rHeight = height;
     }
 
@@ -72,6 +72,11 @@ public class LoadingImageView extends RoundedImageView {
     public void stopLoading() {
         isLoading = false;
         invalidate();
+    }
+
+    @SuppressWarnings("unused")
+    public boolean isLoading() {
+        return isLoading;
     }
 
 }

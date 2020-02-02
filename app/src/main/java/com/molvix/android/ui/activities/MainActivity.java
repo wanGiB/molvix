@@ -172,7 +172,7 @@ public class MainActivity extends BaseActivity {
                 LoadEpisodesForSeason loadEpisodesForSeason = (LoadEpisodesForSeason) event;
                 Season seasonToLoad = loadEpisodesForSeason.getSeason();
                 if (seasonToLoad != null && movieDetailsView != null) {
-                    movieDetailsView.loadEpisodesForSeason(seasonToLoad);
+                    movieDetailsView.loadEpisodesForSeason(seasonToLoad,loadEpisodesForSeason.canShowLoadingProgress());
                 }
             } else if (event instanceof CheckForDownloadableEpisodes) {
                 fetchDownloadableEpisodes();

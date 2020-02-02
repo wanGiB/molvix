@@ -51,5 +51,6 @@ public class AppConstants {
     public static final String DOWNLOAD_ID_KEY = "DownloadIdKey_";
     public static final String ESTIMATED_FILE_LENGTH = "EstimatedFileLength_";
     public static final String LAST_AD_LOAD_TIME = "last_ad_load_time";
+    public static final String SEASON_EPISODES_REFRESHED = "SeasonEpisodesRefreshed_";
     public static AtomicReference<UnifiedNativeAd> unifiedNativeAdAtomicReference = new AtomicReference<>();
 }

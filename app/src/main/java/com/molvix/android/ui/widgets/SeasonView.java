@@ -119,15 +119,22 @@ public class SeasonView extends FrameLayout {
         rootView.setOnClickListener(v -> {
             UiUtils.blinkView(rootView);
             if (season.getEpisodes() != null && !season.getEpisodes().isEmpty()) {
-                EventBus.getDefault().post(new LoadEpisodesForSeason(season));
+                EventBus.getDefault().post(new LoadEpisodesForSeason(season,true));
+                if (ConnectivityUtils.isDeviceConnectedToTheInternet()) {
+                    callableSeasonEpisodesExtractionTask = new CallableSeasonEpisodesExtractionTask((result, e) -> {
+                        if (e == null && result != null) {
+                            SeasonsManager.refreshSeasonEpisodes(result, true);
+                        }
+                    });
+                    callableSeasonEpisodesExtractionTask.execute(season);
+                }
             } else {
                 if (ConnectivityUtils.isDeviceConnectedToTheInternet()) {
-                    SeasonsManager.setSeasonRefreshable(season.getSeasonId());
                     showProgressDialog();
                     callableSeasonEpisodesExtractionTask = new CallableSeasonEpisodesExtractionTask((result, e) -> UiUtils.runOnMain(() -> {
                         dismissProgressDialog();
                         if (e == null && result != null) {
-                            EventBus.getDefault().post(new LoadEpisodesForSeason(result));
+                            EventBus.getDefault().post(new LoadEpisodesForSeason(result, false));
                         } else {
                             UiUtils.showSafeToast("Sorry,an error occurred while fetching episodes for " + season.getSeasonName() + ".Please try again");
                         }

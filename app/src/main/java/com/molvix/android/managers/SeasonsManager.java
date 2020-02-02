@@ -1,5 +1,6 @@
 package com.molvix.android.managers;
 
+import com.molvix.android.models.Season;
 import com.molvix.android.preferences.AppPrefs;
 
 public class SeasonsManager {
@@ -15,4 +16,9 @@ public class SeasonsManager {
     public static void setSeasonRefreshable(String seasonId){
         AppPrefs.setSeasonRefreshable(seasonId);
     }
+
+    public static void refreshSeasonEpisodes(Season result,boolean value) {
+        AppPrefs.refreshSeasonEpisodes(result.getSeasonId(),value);
+    }
+
 }

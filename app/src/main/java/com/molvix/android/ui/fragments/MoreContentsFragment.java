@@ -1,12 +1,20 @@
 package com.molvix.android.ui.fragments;
 
+import android.content.ContextWrapper;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.icu.util.VersionInfo;
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
 
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.SwitchPreferenceCompat;
 
 import com.molvix.android.R;
+import com.molvix.android.components.ApplicationLoader;
 import com.molvix.android.preferences.AppPrefs;
 import com.morsebyte.shailesh.twostagerating.TwoStageRate;
 
@@ -34,6 +42,21 @@ public class MoreContentsFragment extends PreferenceFragmentCompat implements Pr
                 initAppRater();
                 return true;
             });
+        }
+        Preference molvixAppVersionPref = findPreference(getString(R.string.molvix_app_version));
+        if (molvixAppVersionPref != null) {
+            try {
+                PackageManager packageManager = ApplicationLoader.getInstance().getPackageManager();
+                if (packageManager != null) {
+                    PackageInfo packageInfo = packageManager.getPackageInfo(ApplicationLoader.getInstance().getPackageName(), 0);
+                    if (packageInfo != null) {
+                        String versionName = packageInfo.versionName;
+                        molvixAppVersionPref.setSummary("Version " + versionName);
+                    }
+                }
+            } catch (Exception ignored) {
+
+            }
         }
     }
 
