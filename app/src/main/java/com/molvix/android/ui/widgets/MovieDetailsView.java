@@ -172,10 +172,12 @@ public class MovieDetailsView extends FrameLayout {
                     if (AppPrefs.isSeasonEpisodesRefreshed(seasonId)) {
                         Season updatedSeason = MolvixDB.getSeason(seasonId);
                         List<Episode> updatedEpisodes = updatedSeason.getEpisodes();
-                        if (!episodes.containsAll(updatedEpisodes)) {
-                            episodes.addAll(updatedEpisodes);
-                            bottomSheetRecyclerViewAdapter.notifyDataSetChanged();
+                        for (Episode episode : updatedEpisodes) {
+                            if (!episodes.contains(episode)) {
+                                episodes.add(episode);
+                            }
                         }
+                        bottomSheetRecyclerViewAdapter.notifyDataSetChanged();
                         SeasonsManager.refreshSeasonEpisodes(updatedSeason, false);
                         episodesRefreshingProgressBar.setVisibility(GONE);
                     }
