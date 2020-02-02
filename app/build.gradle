@@ -8,7 +8,7 @@ android {
         applicationId "com.molvix.android"
         minSdkVersion 17
         targetSdkVersion 29
-        versionCode 2
+        versionCode 3
         versionName "1.3"
         multiDexEnabled true
         vectorDrawables.useSupportLibrary true
