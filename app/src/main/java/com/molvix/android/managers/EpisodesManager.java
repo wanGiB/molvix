@@ -26,7 +26,7 @@ public class EpisodesManager {
         DownloadableEpisode downloadableEpisode = MolvixDB.getDownloadableEpisode(episode.getEpisodeId());
         if (downloadableEpisode != null) {
             MolvixDB.deleteDownloadableEpisode(downloadableEpisode);
-            unLockCaptureSolver();
+            unLockCaptchaSolver();
         }
         EventBus.getDefault().post(new CheckForDownloadableEpisodes());
     }
@@ -35,7 +35,7 @@ public class EpisodesManager {
         AppPrefs.lockCaptchaSolver(episodeId);
     }
 
-    public static void unLockCaptureSolver() {
+    public static void unLockCaptchaSolver() {
         AppPrefs.unLockCaptchaSolver();
     }
 

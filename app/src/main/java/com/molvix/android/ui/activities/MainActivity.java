@@ -76,7 +76,6 @@ public class MainActivity extends BaseActivity {
 
     private MovieDetailsView movieDetailsView;
 
-    //ffmpeg -i in.avi -metadata title="my title" out.flv
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -90,8 +89,12 @@ public class MainActivity extends BaseActivity {
         fetchDownloadableEpisodes();
         checkAndResumePausedDownloads();
         cleanUpUnLinkedDownloadKeys();
-        AppPrefs.persistLastAdLoadTime(System.currentTimeMillis());
+        resetAdsLoader();
         AdsLoadManager.spin();
+    }
+
+    private void resetAdsLoader() {
+        AppPrefs.persistLastAdLoadTime(System.currentTimeMillis());
     }
 
     @Override
@@ -142,7 +145,7 @@ public class MainActivity extends BaseActivity {
     }
 
     private void unLockAppCaptchaSolver() {
-        EpisodesManager.unLockCaptureSolver();
+        EpisodesManager.unLockCaptchaSolver();
     }
 
     private void checkAndResumePausedDownloads() {
@@ -172,7 +175,7 @@ public class MainActivity extends BaseActivity {
                 LoadEpisodesForSeason loadEpisodesForSeason = (LoadEpisodesForSeason) event;
                 Season seasonToLoad = loadEpisodesForSeason.getSeason();
                 if (seasonToLoad != null && movieDetailsView != null) {
-                    movieDetailsView.loadEpisodesForSeason(seasonToLoad,loadEpisodesForSeason.canShowLoadingProgress());
+                    movieDetailsView.loadEpisodesForSeason(seasonToLoad, loadEpisodesForSeason.canShowLoadingProgress());
                 }
             } else if (event instanceof CheckForDownloadableEpisodes) {
                 fetchDownloadableEpisodes();

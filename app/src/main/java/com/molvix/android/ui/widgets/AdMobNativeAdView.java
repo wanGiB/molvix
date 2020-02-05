@@ -36,7 +36,7 @@ public class AdMobNativeAdView extends FrameLayout {
         init(context);
     }
 
-    void init(Context context) {
+    private void init(Context context) {
         removeAllViews();
         View adView = inflate(context, R.layout.admob_native_ad_view, null);
         addView(adView, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));

@@ -269,6 +269,11 @@ public class MovieDetailsView extends FrameLayout {
             seasonView.bindSeason(season);
             seasonsContainer.addView(seasonView, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         }
+        if (AppConstants.unifiedNativeAdAtomicReference.get() != null) {
+            AdMobNativeAdView adMobNativeAdView = new AdMobNativeAdView(getContext());
+            seasonsContainer.addView(adMobNativeAdView, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+            adMobNativeAdView.loadInAd(AppConstants.unifiedNativeAdAtomicReference.get());
+        }
     }
 
     private void initBackButton() {
