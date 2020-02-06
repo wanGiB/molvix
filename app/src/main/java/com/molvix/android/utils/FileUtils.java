@@ -59,7 +59,7 @@ public class FileUtils {
         return filePath;
     }
 
-    public static File getDataFilePath(String dataFile) {
+    public static File getDataFilePath(String fileName) {
         File filePath;
         File dir;
         if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())) {
@@ -75,7 +75,7 @@ public class FileUtils {
                 dir.mkdirs();
             }
         }
-        filePath = new File(dir, dataFile);
+        filePath = new File(dir, fileName);
         return filePath;
     }
 

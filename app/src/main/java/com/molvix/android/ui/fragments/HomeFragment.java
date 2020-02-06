@@ -314,7 +314,7 @@ public class HomeFragment extends BaseFragment {
                             if (StringUtils.isEmpty(movieArtUrl)) {
                                 movieObject.put(AppConstants.MOVIE_ART_URL, "");
                             } else {
-                                if (!movieArtUrl.contains("02tv")) {
+                                if (!movieArtUrl.contains("o2tvseries")) {
                                     movieObject.put(AppConstants.MOVIE_ART_URL, movieArtUrl);
                                 }
                             }
@@ -336,7 +336,7 @@ public class HomeFragment extends BaseFragment {
         FileWriter fileWriter = null;
         BufferedWriter bufferedWriter = null;
         try {
-            fileWriter = new FileWriter(dataFile);
+            fileWriter = new FileWriter(dataFile.getPath());
             bufferedWriter = new BufferedWriter(fileWriter);
             bufferedWriter.write(presetsString);
             MolvixLogger.d(ContentManager.class.getSimpleName(), "Presets Written to File Successfully!!!");
