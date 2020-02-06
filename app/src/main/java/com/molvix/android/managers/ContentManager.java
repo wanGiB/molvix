@@ -86,6 +86,7 @@ public class ContentManager {
     }
 
     private static void offloadPresets(String responseBodyString) {
+        MolvixLogger.d(ContentManager.class.getSimpleName(),"Offloading Fetched Presets");
         try {
             JSONObject presetsObject = new JSONObject(responseBodyString);
             if (presetsObject.length() > 0) {
