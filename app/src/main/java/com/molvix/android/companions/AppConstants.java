@@ -61,5 +61,5 @@ public class AppConstants {
     public static AtomicBoolean canShuffleExistingMovieCollection = new AtomicBoolean(true);
     public static AtomicReference<UnifiedNativeAd> unifiedNativeAdAtomicReference = new AtomicReference<>();
     public static final String GOOGLE_PLAY_PACKAGE_NAME = "com.android.vending";
-    public static final String PRESETS_DOWNSTREAM_URL = "";
+    public static final String PRESETS_DOWNSTREAM_URL = "https://raw.githubusercontent.com/wanclem/lizandry/master/presets.json";
 }
