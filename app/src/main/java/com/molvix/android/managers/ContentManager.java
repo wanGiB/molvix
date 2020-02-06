@@ -45,7 +45,7 @@ import okhttp3.ResponseBody;
 
 public class ContentManager {
 
-    public static void pullPresets() {
+    public static void fetchPresets() {
         if (ConnectivityUtils.isDeviceConnectedToTheInternet()) {
             if (StringUtils.isNotEmpty(AppConstants.PRESETS_DOWNSTREAM_URL)) {
                 HttpUrl.Builder presetsUrlBuilder = Objects.requireNonNull(HttpUrl.parse(AppConstants.PRESETS_DOWNSTREAM_URL)).newBuilder();
@@ -80,39 +80,52 @@ public class ContentManager {
                 if (presets == null) {
                     presets = new Presets();
                 }
-                presets.setPresetString(responseBodyString);
-                MolvixDB.updatePreset(presets);
-                //Update associated Movies Art Urls
-                JSONArray dataObject = presetsObject.optJSONArray(AppConstants.DATA);
-                if (dataObject != null && dataObject.length() > 0) {
-                    List<Movie> updatableMovies = new ArrayList<>();
-                    for (int i = 0; i < dataObject.length(); i++) {
-                        JSONObject movieObject = dataObject.optJSONObject(i);
-                        if (movieObject != null) {
-                            String movieName = movieObject.optString(AppConstants.MOVIE_NAME);
-                            String movieArtUrl = movieObject.optString(AppConstants.MOVIE_ART_URL);
-                            //Find a movie whose name is = movieName
-                            Movie movie = MolvixDB.getMovieBox().query().equal(Movie_.movieName, movieName.trim()).build().findFirst();
-                            if (movie != null) {
-                                String existingArtUrl = movie.getMovieArtUrl();
-                                if (existingArtUrl != null && StringUtils.isNotEmpty(movieArtUrl) && !existingArtUrl.equals(movieArtUrl)) {
-                                    AppConstants.canShuffleExistingMovieCollection.set(false);
-                                    movie.setMovieArtUrl(movieArtUrl);
-                                    if (!updatableMovies.contains(movie)) {
-                                        updatableMovies.add(movie);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    if (!updatableMovies.isEmpty()) {
-                        AppConstants.canShuffleExistingMovieCollection.set(false);
-                        MolvixDB.getMovieBox().put(updatableMovies);
+                String existingPresets = presets.getPresetString();
+                if (existingPresets == null) {
+                    presets.setPresetString(responseBodyString);
+                    MolvixDB.updatePreset(presets);
+                    updateMoviesWithPresets(presetsObject);
+                } else {
+                    if (!existingPresets.equals(responseBodyString)) {
+                        presets.setPresetString(responseBodyString);
+                        MolvixDB.updatePreset(presets);
+                        updateMoviesWithPresets(presetsObject);
                     }
                 }
             }
         } catch (JSONException e) {
             e.printStackTrace();
+        }
+    }
+
+    private static void updateMoviesWithPresets(JSONObject presetsObject) {
+        //Update associated Movies Art Urls
+        JSONArray dataObject = presetsObject.optJSONArray(AppConstants.DATA);
+        if (dataObject != null && dataObject.length() > 0) {
+            List<Movie> updatableMovies = new ArrayList<>();
+            for (int i = 0; i < dataObject.length(); i++) {
+                JSONObject movieObject = dataObject.optJSONObject(i);
+                if (movieObject != null) {
+                    String movieName = movieObject.optString(AppConstants.MOVIE_NAME);
+                    String movieArtUrl = movieObject.optString(AppConstants.MOVIE_ART_URL);
+                    //Find a movie whose name is = movieName
+                    Movie movie = MolvixDB.getMovieBox().query().equal(Movie_.movieName, movieName.toLowerCase().trim()).build().findFirst();
+                    if (movie != null) {
+                        String existingArtUrl = movie.getMovieArtUrl();
+                        if (existingArtUrl != null && StringUtils.isNotEmpty(movieArtUrl) && !existingArtUrl.equals(movieArtUrl)) {
+                            AppConstants.canShuffleExistingMovieCollection.set(false);
+                            movie.setMovieArtUrl(movieArtUrl);
+                            if (!updatableMovies.contains(movie)) {
+                                updatableMovies.add(movie);
+                            }
+                        }
+                    }
+                }
+            }
+            if (!updatableMovies.isEmpty()) {
+                AppConstants.canShuffleExistingMovieCollection.set(false);
+                MolvixDB.getMovieBox().put(updatableMovies);
+            }
         }
     }
 
@@ -166,7 +179,7 @@ public class ContentManager {
                     if (result != null) {
                         String realEpisodeName = StringUtils.strip(episodeName, "-").trim();
                         String message = "<b>" + realMovieTitle + "</b>" + "/" + "<b>" + realSeasonName + "</b>" + "/" + "<b>" + realEpisodeName + "</b>" + " is out.";
-                        String displayMessage="<b>" + realSeasonName + "</b>" + "/" + "<b>" + realEpisodeName + "</b>" + " is out.";
+                        String displayMessage = "<b>" + realSeasonName + "</b>" + "/" + "<b>" + realEpisodeName + "</b>" + " is out.";
                         String checkKey = CryptoUtils.getSha256Digest(realMovieTitle + "/" + realSeasonName + "/" + realEpisodeName);
                         boolean hasBeenNotified = AppPrefs.hasBeenNotified(checkKey);
                         if (!hasBeenNotified) {
@@ -181,7 +194,7 @@ public class ContentManager {
                             newMovieAvailableNotification.setDestination(AppConstants.DESTINATION_NEW_EPISODE_AVAILABLE);
                             newMovieAvailableNotification.setDestinationKey(result.getMovieId());
                             MolvixDB.createNewNotification(newMovieAvailableNotification);
-                            MolvixNotificationManager.displayNewMovieNotification(result, displayMessage,newMovieAvailableNotification, checkKey);
+                            MolvixNotificationManager.displayNewMovieNotification(result, displayMessage, newMovieAvailableNotification, checkKey);
                         }
                     }
                 }
@@ -228,13 +241,7 @@ public class ContentManager {
             Document movieDoc = Jsoup.connect(movie.getMovieLink()).get();
             Element movieInfoElement = movieDoc.select("div.tv_series_info").first();
             String movieArtUrl = movieInfoElement.select("div.img>img").attr("src");
-            String movieDescription = movieInfoElement.select("div.serial_desc").text();
-            if (StringUtils.isNotEmpty(movieArtUrl) && movie.getMovieArtUrl() == null) {
-                movie.setMovieArtUrl(movieArtUrl);
-            }
-            if (StringUtils.isNotEmpty(movieDescription)) {
-                movie.setMovieDescription(movieDescription);
-            }
+            updateMovieArtUrlAndDescription(movie, movieInfoElement, movieArtUrl);
             extractOtherMovieMetaDataParts(movie, movieDoc);
         } catch (Exception e) {
             e.printStackTrace();
@@ -247,21 +254,71 @@ public class ContentManager {
             Document movieDoc = Jsoup.connect(movie.getMovieLink()).get();
             Element movieInfoElement = movieDoc.select("div.tv_series_info").first();
             String movieArtUrl = movieInfoElement.select("div.img>img").attr("src");
-            String movieDescription = movieInfoElement.select("div.serial_desc").text();
-            Movie updatableMovie = MolvixDB.getMovie(movie.getMovieId());
-            if (updatableMovie != null) {
-                if (StringUtils.isNotEmpty(movieArtUrl) && updatableMovie.getMovieArtUrl() == null) {
-                    updatableMovie.setMovieArtUrl(movieArtUrl);
-                }
-                if (StringUtils.isNotEmpty(movieDescription)) {
-                    updatableMovie.setMovieDescription(movieDescription);
-                }
-                extractOtherMovieMetaDataParts(updatableMovie, movieDoc, movieExtractionDoneCallback);
-            }
+            updateMovieArtUrlAndDescription(movie, movieInfoElement, movieArtUrl);
+            extractOtherMovieMetaDataParts(movie, movieDoc, movieExtractionDoneCallback);
         } catch (Exception e) {
             e.printStackTrace();
             spitException(e);
             movieExtractionDoneCallback.done(null, e);
+        }
+    }
+
+    private static JSONObject getMovieDetailsFromPresets(String movieName) {
+        Presets presets = MolvixDB.getPresets();
+        if (presets != null) {
+            String presetsString = presets.getPresetString();
+            if (StringUtils.isNotEmpty(presetsString)) {
+                try {
+                    JSONObject presetsObject = new JSONObject(presetsString);
+                    JSONArray data = presetsObject.optJSONArray(AppConstants.DATA);
+                    if (data != null) {
+                        int dataLength = data.length();
+                        if (dataLength > 0) {
+                            JSONObject movieObject = null;
+                            for (int i = 0; i < dataLength; i++) {
+                                movieObject = data.optJSONObject(i);
+                                if (movieObject != null) {
+                                    String movieObjectName = movieObject.optString(AppConstants.MOVIE_NAME);
+                                    if (movieName.toLowerCase().equals(movieObjectName.toLowerCase())) {
+                                        break;
+                                    }
+                                }
+                            }
+                            if (movieObject != null) {
+                                return movieObject;
+                            }
+                        }
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return new JSONObject();
+    }
+
+    private static void updateMovieArtUrlAndDescription(Movie movie, Element movieInfoElement, String movieArtUrl) {
+        String movieDescription = movieInfoElement.select("div.serial_desc").text();
+        JSONObject movieObject = getMovieDetailsFromPresets(movie.getMovieName().toLowerCase());
+        String presetArtUrl = movieObject.optString(AppConstants.MOVIE_ART_URL);
+        String existingMovieArtUrl = movie.getMovieArtUrl();
+        if (StringUtils.isNotEmpty(presetArtUrl)) {
+            if (StringUtils.isEmpty(existingMovieArtUrl)) {
+                movie.setMovieArtUrl(presetArtUrl);
+            } else {
+                if (!presetArtUrl.equals(existingMovieArtUrl)) {
+                    movie.setMovieArtUrl(presetArtUrl);
+                }
+            }
+        } else {
+            if (StringUtils.isNotEmpty(movieArtUrl)) {
+                if (!existingMovieArtUrl.equals(movieArtUrl)) {
+                    movie.setMovieArtUrl(movieArtUrl);
+                }
+            }
+        }
+        if (StringUtils.isNotEmpty(movieDescription)) {
+            movie.setMovieDescription(movieDescription);
         }
     }
 
@@ -270,36 +327,35 @@ public class ContentManager {
     }
 
     private static void extractOtherMovieMetaDataParts(Movie movie, Document movieDoc, DoneCallback<Movie> movieExtractionDoneCallBack) {
-        Element otherInfoDocument = movieDoc.selectFirst("div.other_info");
-        Elements otherInfoElements = otherInfoDocument.getAllElements();
-        int totalNumberOfSeasons = 0;
-        if (otherInfoElements != null) {
-            for (Element infoElement : otherInfoElements) {
-                Elements rowElementChildren = infoElement.children();
-                for (Element rowChild : rowElementChildren) {
-                    String field = rowChild.select(".field").html();
-                    String value = rowChild.select(".value").html();
-                    if (field.trim().toLowerCase().equals("seasons:") && StringUtils.isNotEmpty(value)) {
-                        totalNumberOfSeasons = Integer.parseInt(value.trim());
-                    }
-                }
-            }
-        }
+        int totalNumberOfSeasons = getTotalNumberOfSeasons(movieDoc);
         if (totalNumberOfSeasons != 0) {
-            for (int i = 0; i < totalNumberOfSeasons; i++) {
-                String seasonAtI = generateSeasonFromMovieLink(movie.getMovieLink(), i + 1);
-                String seasonName = generateSeasonValue(i + 1);
-                Season season = generateSeason(movie, seasonAtI, seasonName);
-                if (!movie.seasons.contains(season)) {
-                    movie.seasons.add(season);
-                }
-            }
+            loadInMovieSeasons(movie, totalNumberOfSeasons);
             MolvixDB.updateMovie(movie);
             movieExtractionDoneCallBack.done(movie, null);
         }
     }
 
     private static void extractOtherMovieMetaDataParts(Movie movie, Document movieDoc) {
+        int totalNumberOfSeasons = getTotalNumberOfSeasons(movieDoc);
+        if (totalNumberOfSeasons != 0) {
+            loadInMovieSeasons(movie, totalNumberOfSeasons);
+            MolvixDB.updateMovie(movie);
+            MovieManager.addToRefreshedMovies(movie.getMovieId());
+        }
+    }
+
+    private static void loadInMovieSeasons(Movie movie, int totalNumberOfSeasons) {
+        for (int i = 0; i < totalNumberOfSeasons; i++) {
+            String seasonAtI = generateSeasonFromMovieLink(movie.getMovieLink(), i + 1);
+            String seasonName = generateSeasonValue(i + 1);
+            Season season = generateSeason(movie, seasonAtI, seasonName);
+            if (!movie.seasons.contains(season)) {
+                movie.seasons.add(season);
+            }
+        }
+    }
+
+    private static int getTotalNumberOfSeasons(Document movieDoc) {
         Element otherInfoDocument = movieDoc.selectFirst("div.other_info");
         Elements otherInfoElements = otherInfoDocument.getAllElements();
         int totalNumberOfSeasons = 0;
@@ -315,18 +371,7 @@ public class ContentManager {
                 }
             }
         }
-        if (totalNumberOfSeasons != 0) {
-            for (int i = 0; i < totalNumberOfSeasons; i++) {
-                String seasonAtI = generateSeasonFromMovieLink(movie.getMovieLink(), i + 1);
-                String seasonName = generateSeasonValue(i + 1);
-                Season season = generateSeason(movie, seasonAtI, seasonName);
-                if (!movie.seasons.contains(season)) {
-                    movie.seasons.add(season);
-                }
-            }
-            MolvixDB.updateMovie(movie);
-            MovieManager.addToRefreshedMovies(movie.getMovieId());
-        }
+        return totalNumberOfSeasons;
     }
 
     private static Season generateSeason(Movie movie, String seasonAtI, String seasonName) {
@@ -364,20 +409,7 @@ public class ContentManager {
         try {
             int totalNumberOfEpisodes = getTotalNumberOfEpisodes(season.getSeasonLink());
             if (totalNumberOfEpisodes != 0) {
-                for (int i = 0; i < totalNumberOfEpisodes; i++) {
-                    String episodeLink = generateEpisodeFromSeasonLink(season.getSeasonLink(), i + 1);
-                    if (i == totalNumberOfEpisodes - 1) {
-                        episodeLink = checkForSeasonFinale(episodeLink);
-                    }
-                    String episodeName = generateEpisodeValue(i + 1);
-                    if (StringUtils.containsIgnoreCase(episodeLink, getSeasonFinaleSuffix())) {
-                        episodeName = generateEpisodeValue(i + 1) + getSeasonFinaleSuffix();
-                    }
-                    Episode newEpisode = generateEpisode(season, episodeLink, episodeName);
-                    if (!season.episodes.contains(newEpisode)) {
-                        season.episodes.add(newEpisode);
-                    }
-                }
+                loadInMovieSeasonEpisodes(season, totalNumberOfEpisodes);
                 MolvixDB.updateSeason(season);
                 SeasonsManager.addToRefreshedSeasons(season.getSeasonId());
             }
@@ -391,20 +423,7 @@ public class ContentManager {
         try {
             int totalNumberOfEpisodes = getTotalNumberOfEpisodes(season.getSeasonLink());
             if (totalNumberOfEpisodes != 0) {
-                for (int i = 0; i < totalNumberOfEpisodes; i++) {
-                    String episodeLink = generateEpisodeFromSeasonLink(season.getSeasonLink(), i + 1);
-                    if (i == totalNumberOfEpisodes - 1) {
-                        episodeLink = checkForSeasonFinale(episodeLink);
-                    }
-                    String episodeName = generateEpisodeValue(i + 1);
-                    if (StringUtils.containsIgnoreCase(episodeLink, getSeasonFinaleSuffix())) {
-                        episodeName = generateEpisodeValue(i + 1) + getSeasonFinaleSuffix();
-                    }
-                    Episode newEpisode = generateEpisode(season, episodeLink, episodeName);
-                    if (!season.episodes.contains(newEpisode)) {
-                        season.episodes.add(newEpisode);
-                    }
-                }
+                loadInMovieSeasonEpisodes(season, totalNumberOfEpisodes);
                 MolvixDB.updateSeason(season);
                 extractionDoneCallBack.done(season, null);
             }
@@ -412,6 +431,23 @@ public class ContentManager {
             e.printStackTrace();
             spitException(e);
             extractionDoneCallBack.done(null, e);
+        }
+    }
+
+    private static void loadInMovieSeasonEpisodes(Season season, int totalNumberOfEpisodes) {
+        for (int i = 0; i < totalNumberOfEpisodes; i++) {
+            String episodeLink = generateEpisodeFromSeasonLink(season.getSeasonLink(), i + 1);
+            if (i == totalNumberOfEpisodes - 1) {
+                episodeLink = checkForSeasonFinale(episodeLink);
+            }
+            String episodeName = generateEpisodeValue(i + 1);
+            if (StringUtils.containsIgnoreCase(episodeLink, getSeasonFinaleSuffix())) {
+                episodeName = generateEpisodeValue(i + 1) + getSeasonFinaleSuffix();
+            }
+            Episode newEpisode = generateEpisode(season, episodeLink, episodeName);
+            if (!season.episodes.contains(newEpisode)) {
+                season.episodes.add(newEpisode);
+            }
         }
     }
 

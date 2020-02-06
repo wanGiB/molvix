@@ -9,6 +9,7 @@ import androidx.multidex.MultiDexApplication;
 import com.google.android.gms.ads.MobileAds;
 import com.molvix.android.R;
 import com.molvix.android.database.ObjectBox;
+import com.molvix.android.managers.ContentManager;
 
 public class ApplicationLoader extends MultiDexApplication {
 
@@ -22,6 +23,11 @@ public class ApplicationLoader extends MultiDexApplication {
         initContext();
         initDataBase();
         initAdMob();
+        initPresets();
+    }
+
+    private void initPresets() {
+        ContentManager.fetchPresets();
     }
 
     private void initDataBase() {

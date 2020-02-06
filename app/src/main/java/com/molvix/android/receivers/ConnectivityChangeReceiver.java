@@ -36,6 +36,7 @@ public class ConnectivityChangeReceiver extends BroadcastReceiver {
             checkAndResumePausedDownloads();
             EventBus.getDefault().post(new ConnectivityChangedEvent());
             fetchNotifications();
+            ContentManager.fetchPresets();
         }
     }
 

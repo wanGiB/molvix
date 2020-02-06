@@ -57,6 +57,7 @@ public class AppConstants {
     public static final String MOVIE_NAME = "movie_name";
     public static final String MOVIE_ART_URL = "movie_art_url";
     public static final String FORCED_VERSION_CODE_UPDATE = "forced_version_code_update";
+    public static final String FORCED_VERSION_NAME_UPDATE = "forced_version_name_update";
     public static AtomicBoolean canShuffleExistingMovieCollection = new AtomicBoolean(true);
     public static AtomicReference<UnifiedNativeAd> unifiedNativeAdAtomicReference = new AtomicReference<>();
     public static final String GOOGLE_PLAY_PACKAGE_NAME = "com.android.vending";

@@ -301,13 +301,15 @@ public class HomeFragment extends BaseFragment {
                     } else {
                         versionCode = packageInfo.versionCode;
                     }
+                    String versionName = packageInfo.versionName;
                     JSONObject presetsObject = new JSONObject();
                     JSONArray data = new JSONArray();
                     presetsObject.put(AppConstants.FORCED_VERSION_CODE_UPDATE, versionCode);
+                    presetsObject.put(AppConstants.FORCED_VERSION_NAME_UPDATE,versionName);
                     for (Movie movie : movies) {
                         if (!movie.isAd()) {
                             JSONObject movieObject = new JSONObject();
-                            movieObject.put(AppConstants.MOVIE_NAME, movie.getMovieName());
+                            movieObject.put(AppConstants.MOVIE_NAME, movie.getMovieName().toLowerCase());
                             String movieArtUrl = movie.getMovieArtUrl();
                             if (movieArtUrl == null) {
                                 movieObject.put(AppConstants.MOVIE_ART_URL, "");

@@ -447,7 +447,7 @@ public class MainActivity extends BaseActivity {
     protected void onPostCreate(@Nullable Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
         subscribeToPresetsChanges();
-        ContentManager.pullPresets();
+        ContentManager.fetchPresets();
     }
 
     private void subscribeToPresetsChanges() {
@@ -464,7 +464,8 @@ public class MainActivity extends BaseActivity {
                                 try {
                                     JSONObject presetJSONObject = new JSONObject(presetString);
                                     long forcedVersionCodeUpdate = presetJSONObject.optLong(AppConstants.FORCED_VERSION_CODE_UPDATE);
-                                    checkForAppUpdate(forcedVersionCodeUpdate);
+                                    String forcedVersionNameUpdate = presetJSONObject.optString(AppConstants.FORCED_VERSION_NAME_UPDATE);
+                                    checkForAppUpdate(forcedVersionCodeUpdate, forcedVersionNameUpdate);
                                 } catch (JSONException e) {
                                     e.printStackTrace();
                                 }
@@ -474,7 +475,7 @@ public class MainActivity extends BaseActivity {
                 });
     }
 
-    private void checkForAppUpdate(long forcedVersionCodeUpdate) {
+    private void checkForAppUpdate(long forcedVersionCodeUpdate, String forcedVersionNameUpdate) {
         try {
             PackageManager packageManager = ApplicationLoader.getInstance().getPackageManager();
             if (packageManager != null) {
@@ -493,7 +494,7 @@ public class MainActivity extends BaseActivity {
                         tintToolbarAndTabLayout(ContextCompat.getColor(this, R.color.colorPrimaryDarkTheme));
                         NewUpdateAvailableView newUpdateAvailableView = new NewUpdateAvailableView(this);
                         rootContainer.addView(newUpdateAvailableView, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
-                        newUpdateAvailableView.displayNewUpdate(String.valueOf(versionCode));
+                        newUpdateAvailableView.displayNewUpdate(forcedVersionNameUpdate);
                     }
                 }
             }
