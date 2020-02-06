@@ -3,10 +3,11 @@ package com.molvix.android.managers;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
-import android.text.format.DateUtils;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
+import android.text.format.DateUtils;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.DataSource;
@@ -27,6 +28,7 @@ import com.molvix.android.models.Notification;
 import com.molvix.android.models.Season;
 import com.molvix.android.preferences.AppPrefs;
 import com.molvix.android.utils.CryptoUtils;
+import com.molvix.android.utils.MolvixLogger;
 import com.molvix.android.utils.UiUtils;
 
 import org.apache.commons.lang3.text.WordUtils;
@@ -75,6 +77,7 @@ public class MovieTracker {
                 Collections.shuffle(recommendableMovies, new SecureRandom());
                 Movie firstMovie = recommendableMovies.get(0);
                 if (firstMovie != null) {
+                    MolvixLogger.d(ContentManager.class.getSimpleName(), "Found a movie to recommend");
                     String movieArtUrl = firstMovie.getMovieArtUrl();
                     List<Season> movieSeasons = firstMovie.getSeasons();
                     if (movieArtUrl == null || movieSeasons == null || movieSeasons.isEmpty()) {

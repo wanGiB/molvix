@@ -160,21 +160,6 @@ public class Load {
         return this;
     }
 
-    @SuppressLint("ResourceType")
-    public Load color(@ColorRes int color) {
-        if (color <= 0) {
-            throw new IllegalArgumentException("Resource ID Should Not Be Less Than Or Equal To Zero!");
-        }
-
-        Context context = MolvixNotification.mSingleton.mContext;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            this.builder.setColor(context.getColor(color));
-        } else {
-            this.builder.setColor(context.getResources().getColor(color));
-        }
-        return this;
-    }
-
     public Custom custom() {
         notificationShallContainAtLeastThoseSmallIconValid();
         return new Custom(builder, notificationId, title, message, messageSpanned, smallIcon, tag);
@@ -196,7 +181,6 @@ public class Load {
                 ());
         return this;
     }
-
 
     public Load dismiss(@NonNull PendingIntentNotification pendingIntentNotification) {
         this.builder.setDeleteIntent(pendingIntentNotification.onSettingPendingIntent());
@@ -301,12 +285,9 @@ public class Load {
     }
 
     public Load message(@NonNull String message) {
-
         if (message.trim().length() == 0) {
             throw new IllegalArgumentException("Message Must Not Be Empty!");
-
         }
-
         this.message = message;
         this.builder.setContentText(message);
         return this;

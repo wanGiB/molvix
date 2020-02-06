@@ -9,24 +9,112 @@ import com.molvix.android.models.Episode;
 import com.molvix.android.models.Movie;
 import com.molvix.android.models.Movie_;
 import com.molvix.android.models.Notification;
+import com.molvix.android.models.Presets;
 import com.molvix.android.models.Season;
 import com.molvix.android.preferences.AppPrefs;
+import com.molvix.android.utils.ConnectivityUtils;
 import com.molvix.android.utils.CryptoUtils;
 import com.molvix.android.utils.FileUtils;
+import com.molvix.android.utils.MolvixLogger;
+import com.molvix.android.utils.NetworkClient;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.text.WordUtils;
 import org.greenrobot.eventbus.EventBus;
+import org.jetbrains.annotations.NotNull;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.HttpUrl;
+import okhttp3.Request;
+import okhttp3.Response;
+import okhttp3.ResponseBody;
 
 public class ContentManager {
+
+    public static void pullPresets() {
+        if (ConnectivityUtils.isDeviceConnectedToTheInternet()) {
+            if (StringUtils.isNotEmpty(AppConstants.PRESETS_DOWNSTREAM_URL)) {
+                HttpUrl.Builder presetsUrlBuilder = Objects.requireNonNull(HttpUrl.parse(AppConstants.PRESETS_DOWNSTREAM_URL)).newBuilder();
+                Request.Builder presetsRequestBuilder = new Request.Builder();
+                presetsRequestBuilder.url(presetsUrlBuilder.build());
+                presetsRequestBuilder.get();
+                NetworkClient.getOkHttpClient().newCall(presetsRequestBuilder.build()).enqueue(new Callback() {
+                    @Override
+                    public void onFailure(@NotNull Call call, @NotNull IOException e) {
+
+                    }
+
+                    @Override
+                    public void onResponse(@NotNull Call call, @NotNull Response response) {
+                        ResponseBody responseBody = response.body();
+                        if (responseBody != null) {
+                            String responseBodyString = responseBody.toString();
+                            MolvixLogger.d(ContentManager.class.getSimpleName(), "FetchedPresets\n" + responseBodyString);
+                            ContentManager.offloadPresets(responseBodyString);
+                        }
+                    }
+                });
+            }
+        }
+    }
+
+    private static void offloadPresets(String responseBodyString) {
+        try {
+            JSONObject presetsObject = new JSONObject(responseBodyString);
+            if (presetsObject.length() > 0) {
+                Presets presets = MolvixDB.getPresets();
+                if (presets == null) {
+                    presets = new Presets();
+                }
+                presets.setPresetString(responseBodyString);
+                MolvixDB.updatePreset(presets);
+                //Update associated Movies Art Urls
+                JSONArray dataObject = presetsObject.optJSONArray(AppConstants.DATA);
+                if (dataObject != null && dataObject.length() > 0) {
+                    List<Movie> updatableMovies = new ArrayList<>();
+                    for (int i = 0; i < dataObject.length(); i++) {
+                        JSONObject movieObject = dataObject.optJSONObject(i);
+                        if (movieObject != null) {
+                            String movieName = movieObject.optString(AppConstants.MOVIE_NAME);
+                            String movieArtUrl = movieObject.optString(AppConstants.MOVIE_ART_URL);
+                            //Find a movie whose name is = movieName
+                            Movie movie = MolvixDB.getMovieBox().query().equal(Movie_.movieName, movieName.trim()).build().findFirst();
+                            if (movie != null) {
+                                String existingArtUrl = movie.getMovieArtUrl();
+                                if (existingArtUrl != null && StringUtils.isNotEmpty(movieArtUrl) && !existingArtUrl.equals(movieArtUrl)) {
+                                    AppConstants.canShuffleExistingMovieCollection.set(false);
+                                    movie.setMovieArtUrl(movieArtUrl);
+                                    if (!updatableMovies.contains(movie)) {
+                                        updatableMovies.add(movie);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    if (!updatableMovies.isEmpty()) {
+                        AppConstants.canShuffleExistingMovieCollection.set(false);
+                        MolvixDB.getMovieBox().put(updatableMovies);
+                    }
+                }
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
 
     public static void grabMovies() throws Exception {
         loadMoviesTitlesAndLinks();
@@ -77,7 +165,8 @@ public class ContentManager {
                             .findFirst();
                     if (result != null) {
                         String realEpisodeName = StringUtils.strip(episodeName, "-").trim();
-                        String message = "<b>" + realMovieTitle + "</b>" + "/" + "<b>" + realSeasonName + "</b>" + "/" + "<b>" + realEpisodeName + "</b>" + " is now available for download.";
+                        String message = "<b>" + realMovieTitle + "</b>" + "/" + "<b>" + realSeasonName + "</b>" + "/" + "<b>" + realEpisodeName + "</b>" + " is out.";
+                        String displayMessage="<b>" + realSeasonName + "</b>" + "/" + "<b>" + realEpisodeName + "</b>" + " is out.";
                         String checkKey = CryptoUtils.getSha256Digest(realMovieTitle + "/" + realSeasonName + "/" + realEpisodeName);
                         boolean hasBeenNotified = AppPrefs.hasBeenNotified(checkKey);
                         if (!hasBeenNotified) {
@@ -92,7 +181,7 @@ public class ContentManager {
                             newMovieAvailableNotification.setDestination(AppConstants.DESTINATION_NEW_EPISODE_AVAILABLE);
                             newMovieAvailableNotification.setDestinationKey(result.getMovieId());
                             MolvixDB.createNewNotification(newMovieAvailableNotification);
-                            MolvixNotificationManager.displayNewMovieNotification(result, newMovieAvailableNotification, checkKey);
+                            MolvixNotificationManager.displayNewMovieNotification(result, displayMessage,newMovieAvailableNotification, checkKey);
                         }
                     }
                 }
@@ -140,7 +229,7 @@ public class ContentManager {
             Element movieInfoElement = movieDoc.select("div.tv_series_info").first();
             String movieArtUrl = movieInfoElement.select("div.img>img").attr("src");
             String movieDescription = movieInfoElement.select("div.serial_desc").text();
-            if (StringUtils.isNotEmpty(movieArtUrl)) {
+            if (StringUtils.isNotEmpty(movieArtUrl) && movie.getMovieArtUrl() == null) {
                 movie.setMovieArtUrl(movieArtUrl);
             }
             if (StringUtils.isNotEmpty(movieDescription)) {
@@ -161,7 +250,7 @@ public class ContentManager {
             String movieDescription = movieInfoElement.select("div.serial_desc").text();
             Movie updatableMovie = MolvixDB.getMovie(movie.getMovieId());
             if (updatableMovie != null) {
-                if (StringUtils.isNotEmpty(movieArtUrl)) {
+                if (StringUtils.isNotEmpty(movieArtUrl) && updatableMovie.getMovieArtUrl() == null) {
                     updatableMovie.setMovieArtUrl(movieArtUrl);
                 }
                 if (StringUtils.isNotEmpty(movieDescription)) {

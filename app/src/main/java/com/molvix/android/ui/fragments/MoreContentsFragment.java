@@ -1,13 +1,8 @@
 package com.molvix.android.ui.fragments;
 
-import android.content.ContextWrapper;
-import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.icu.util.VersionInfo;
-import android.os.Build;
 import android.os.Bundle;
-import android.provider.Settings;
 
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;

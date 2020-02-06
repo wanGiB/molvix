@@ -12,6 +12,7 @@ import com.molvix.android.models.Movie;
 import com.molvix.android.models.Movie_;
 import com.molvix.android.models.Notification;
 import com.molvix.android.models.Notification_;
+import com.molvix.android.models.Presets;
 import com.molvix.android.models.Season;
 import com.molvix.android.models.Season_;
 import com.molvix.android.preferences.AppPrefs;
@@ -26,6 +27,10 @@ public class MolvixDB {
 
     public static Box<DownloadableEpisode> getDownloadableEpisodeBox() {
         return ObjectBox.get().boxFor(DownloadableEpisode.class);
+    }
+
+    public static Box<Presets> getPresetsBox() {
+        return ObjectBox.get().boxFor(Presets.class);
     }
 
     private static Box<Episode> getEpisodeBox() {
@@ -46,6 +51,13 @@ public class MolvixDB {
 
     public static Movie getMovie(String movieId) {
         return getMovieBox().query().equal(Movie_.movieId, movieId).build().findFirst();
+    }
+
+    public static Presets getPresets() {
+        return getPresetsBox().query().build().findFirst();
+    }
+    public static void updatePreset(Presets presets){
+        getPresetsBox().put(presets);
     }
 
     public static Season getSeason(String seasonId) {

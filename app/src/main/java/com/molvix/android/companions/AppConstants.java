@@ -6,6 +6,7 @@ import com.google.android.gms.ads.formats.UnifiedNativeAd;
 
 import java.text.SimpleDateFormat;
 import java.util.Locale;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class AppConstants {
@@ -52,5 +53,12 @@ public class AppConstants {
     public static final String ESTIMATED_FILE_LENGTH = "EstimatedFileLength_";
     public static final String LAST_AD_LOAD_TIME = "last_ad_load_time";
     public static final String SEASON_EPISODES_REFRESHED = "SeasonEpisodesRefreshed_";
+    public static final String DATA = "data";
+    public static final String MOVIE_NAME = "movie_name";
+    public static final String MOVIE_ART_URL = "movie_art_url";
+    public static final String FORCED_VERSION_CODE_UPDATE = "forced_version_code_update";
+    public static AtomicBoolean canShuffleExistingMovieCollection = new AtomicBoolean(true);
     public static AtomicReference<UnifiedNativeAd> unifiedNativeAdAtomicReference = new AtomicReference<>();
+    public static final String GOOGLE_PLAY_PACKAGE_NAME = "com.android.vending";
+    public static final String PRESETS_DOWNSTREAM_URL = "";
 }

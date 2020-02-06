@@ -31,6 +31,9 @@ public class FileUtils {
         } else {
             ContextWrapper cw = new ContextWrapper(ApplicationLoader.getInstance());
             dir = cw.getDir(MOLVIX_VIDEOS_FOLDER, Context.MODE_PRIVATE);
+            if (!dir.exists()) {
+                dir.mkdirs();
+            }
         }
         filePath = dir;
         return filePath;
@@ -48,8 +51,31 @@ public class FileUtils {
         } else {
             ContextWrapper cw = new ContextWrapper(ApplicationLoader.getInstance());
             dir = cw.getDir(MOLVIX_VIDEOS_FOLDER, Context.MODE_PRIVATE);
+            if (!dir.exists()) {
+                dir.mkdirs();
+            }
         }
         filePath = new File(dir, fileName);
+        return filePath;
+    }
+
+    public static File getDataFilePath(String dataFile) {
+        File filePath;
+        File dir;
+        if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())) {
+            String folder = "/" + getRootFolder() + "/Data";
+            dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + folder);
+            if (!dir.exists()) {
+                dir.mkdirs();
+            }
+        } else {
+            ContextWrapper cw = new ContextWrapper(ApplicationLoader.getInstance());
+            dir = cw.getDir("Data", Context.MODE_PRIVATE);
+            if (!dir.exists()) {
+                dir.mkdirs();
+            }
+        }
+        filePath = new File(dir, dataFile);
         return filePath;
     }
 

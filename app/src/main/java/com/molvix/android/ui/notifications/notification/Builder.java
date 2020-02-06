@@ -1,14 +1,12 @@
 package com.molvix.android.ui.notifications.notification;
 
 import android.app.Notification;
-import android.util.Log;
-import android.widget.RemoteViews;
 
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
+@SuppressWarnings("WeakerAccess")
 public abstract class Builder {
-    private static final String TAG = Builder.class.getSimpleName();
     protected String tag;
     protected Notification notification;
     protected NotificationCompat.Builder builder;
@@ -22,14 +20,6 @@ public abstract class Builder {
 
     public void build() {
         notification = builder.build();
-    }
-
-    public void setBigContentView(RemoteViews views) {
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN) {
-            notification.bigContentView = views;
-            return;
-        }
-        Log.w(TAG, "Version does not support big content view");
     }
 
     protected Notification notificationNotify() {

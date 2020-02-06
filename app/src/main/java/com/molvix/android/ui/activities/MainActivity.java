@@ -1,7 +1,10 @@
 package com.molvix.android.ui.activities;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
 import android.graphics.Color;
@@ -15,6 +18,7 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.FrameLayout;
 
+import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.viewpager.widget.ViewPager;
@@ -22,6 +26,7 @@ import androidx.viewpager.widget.ViewPager;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.molvix.android.R;
 import com.molvix.android.companions.AppConstants;
+import com.molvix.android.components.ApplicationLoader;
 import com.molvix.android.database.MolvixDB;
 import com.molvix.android.eventbuses.CheckForDownloadableEpisodes;
 import com.molvix.android.eventbuses.EpisodeDownloadErrorException;
@@ -34,6 +39,7 @@ import com.molvix.android.managers.EpisodesManager;
 import com.molvix.android.managers.FileDownloadManager;
 import com.molvix.android.models.DownloadableEpisode;
 import com.molvix.android.models.Episode;
+import com.molvix.android.models.Presets;
 import com.molvix.android.models.Season;
 import com.molvix.android.preferences.AppPrefs;
 import com.molvix.android.ui.adapters.MainActivityPagerAdapter;
@@ -42,14 +48,18 @@ import com.molvix.android.ui.fragments.MoreContentsFragment;
 import com.molvix.android.ui.fragments.NotificationsFragment;
 import com.molvix.android.ui.widgets.MolvixSearchView;
 import com.molvix.android.ui.widgets.MovieDetailsView;
+import com.molvix.android.ui.widgets.NewUpdateAvailableView;
 import com.molvix.android.utils.FileUtils;
 import com.molvix.android.utils.MolvixLogger;
 import com.molvix.android.utils.UiUtils;
+import com.morsebyte.shailesh.twostagerating.dialog.UriHelper;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.text.WordUtils;
 import org.greenrobot.eventbus.EventBus;
 import org.jetbrains.annotations.NotNull;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -59,6 +69,7 @@ import java.util.Set;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import im.delight.android.webview.AdvancedWebView;
+import io.objectbox.reactive.DataSubscription;
 
 public class MainActivity extends BaseActivity {
 
@@ -74,7 +85,7 @@ public class MainActivity extends BaseActivity {
     @BindView(R.id.container)
     FrameLayout rootContainer;
 
-    private MovieDetailsView movieDetailsView;
+    private DataSubscription presetsSubscription;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -101,6 +112,14 @@ public class MainActivity extends BaseActivity {
     protected void onDestroy() {
         super.onDestroy();
         AdsLoadManager.destroy();
+        unSubscribeFromPresetsChanges();
+    }
+
+    private void unSubscribeFromPresetsChanges() {
+        if (presetsSubscription != null && !presetsSubscription.isCanceled()) {
+            presetsSubscription.cancel();
+            presetsSubscription = null;
+        }
     }
 
     private void cleanUpUnLinkedDownloadKeys() {
@@ -174,6 +193,7 @@ public class MainActivity extends BaseActivity {
             } else if (event instanceof LoadEpisodesForSeason) {
                 LoadEpisodesForSeason loadEpisodesForSeason = (LoadEpisodesForSeason) event;
                 Season seasonToLoad = loadEpisodesForSeason.getSeason();
+                MovieDetailsView movieDetailsView = (MovieDetailsView) rootContainer.getChildAt(rootContainer.getChildCount() - 1);
                 if (seasonToLoad != null && movieDetailsView != null) {
                     movieDetailsView.loadEpisodesForSeason(seasonToLoad, loadEpisodesForSeason.canShowLoadingProgress());
                 }
@@ -359,13 +379,13 @@ public class MainActivity extends BaseActivity {
 
     public void loadMovieDetails(String movieId) {
         UiUtils.dismissKeyboard(searchView);
-        movieDetailsView = new MovieDetailsView(this);
         checkAndRemovePreviousMovieDetailsView();
-        FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
-        addNewMovieDetailsViewAndLoad(movieId, layoutParams);
+        addNewMovieDetailsViewAndLoad(movieId);
     }
 
-    private void addNewMovieDetailsViewAndLoad(String movieId, FrameLayout.LayoutParams layoutParams) {
+    private void addNewMovieDetailsViewAndLoad(String movieId) {
+        FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+        MovieDetailsView movieDetailsView = new MovieDetailsView(this);
         rootContainer.addView(movieDetailsView, layoutParams);
         movieDetailsView.loadMovieDetails(movieId);
     }
@@ -384,13 +404,13 @@ public class MainActivity extends BaseActivity {
 
     @Override
     public void onBackPressed() {
-        if (movieDetailsView != null) {
+        if (rootContainer.getChildAt(rootContainer.getChildCount() - 1) instanceof MovieDetailsView) {
+            MovieDetailsView movieDetailsView = (MovieDetailsView) rootContainer.getChildAt(rootContainer.getChildCount() - 1);
             if (movieDetailsView.isBottomSheetDialogShowing()) {
                 movieDetailsView.closeBottomSheetDialog();
             } else {
                 movieDetailsView.removeEpisodeListener();
                 rootContainer.removeView(movieDetailsView);
-                movieDetailsView = null;
             }
             return;
         }
@@ -421,6 +441,80 @@ public class MainActivity extends BaseActivity {
                 new int[]{ContextCompat.getColor(this, R.color.grey500), Color.BLACK});
         bottomNavView.setItemIconTintList(iconsColorStates);
         bottomNavView.setItemTextColor(textColorStates);
+    }
+
+    @Override
+    protected void onPostCreate(@Nullable Bundle savedInstanceState) {
+        super.onPostCreate(savedInstanceState);
+        subscribeToPresetsChanges();
+        ContentManager.pullPresets();
+    }
+
+    private void subscribeToPresetsChanges() {
+        presetsSubscription = MolvixDB.getPresetsBox()
+                .query()
+                .build()
+                .subscribe()
+                .observer(data -> {
+                    if (!data.isEmpty()) {
+                        Presets firstData = data.get(0);
+                        if (firstData != null) {
+                            String presetString = firstData.getPresetString();
+                            if (presetString != null) {
+                                try {
+                                    JSONObject presetJSONObject = new JSONObject(presetString);
+                                    long forcedVersionCodeUpdate = presetJSONObject.optLong(AppConstants.FORCED_VERSION_CODE_UPDATE);
+                                    checkForAppUpdate(forcedVersionCodeUpdate);
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        }
+                    }
+                });
+    }
+
+    private void checkForAppUpdate(long forcedVersionCodeUpdate) {
+        try {
+            PackageManager packageManager = ApplicationLoader.getInstance().getPackageManager();
+            if (packageManager != null) {
+                PackageInfo packageInfo = packageManager.getPackageInfo(ApplicationLoader.getInstance().getPackageName(), 0);
+                if (packageInfo != null) {
+                    if (rootContainer.getChildAt(rootContainer.getChildCount() - 1) instanceof NewUpdateAvailableView) {
+                        rootContainer.removeViewAt(rootContainer.getChildCount() - 1);
+                    }
+                    long versionCode;
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                        versionCode = packageInfo.getLongVersionCode();
+                    } else {
+                        versionCode = packageInfo.versionCode;
+                    }
+                    if (forcedVersionCodeUpdate > versionCode) {
+                        tintToolbarAndTabLayout(ContextCompat.getColor(this, R.color.colorPrimaryDarkTheme));
+                        NewUpdateAvailableView newUpdateAvailableView = new NewUpdateAvailableView(this);
+                        rootContainer.addView(newUpdateAvailableView, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
+                        newUpdateAvailableView.displayNewUpdate(String.valueOf(versionCode));
+                    }
+                }
+            }
+        } catch (Exception ignored) {
+
+        }
+
+    }
+
+    public static Intent createIntentForGooglePlay(Context context) {
+        String packageName = context.getPackageName();
+        Intent intent = new Intent(Intent.ACTION_VIEW, UriHelper.getGooglePlay(packageName));
+        if (UriHelper.isPackageExists(context, AppConstants.GOOGLE_PLAY_PACKAGE_NAME)) {
+            intent.setPackage(AppConstants.GOOGLE_PLAY_PACKAGE_NAME);
+        }
+        return intent;
+    }
+
+    public void moveToPlayStore() {
+        startActivity(createIntentForGooglePlay(this));
+        finish();
     }
 
 }

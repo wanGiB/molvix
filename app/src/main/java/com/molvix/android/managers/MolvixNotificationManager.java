@@ -92,6 +92,7 @@ class MolvixNotificationManager {
     static void recommendMovieToUser(String movieId, Bitmap bitmap) {
         Movie recommendableMovie = MolvixDB.getMovie(movieId);
         if (recommendableMovie != null) {
+            MolvixLogger.d(ContentManager.class.getSimpleName(), "About to display Notifications for first found recommendable Movie");
             Intent movieDetailsIntent = new Intent(ApplicationLoader.getInstance(), MainActivity.class);
             movieDetailsIntent.putExtra(AppConstants.INVOCATION_TYPE, AppConstants.DISPLAY_MOVIE);
             movieDetailsIntent.putExtra(AppConstants.MOVIE_ID, recommendableMovie.getMovieId());
@@ -100,14 +101,12 @@ class MolvixNotificationManager {
             MolvixNotification.with(ApplicationLoader.getInstance())
                     .load()
                     .notificationChannelId("Molvix Next Rated Movie")
-                    .title("Molvix")
-                    .message("Have you seen the Movie \"" + WordUtils.capitalize(recommendableMovie.getMovieName()) + "\"")
+                    .title("Have you seen this Movie?")
+                    .message(UiUtils.fromHtml("\"<b>" + WordUtils.capitalize(recommendableMovie.getMovieName()) + "</b>\""))
                     .autoCancel(true)
                     .click(movieDetailsPendingIntent)
-                    .bigTextStyle("Have you seen the Movie \"" + WordUtils.capitalize(recommendableMovie.getMovieName()) + "\"", "Recommended For You")
                     .smallIcon(R.drawable.ic_stat_molvix_logo)
                     .largeIcon(R.mipmap.ic_launcher)
-                    .color(android.R.color.background_dark)
                     .custom()
                     .background(bitmap)
                     .setPlaceholder(R.drawable.ic_placeholder)
@@ -118,13 +117,35 @@ class MolvixNotificationManager {
         }
     }
 
-    static void displayNewMovieNotification(Movie updatedMovie, Notification newMovieAvailableNotification, String checkKey) {
+    private static void displayUpdatedMovieNotification(Bitmap movieBitmap, Movie movie, String displayMessage, Notification notification, String checkKey) {
+        Intent movieDetailsIntent = new Intent(ApplicationLoader.getInstance(), MainActivity.class);
+        movieDetailsIntent.putExtra(AppConstants.INVOCATION_TYPE, AppConstants.DISPLAY_MOVIE);
+        movieDetailsIntent.putExtra(AppConstants.MOVIE_ID, notification.getDestinationKey());
+        PendingIntent movieDetailsPendingIntent = PendingIntent.getActivity(ApplicationLoader.getInstance(), 100, movieDetailsIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        createNotificationChannel("Next Rated Movie", "Check this out", "Molvix Next Rated Movie");
+        MolvixNotification.with(ApplicationLoader.getInstance())
+                .load()
+                .notificationChannelId("Molvix Next Rated Movie")
+                .title(WordUtils.capitalize(movie.getMovieName()))
+                .message(UiUtils.fromHtml(displayMessage))
+                .autoCancel(true)
+                .click(movieDetailsPendingIntent)
+                .smallIcon(R.drawable.ic_stat_molvix_logo)
+                .largeIcon(R.mipmap.ic_launcher)
+                .custom()
+                .background(movieBitmap)
+                .setPlaceholder(R.drawable.ic_placeholder)
+                .build();
+        AppPrefs.setHasBeenNotified(checkKey);
+    }
+
+    static void displayNewMovieNotification(Movie updatedMovie, String displayMessage, Notification newMovieAvailableNotification, String checkKey) {
         String movieArtUrl = updatedMovie.getMovieArtUrl();
         if (movieArtUrl != null) {
             MolvixLogger.d(ContentManager.class.getSimpleName(), "Movie Art Url for next notification is not null.About to display notification for the movie");
-            new BitmapLoadTask(newMovieAvailableNotification, checkKey).execute(movieArtUrl);
+            new BitmapLoadTask(newMovieAvailableNotification, displayMessage, checkKey).execute(updatedMovie);
         } else {
-            new MovieContentsExtractionTask(newMovieAvailableNotification, checkKey).execute(updatedMovie);
+            new MovieContentsExtractionTask(newMovieAvailableNotification, displayMessage, checkKey).execute(updatedMovie);
         }
     }
 
@@ -132,10 +153,12 @@ class MolvixNotificationManager {
 
         private Notification notification;
         private String checkKey;
+        private String displayMessage;
 
-        MovieContentsExtractionTask(Notification notification, String checkKey) {
+        MovieContentsExtractionTask(Notification notification, String displayMessage, String checkKey) {
             this.notification = notification;
             this.checkKey = checkKey;
+            this.displayMessage = displayMessage;
         }
 
         @Override
@@ -144,7 +167,7 @@ class MolvixNotificationManager {
                 if (e == null && result != null) {
                     String movieArtUrl = result.getMovieArtUrl();
                     if (movieArtUrl != null) {
-                        new BitmapLoadTask(notification, checkKey).execute(movieArtUrl);
+                        new BitmapLoadTask(notification, displayMessage, checkKey).execute(result);
                     }
                 }
             });
@@ -153,19 +176,21 @@ class MolvixNotificationManager {
 
     }
 
-    private static class BitmapLoadTask extends AsyncTask<String, Void, Void> {
+    private static class BitmapLoadTask extends AsyncTask<Movie, Void, Void> {
 
         private Notification notification;
         private String checkKey;
+        private String displayMessage;
 
-        BitmapLoadTask(Notification notification, String checkKey) {
+        BitmapLoadTask(Notification notification, String displayMessage, String checkKey) {
             this.notification = notification;
             this.checkKey = checkKey;
+            this.displayMessage = displayMessage;
         }
 
         @Override
-        protected Void doInBackground(String... strings) {
-            String artUrl = strings[0];
+        protected Void doInBackground(Movie... movies) {
+            String artUrl = movies[0].getMovieArtUrl();
             RequestOptions imageLoadRequestOptions = new RequestOptions()
                     .diskCacheStrategy(DiskCacheStrategy.ALL);
             Glide.with(ApplicationLoader.getInstance())
@@ -187,7 +212,7 @@ class MolvixNotificationManager {
                     .into(new CustomTarget<Bitmap>() {
                         @Override
                         public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
-                            UiUtils.runOnMain(() -> MolvixNotificationManager.displayUpdatedMovieNotification(resource, notification, checkKey));
+                            UiUtils.runOnMain(() -> MolvixNotificationManager.displayUpdatedMovieNotification(resource, movies[0], displayMessage, notification, checkKey));
                         }
 
                         @Override
@@ -198,33 +223,5 @@ class MolvixNotificationManager {
             return null;
 
         }
-
     }
-
-    private static void displayUpdatedMovieNotification(Bitmap movieBitmap, Notification notification, String checkKey) {
-        String messageDisplay = notification.getMessage();
-        Intent movieDetailsIntent = new Intent(ApplicationLoader.getInstance(), MainActivity.class);
-        movieDetailsIntent.putExtra(AppConstants.INVOCATION_TYPE, AppConstants.DISPLAY_MOVIE);
-        movieDetailsIntent.putExtra(AppConstants.MOVIE_ID, notification.getDestinationKey());
-        PendingIntent movieDetailsPendingIntent = PendingIntent.getActivity(ApplicationLoader.getInstance(), 100, movieDetailsIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-        createNotificationChannel("Next Rated Movie", "Check this out", "Molvix Next Rated Movie");
-        MolvixNotification.with(ApplicationLoader.getInstance())
-                .load()
-                .notificationChannelId("Molvix Next Rated Movie")
-                .title("Molvix")
-                .message(UiUtils.fromHtml(messageDisplay))
-                .autoCancel(true)
-                .click(movieDetailsPendingIntent)
-                .bigTextStyle(UiUtils.fromHtml(messageDisplay), "From Your Downloads")
-                .smallIcon(R.drawable.ic_stat_molvix_logo)
-                .largeIcon(R.mipmap.ic_launcher)
-                .color(android.R.color.background_dark)
-                .custom()
-                .background(movieBitmap)
-                .setPlaceholder(R.drawable.ic_placeholder)
-                .build();
-        AppPrefs.setHasBeenNotified(checkKey);
-
-    }
-
 }
