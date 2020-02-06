@@ -38,9 +38,10 @@ import static org.apache.commons.lang3.StringUtils.containsIgnoreCase;
 import static org.apache.commons.lang3.StringUtils.indexOfIgnoreCase;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
+@SuppressWarnings({"unused", "SameParameterValue"})
 public class UiUtils {
 
-    public static Handler handler = new Handler(Looper.getMainLooper());
+    private static Handler handler = new Handler(Looper.getMainLooper());
 
     private static boolean isMainThread() {
         return Looper.myLooper() == Looper.getMainLooper();
@@ -51,7 +52,7 @@ public class UiUtils {
         else handler.post(runnable);
     }
 
-    public static void loadImageIntoView(ImageView imageView, String photoUrl) {
+    public static void loadImageIntoView(ImageView imageView, String photoUrl, int size) {
         if (imageView instanceof LoadingImageView) {
             LoadingImageView loadingImageView = (LoadingImageView) imageView;
             loadingImageView.startLoading();
@@ -60,6 +61,7 @@ public class UiUtils {
                 .diskCacheStrategy(DiskCacheStrategy.ALL);
         Glide.with(ApplicationLoader.getInstance())
                 .load(photoUrl)
+                .override(size, size)
                 .apply(imageLoadRequestOptions)
                 .listener(new RequestListener<Drawable>() {
                     @Override
@@ -79,7 +81,8 @@ public class UiUtils {
                         }
                         return false;
                     }
-                }).into(imageView);
+                })
+                .into(imageView);
     }
 
     public static void showSafeToast(final String toastMessage) {
@@ -100,13 +103,13 @@ public class UiUtils {
         }
     }
 
-    public static synchronized void animateView(View view, Animation animation) {
+    private static synchronized void animateView(View view, Animation animation) {
         if (view != null) {
             view.startAnimation(animation);
         }
     }
 
-    public static Animation getAnimation(Context context, int animationId) {
+    private static Animation getAnimation(Context context, int animationId) {
         return AnimationUtils.loadAnimation(context, animationId);
     }
 
@@ -189,7 +192,6 @@ public class UiUtils {
         }
     }
 
-    @SuppressWarnings("deprecation")
     public static Spanned fromHtml(String html) {
         Spanned result;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {

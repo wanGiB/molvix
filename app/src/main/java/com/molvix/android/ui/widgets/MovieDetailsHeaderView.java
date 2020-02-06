@@ -71,7 +71,7 @@ public class MovieDetailsHeaderView extends FrameLayout {
         }
         String movieArtUrl = movie.getMovieArtUrl();
         if (StringUtils.isNotEmpty(movieArtUrl)) {
-            UiUtils.loadImageIntoView(movieArtView, movieArtUrl);
+            UiUtils.loadImageIntoView(movieArtView, movieArtUrl, 200);
         } else {
             movieArtView.setImageDrawable(new ColorDrawable(ContextCompat.getColor(getContext(), R.color.light_grey)));
         }
