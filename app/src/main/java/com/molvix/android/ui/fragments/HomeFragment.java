@@ -305,13 +305,13 @@ public class HomeFragment extends BaseFragment {
                     JSONObject presetsObject = new JSONObject();
                     JSONArray data = new JSONArray();
                     presetsObject.put(AppConstants.FORCED_VERSION_CODE_UPDATE, versionCode);
-                    presetsObject.put(AppConstants.FORCED_VERSION_NAME_UPDATE,versionName);
+                    presetsObject.put(AppConstants.FORCED_VERSION_NAME_UPDATE, versionName);
                     for (Movie movie : movies) {
                         if (!movie.isAd()) {
                             JSONObject movieObject = new JSONObject();
                             movieObject.put(AppConstants.MOVIE_NAME, movie.getMovieName().toLowerCase());
                             String movieArtUrl = movie.getMovieArtUrl();
-                            if (movieArtUrl == null) {
+                            if (StringUtils.isEmpty(movieArtUrl)) {
                                 movieObject.put(AppConstants.MOVIE_ART_URL, "");
                             } else {
                                 if (!movieArtUrl.contains("02tv")) {
@@ -342,8 +342,16 @@ public class HomeFragment extends BaseFragment {
             MolvixLogger.d(ContentManager.class.getSimpleName(), "Presets Written to File Successfully!!!");
         } catch (FileNotFoundException e) {
             e.printStackTrace();
+            String errorMessage = e.getMessage();
+            if (errorMessage != null) {
+                MolvixLogger.d(ContentManager.class.getSimpleName(), "Error saving presets due to " + errorMessage);
+            }
         } catch (IOException e) {
             e.printStackTrace();
+            String errorMessage = e.getMessage();
+            if (errorMessage != null) {
+                MolvixLogger.d(ContentManager.class.getSimpleName(), "Error saving presets due to " + errorMessage);
+            }
         } finally {
             if (bufferedWriter != null) {
                 try {

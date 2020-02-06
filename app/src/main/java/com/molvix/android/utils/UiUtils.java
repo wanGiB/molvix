@@ -52,7 +52,7 @@ public class UiUtils {
         else handler.post(runnable);
     }
 
-    public static void loadImageIntoView(ImageView imageView, String photoUrl, int size) {
+    public static void loadImageIntoView(ImageView imageView, String photoUrl) {
         if (imageView instanceof LoadingImageView) {
             LoadingImageView loadingImageView = (LoadingImageView) imageView;
             loadingImageView.startLoading();
@@ -61,7 +61,6 @@ public class UiUtils {
                 .diskCacheStrategy(DiskCacheStrategy.ALL);
         Glide.with(ApplicationLoader.getInstance())
                 .load(photoUrl)
-                .override(size, size)
                 .apply(imageLoadRequestOptions)
                 .listener(new RequestListener<Drawable>() {
                     @Override

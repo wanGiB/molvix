@@ -111,8 +111,18 @@ public class MainActivity extends BaseActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        cleanUp();
+    }
+
+    private void cleanUp() {
         AdsLoadManager.destroy();
         unSubscribeFromPresetsChanges();
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        cleanUp();
     }
 
     private void unSubscribeFromPresetsChanges() {

@@ -93,8 +93,9 @@ public class ContentManager {
                     }
                 }
             }
-        } catch (JSONException e) {
+        } catch (Exception e) {
             e.printStackTrace();
+            spitException(e);
         }
     }
 
@@ -312,8 +313,12 @@ public class ContentManager {
             }
         } else {
             if (StringUtils.isNotEmpty(movieArtUrl)) {
-                if (!existingMovieArtUrl.equals(movieArtUrl)) {
+                if (StringUtils.isEmpty(existingMovieArtUrl)) {
                     movie.setMovieArtUrl(movieArtUrl);
+                } else {
+                    if (!existingMovieArtUrl.equals(movieArtUrl)) {
+                        movie.setMovieArtUrl(movieArtUrl);
+                    }
                 }
             }
         }
@@ -323,6 +328,10 @@ public class ContentManager {
     }
 
     private static void spitException(Exception e) {
+        String errorMessage = e.getMessage();
+        if (errorMessage != null) {
+            MolvixLogger.d(ContentManager.class.getSimpleName(), errorMessage);
+        }
         EventBus.getDefault().post(e);
     }
 
@@ -492,6 +501,7 @@ public class ContentManager {
             }
         } catch (Exception e) {
             e.printStackTrace();
+            spitException(e);
             return episodeLink;
         }
         return episodeLink;
