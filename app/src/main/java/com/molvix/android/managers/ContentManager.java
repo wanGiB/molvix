@@ -129,6 +129,7 @@ public class ContentManager {
                         String existingArtUrl = movie.getMovieArtUrl();
                         if (existingArtUrl != null && StringUtils.isNotEmpty(movieArtUrl) && !existingArtUrl.equals(movieArtUrl)) {
                             AppConstants.canShuffleExistingMovieCollection.set(false);
+                            MolvixLogger.d(ContentManager.class.getSimpleName(),"Updating Art Url for "+movie.getMovieName());
                             movie.setMovieArtUrl(movieArtUrl);
                             if (!updatableMovies.contains(movie)) {
                                 updatableMovies.add(movie);
