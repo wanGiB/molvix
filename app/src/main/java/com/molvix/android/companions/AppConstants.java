@@ -16,6 +16,7 @@ public class AppConstants {
     @SuppressLint("ConstantLocale")
     public static final SimpleDateFormat DATE_FORMATTER_IN_YEARS = new SimpleDateFormat("yyyy", Locale.getDefault());
 
+    @SuppressWarnings("SpellCheckingInspection")
     public static final String TEST_DEVICE_ID = "53D46815EE1FBEED38704D3C418F4402";
     public static final String DOWNLOADABLE = "o2tvseries.com/download/";
 
@@ -61,5 +62,5 @@ public class AppConstants {
     public static AtomicBoolean canShuffleExistingMovieCollection = new AtomicBoolean(true);
     public static AtomicReference<UnifiedNativeAd> unifiedNativeAdAtomicReference = new AtomicReference<>();
     public static final String GOOGLE_PLAY_PACKAGE_NAME = "com.android.vending";
-    public static final String PRESETS_DOWNSTREAM_URL = "https://raw.githubusercontent.com/wanclem/lizandry/master/presets.json";
+    public static final String PRESETS_DOWNSTREAM_URL = "https://raw.githubusercontent.com/molvixapp/lizandry/master/presets.json";
 }
