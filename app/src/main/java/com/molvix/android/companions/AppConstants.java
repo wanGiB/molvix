@@ -5,12 +5,14 @@ import android.annotation.SuppressLint;
 import com.google.android.gms.ads.formats.UnifiedNativeAd;
 
 import java.text.SimpleDateFormat;
+import java.util.HashMap;
 import java.util.Locale;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class AppConstants {
 
+    public static HashMap<String, String> MOVIE_NAME_TO_ART_URL_MAP = new HashMap<>();
     @SuppressLint("ConstantLocale")
     public static final SimpleDateFormat DATE_FORMATTER_IN_12HRS = new SimpleDateFormat("h:mm a", Locale.getDefault());
     @SuppressLint("ConstantLocale")

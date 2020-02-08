@@ -23,7 +23,6 @@ import org.apache.commons.lang3.text.WordUtils;
 import org.greenrobot.eventbus.EventBus;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -86,7 +85,7 @@ public class ContentManager {
     }
 
     private static void offloadPresets(String responseBodyString) {
-        MolvixLogger.d(ContentManager.class.getSimpleName(),"Offloading Fetched Presets");
+        MolvixLogger.d(ContentManager.class.getSimpleName(), "Offloading Fetched Presets");
         try {
             JSONObject presetsObject = new JSONObject(responseBodyString);
             if (presetsObject.length() > 0) {
@@ -124,12 +123,15 @@ public class ContentManager {
                     String movieName = movieObject.optString(AppConstants.MOVIE_NAME);
                     String movieArtUrl = movieObject.optString(AppConstants.MOVIE_ART_URL);
                     //Find a movie whose name is = movieName
+                    if (StringUtils.isNotEmpty(movieArtUrl)) {
+                        AppConstants.MOVIE_NAME_TO_ART_URL_MAP.put(movieName.toLowerCase().trim(), movieArtUrl);
+                    }
                     Movie movie = MolvixDB.getMovieBox().query().equal(Movie_.movieName, movieName.toLowerCase().trim()).build().findFirst();
                     if (movie != null) {
                         String existingArtUrl = movie.getMovieArtUrl();
                         if (existingArtUrl != null && StringUtils.isNotEmpty(movieArtUrl) && !existingArtUrl.equals(movieArtUrl)) {
                             AppConstants.canShuffleExistingMovieCollection.set(false);
-                            MolvixLogger.d(ContentManager.class.getSimpleName(),"Updating Art Url for "+movie.getMovieName());
+                            MolvixLogger.d(ContentManager.class.getSimpleName(), "Updating Art Url for " + movie.getMovieName());
                             movie.setMovieArtUrl(movieArtUrl);
                             if (!updatableMovies.contains(movie)) {
                                 updatableMovies.add(movie);
@@ -279,44 +281,13 @@ public class ContentManager {
         }
     }
 
-    private static JSONObject getMovieDetailsFromPresets(String movieName) {
-        Presets presets = MolvixDB.getPresets();
-        if (presets != null) {
-            String presetsString = presets.getPresetString();
-            if (StringUtils.isNotEmpty(presetsString)) {
-                try {
-                    JSONObject presetsObject = new JSONObject(presetsString);
-                    JSONArray data = presetsObject.optJSONArray(AppConstants.DATA);
-                    if (data != null) {
-                        int dataLength = data.length();
-                        if (dataLength > 0) {
-                            JSONObject movieObject = null;
-                            for (int i = 0; i < dataLength; i++) {
-                                movieObject = data.optJSONObject(i);
-                                if (movieObject != null) {
-                                    String movieObjectName = movieObject.optString(AppConstants.MOVIE_NAME);
-                                    if (movieName.toLowerCase().equals(movieObjectName.toLowerCase())) {
-                                        break;
-                                    }
-                                }
-                            }
-                            if (movieObject != null) {
-                                return movieObject;
-                            }
-                        }
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-        return new JSONObject();
+    private static String getMovieArtUrlFromPresets(String movieName) {
+        return AppConstants.MOVIE_NAME_TO_ART_URL_MAP.get(movieName.toLowerCase().trim());
     }
 
     private static void updateMovieArtUrlAndDescription(Movie movie, Element movieInfoElement, String movieArtUrl) {
         String movieDescription = movieInfoElement.select("div.serial_desc").text();
-        JSONObject movieObject = getMovieDetailsFromPresets(movie.getMovieName().toLowerCase());
-        String presetArtUrl = movieObject.optString(AppConstants.MOVIE_ART_URL);
+        String presetArtUrl = getMovieArtUrlFromPresets(movie.getMovieName());
         String existingMovieArtUrl = movie.getMovieArtUrl();
         if (StringUtils.isNotEmpty(presetArtUrl)) {
             if (StringUtils.isEmpty(existingMovieArtUrl)) {
