@@ -27,7 +27,6 @@ import butterknife.ButterKnife;
 
 public class MolvixSearchView extends FrameLayout {
 
-
     @BindView(R.id.search_box_outer_container)
     View searchBoxOuterContainer;
 
