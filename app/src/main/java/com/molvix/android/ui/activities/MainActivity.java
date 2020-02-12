@@ -176,7 +176,12 @@ public class MainActivity extends BaseActivity {
     private void unLockAppCaptchaSolver() {
         EpisodesManager.unLockCaptchaSolver();
     }
-
+//
+//    <com.devbrackets.android.exomedia.ui.widget.VideoView
+//    android:id="@+id/video_view"
+//    android:layout_width="match_parent"
+//    android:layout_height="match_parent"
+//    app:useDefaultControls="true"/>
     private void checkAndResumePausedDownloads() {
         Set<String> pausedDownloads = AppPrefs.getInProgressDownloads();
         if (!pausedDownloads.isEmpty()) {
