@@ -3,17 +3,34 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:animateLayoutChanges="true"
     android:background="@color/light_gray">
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/back_nav"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:backgroundTint="@color/white"
+        app:elevation="0dp"
+        app:fabCustomSize="45dp"
+        app:rippleColor="@color/colorAccent"
+        app:srcCompat="@drawable/nav_back"
+        app:useCompatPadding="true" />
 
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/swipe_refresh_layout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:layout_below="@+id/back_nav">
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/notifications_recycler_view"
+        <com.molvix.android.ui.widgets.AutoFitRecyclerView
+            android:id="@+id/downloaded_videos_recycler_view"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:columnWidth="@dimen/column_width"
+            android:padding="@dimen/item_margin" />
 
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
@@ -26,7 +43,7 @@
         <include layout="@layout/loading_layout" />
 
         <LinearLayout
-            android:id="@+id/notifications_empty_view"
+            android:id="@+id/media_empty_view"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
@@ -37,30 +54,18 @@
                 android:layout_width="50dp"
                 android:layout_height="50dp"
                 android:layout_gravity="center"
-                app:srcCompat="@drawable/ic_notifications_black_24dp" />
+                app:srcCompat="@drawable/no_video" />
 
             <com.molvix.android.ui.widgets.MolvixTextView
-                android:id="@+id/notifications_center_label"
+                android:id="@+id/downloaded_videos_center_label"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:text="@string/no_notifications"
+                android:text="@string/no_downloaded_videos"
                 app:textStyle="medium" />
 
         </LinearLayout>
 
     </FrameLayout>
-
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/btn_clear_all_notifications"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentBottom="true"
-        android:layout_margin="20dp"
-        android:visibility="gone"
-        app:backgroundTint="@color/white"
-        app:rippleColor="@color/ease_gray"
-        app:srcCompat="@drawable/ic_clear_all_black_24dp" />
 
 </RelativeLayout>

@@ -15,8 +15,26 @@ public class FileUtils {
 
     private static final String MOLVIX_VIDEOS_FOLDER = "/Videos";
 
-    private static String getRootFolder() {
+    public static String videoFolder() {
+        return "Videos";
+    }
+
+    public static String getRootFolder() {
         return "Molvix";
+    }
+
+    public static File getVideosDir() {
+        File filePath;
+        File dir;
+        if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())) {
+            String folder = "/" + getRootFolder() + MOLVIX_VIDEOS_FOLDER;
+            dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + folder);
+        } else {
+            ContextWrapper cw = new ContextWrapper(ApplicationLoader.getInstance());
+            dir = cw.getDir(MOLVIX_VIDEOS_FOLDER, Context.MODE_PRIVATE);
+        }
+        filePath = dir;
+        return filePath;
     }
 
     public static File getFilePath(String movieFolder, String seasonFolder) {

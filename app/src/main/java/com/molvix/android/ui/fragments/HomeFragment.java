@@ -1,6 +1,7 @@
 package com.molvix.android.ui.fragments;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.AsyncTask;
@@ -113,6 +114,12 @@ public class HomeFragment extends BaseFragment {
         }
     }
 
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        removeAllMoviesSubscription();
+    }
+
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_home, container, false);
@@ -173,18 +180,22 @@ public class HomeFragment extends BaseFragment {
     }
 
     private void fetchMovies() {
-        clearCurrentData();
-        nullifySearch();
-        DataObserver<List<Movie>> moviesObserver = data -> {
-            if (AppConstants.canShuffleExistingMovieCollection.get()) {
-                Collections.shuffle(data);
-            } else {
-                AppConstants.canShuffleExistingMovieCollection.set(true);
-            }
-            loadChangedData(data);
-        };
-        moviesSubscription = MolvixDB.getMovieBox().query().build().subscribe().observer(moviesObserver);
-        spinMoviesDownloadJob();
+        try {
+            clearCurrentData();
+            nullifySearch();
+            DataObserver<List<Movie>> moviesObserver = data -> {
+                if (AppConstants.canShuffleExistingMovieCollection.get()) {
+                    Collections.shuffle(data);
+                } else {
+                    AppConstants.canShuffleExistingMovieCollection.set(true);
+                }
+                loadChangedData(data);
+            };
+            moviesSubscription = MolvixDB.getMovieBox().query().build().subscribe().observer(moviesObserver);
+            spinMoviesDownloadJob();
+        } catch (Exception ignored) {
+
+        }
     }
 
     private void loadChangedData(List<Movie> changedData) {
@@ -209,12 +220,6 @@ public class HomeFragment extends BaseFragment {
         setupSwipeRefreshLayoutColorScheme();
         initMoviesAdapter();
         fetchMovies();
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        removeAllMoviesSubscription();
     }
 
     @SuppressWarnings("ConstantConditions")

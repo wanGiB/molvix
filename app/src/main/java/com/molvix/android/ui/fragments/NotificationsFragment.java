@@ -92,17 +92,17 @@ public class NotificationsFragment extends BaseFragment {
         fetchNotifications();
     }
 
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        removeNotificationsChangeListener();
-    }
-
     private void removeNotificationsChangeListener() {
         if (notificationsSubScription != null && !notificationsSubScription.isCanceled()) {
             notificationsSubScription.cancel();
             notificationsSubScription = null;
         }
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        removeNotificationsChangeListener();
     }
 
     private void setupAdapter() {
@@ -115,8 +115,12 @@ public class NotificationsFragment extends BaseFragment {
     }
 
     private void fetchNotifications() {
-        notificationsSubScription = MolvixDB.getNotificationBox().query().build().subscribe().observer(this::loadNotifications);
-        new Handler().postDelayed(this::invalidateUI, 5000);
+        try {
+            notificationsSubScription = MolvixDB.getNotificationBox().query().build().subscribe().observer(this::loadNotifications);
+            new Handler().postDelayed(this::invalidateUI, 5000);
+        } catch (Exception ignored) {
+
+        }
     }
 
     private void loadNotifications(List<Notification> results) {

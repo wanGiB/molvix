@@ -18,7 +18,7 @@
 
     </PreferenceCategory>
 
-    <PreferenceCategory android:title="Feedback &amp; Support">
+    <PreferenceCategory android:title="Feedback">
 
         <Preference
             android:key="@string/feedback_key"

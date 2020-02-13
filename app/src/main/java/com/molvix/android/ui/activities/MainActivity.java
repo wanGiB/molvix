@@ -25,6 +25,7 @@ import androidx.viewpager.widget.ViewPager;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.molvix.android.R;
+import com.molvix.android.beans.DownloadedVideoItem;
 import com.molvix.android.companions.AppConstants;
 import com.molvix.android.components.ApplicationLoader;
 import com.molvix.android.database.MolvixDB;
@@ -43,10 +44,12 @@ import com.molvix.android.models.Presets;
 import com.molvix.android.models.Season;
 import com.molvix.android.preferences.AppPrefs;
 import com.molvix.android.ui.adapters.MainActivityPagerAdapter;
+import com.molvix.android.ui.fragments.DownloadedVideosFragment;
 import com.molvix.android.ui.fragments.HomeFragment;
 import com.molvix.android.ui.fragments.MoreContentsFragment;
 import com.molvix.android.ui.fragments.NotificationsFragment;
 import com.molvix.android.ui.widgets.MolvixSearchView;
+import com.molvix.android.ui.widgets.MolvixVideoPlayerView;
 import com.molvix.android.ui.widgets.MovieDetailsView;
 import com.molvix.android.ui.widgets.NewUpdateAvailableView;
 import com.molvix.android.utils.FileUtils;
@@ -85,6 +88,7 @@ public class MainActivity extends BaseActivity {
     @BindView(R.id.container)
     FrameLayout rootContainer;
 
+    private List<Fragment> fragments;
     private DataSubscription presetsSubscription;
 
     @Override
@@ -176,12 +180,7 @@ public class MainActivity extends BaseActivity {
     private void unLockAppCaptchaSolver() {
         EpisodesManager.unLockCaptchaSolver();
     }
-//
-//    <com.devbrackets.android.exomedia.ui.widget.VideoView
-//    android:id="@+id/video_view"
-//    android:layout_width="match_parent"
-//    android:layout_height="match_parent"
-//    app:useDefaultControls="true"/>
+
     private void checkAndResumePausedDownloads() {
         Set<String> pausedDownloads = AppPrefs.getInProgressDownloads();
         if (!pausedDownloads.isEmpty()) {
@@ -226,9 +225,10 @@ public class MainActivity extends BaseActivity {
     }
 
     private void setupViewPager() {
-        List<Fragment> fragments = new ArrayList<>();
+        fragments = new ArrayList<>();
         fragments.add(new HomeFragment());
         fragments.add(new NotificationsFragment());
+        fragments.add(new DownloadedVideosFragment());
         fragments.add(new MoreContentsFragment());
         MainActivityPagerAdapter fragmentsPagerAdapter = new MainActivityPagerAdapter(getSupportFragmentManager(), fragments);
         fragmentsPager.setAdapter(fragmentsPagerAdapter);
@@ -245,6 +245,8 @@ public class MainActivity extends BaseActivity {
                     bottomNavView.setSelectedItemId(R.id.navigation_home);
                 } else if (position == 1) {
                     bottomNavView.setSelectedItemId(R.id.navigation_notification);
+                } else if (position == 2) {
+                    bottomNavView.setSelectedItemId(R.id.navigation_downloaded_videos);
                 } else {
                     bottomNavView.setSelectedItemId(R.id.navigation_more);
                 }
@@ -260,8 +262,10 @@ public class MainActivity extends BaseActivity {
                 fragmentsPager.setCurrentItem(0);
             } else if (menuItem.getItemId() == R.id.navigation_notification) {
                 fragmentsPager.setCurrentItem(1);
-            } else {
+            } else if (menuItem.getItemId() == R.id.navigation_downloaded_videos) {
                 fragmentsPager.setCurrentItem(2);
+            } else {
+                fragmentsPager.setCurrentItem(3);
             }
             return true;
         });
@@ -419,6 +423,12 @@ public class MainActivity extends BaseActivity {
 
     @Override
     public void onBackPressed() {
+        if (rootContainer.getChildAt(rootContainer.getChildCount() - 1) instanceof MolvixVideoPlayerView) {
+            MolvixVideoPlayerView molvixVideoPlayerView = (MolvixVideoPlayerView) rootContainer.getChildAt(rootContainer.getChildCount() - 1);
+            molvixVideoPlayerView.cleanUpVideoView();
+            rootContainer.removeViewAt(rootContainer.getChildCount() - 1);
+            return;
+        }
         if (rootContainer.getChildAt(rootContainer.getChildCount() - 1) instanceof MovieDetailsView) {
             MovieDetailsView movieDetailsView = (MovieDetailsView) rootContainer.getChildAt(rootContainer.getChildCount() - 1);
             if (movieDetailsView.isBottomSheetDialogShowing()) {
@@ -432,6 +442,11 @@ public class MainActivity extends BaseActivity {
         String searchString = searchView.getText();
         if (StringUtils.isNotEmpty(searchString)) {
             searchView.setText("");
+            return;
+        }
+        DownloadedVideosFragment downloadedVideosFragment = (DownloadedVideosFragment) fragments.get(2);
+        if (fragmentsPager.getCurrentItem() == 2 && downloadedVideosFragment.needsToNavigateBack()) {
+            downloadedVideosFragment.navigateBack();
             return;
         }
         if (fragmentsPager.getCurrentItem() != 0) {
@@ -531,6 +546,15 @@ public class MainActivity extends BaseActivity {
     public void moveToPlayStore() {
         startActivity(createIntentForGooglePlay(this));
         finish();
+    }
+
+    public void playVideo(DownloadedVideoItem downloadedVideoItem) {
+        if (rootContainer.getChildAt(rootContainer.getChildCount() - 1) instanceof MolvixVideoPlayerView) {
+            rootContainer.removeViewAt(rootContainer.getChildCount() - 1);
+        }
+        MolvixVideoPlayerView molvixVideoPlayerView = new MolvixVideoPlayerView(this);
+        rootContainer.addView(molvixVideoPlayerView, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        molvixVideoPlayerView.loadVideo(DownloadedVideosFragment.downloadedVideoItems, DownloadedVideosFragment.downloadedVideoItems.indexOf(downloadedVideoItem));
     }
 
 }

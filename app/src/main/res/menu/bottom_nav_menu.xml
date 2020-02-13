@@ -12,6 +12,11 @@
         android:title="@string/title_notifications" />
 
     <item
+        android:id="@+id/navigation_downloaded_videos"
+        android:icon="@drawable/downloaded_videos_icon"
+        android:title="@string/title_downloaded_videos" />
+
+    <item
         android:id="@+id/navigation_more"
         android:icon="@drawable/ic_more_vert_black_24dp"
         android:title="@string/title_more" />

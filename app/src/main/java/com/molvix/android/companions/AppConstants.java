@@ -7,6 +7,7 @@ import com.google.android.gms.ads.formats.UnifiedNativeAd;
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.Locale;
+import java.util.Stack;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -65,4 +66,5 @@ public class AppConstants {
     public static AtomicReference<UnifiedNativeAd> unifiedNativeAdAtomicReference = new AtomicReference<>();
     public static final String GOOGLE_PLAY_PACKAGE_NAME = "com.android.vending";
     public static final String PRESETS_DOWNSTREAM_URL = "https://raw.githubusercontent.com/molvixapp/lizandry/master/presets.json";
+    public static Stack<Integer> downloadedVideoItemsPositionsStack = new Stack<>();
 }

@@ -7,15 +7,26 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class FontUtils {
-    private static String FONT_REGULAR = "Roboto-Regular.ttf";
-    private static String FONT_BOLD = "Roboto-Bold.ttf";
-    private static String FONT_LIGHT = "Roboto-Light.ttf";
-    private static String FONT_MEDIUM = "Roboto-Medium.ttf";
-    private static String COLOPHON = "colophon.ttf";
-    private static String FONT_AWESOME = "fontawesome-webfont.ttf";
-    private static String AVENIR_MEDIUM = "AvenirLTStd-Medium.otf";
+
+    private static String FONT_REGULAR = "Montserrat-Regular.otf";
+    private static String FONT_BOLD = "Montserrat-Bold.otf";
+    private static String FONT_LIGHT = "Montserrat-Light.otf";
+    private static String FONT_MEDIUM = "Montserrat-Medium.otf";
+    private static String FONT_THIN = "Montserrat-Thin.otf";
+    private static String FONT_ITALIC = "Montserrat-Italic.otf";
+    private static String FONT_NONE = FONT_REGULAR;
 
     private static Map<String, Typeface> sCachedFonts = new HashMap<>();
+
+    private enum TypefaceType {
+        REGULAR,
+        BOLD,
+        ITALIC,
+        LIGHT,
+        MEDIUM,
+        THIN,
+        NONE
+    }
 
     private static Typeface getTypeface(Context context, String assetPath) {
         if (!sCachedFonts.containsKey(assetPath)) {
@@ -26,40 +37,32 @@ public class FontUtils {
     }
 
     public static Typeface selectTypeface(Context context, int textStyle) {
-        String RobotoPrefix = "fonts/";
+        String fontsPath = "fonts/";
         String font;
-        switch (textStyle) {
-            case 1:
+        TypefaceType typefaceType = TypefaceType.values()[textStyle];
+        switch (typefaceType) {
+            case BOLD:
                 font = FontUtils.FONT_BOLD;
                 break;
-            case 3:
-            case 5:
-                font = FontUtils.FONT_LIGHT;
-                break;
-            case 4:
-                font = FontUtils.FONT_MEDIUM;
-                break;
-            case 6:
-                font = FontUtils.COLOPHON;
-                break;
-            case 7:
-                font = FontUtils.FONT_AWESOME;
-                break;
-            case 8:
-                return Typeface.DEFAULT;
-            case 9:
-                return Typeface.DEFAULT_BOLD;
-            case 10:
-                font = FontUtils.AVENIR_MEDIUM;
-                break;
-            case 11:
-                return Typeface.create(Typeface.DEFAULT, Typeface.ITALIC);
-            default:
+            case REGULAR:
                 font = FontUtils.FONT_REGULAR;
                 break;
+            case LIGHT:
+                font = FontUtils.FONT_LIGHT;
+                break;
+            case MEDIUM:
+                font = FontUtils.FONT_MEDIUM;
+                break;
+            case ITALIC:
+                font = FontUtils.FONT_ITALIC;
+                break;
+            case THIN:
+                font = FontUtils.FONT_THIN;
+                break;
+            default:
+                font = FontUtils.FONT_NONE;
         }
-        return getTypeface(context, RobotoPrefix + font);
+        return getTypeface(context, fontsPath + font);
     }
 
 }
-
