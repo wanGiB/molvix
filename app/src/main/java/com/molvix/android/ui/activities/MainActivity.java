@@ -425,6 +425,7 @@ public class MainActivity extends BaseActivity {
     public void onBackPressed() {
         if (rootContainer.getChildAt(rootContainer.getChildCount() - 1) instanceof MolvixVideoPlayerView) {
             MolvixVideoPlayerView molvixVideoPlayerView = (MolvixVideoPlayerView) rootContainer.getChildAt(rootContainer.getChildCount() - 1);
+            molvixVideoPlayerView.trySaveCurrentPlayerPosition();
             molvixVideoPlayerView.cleanUpVideoView();
             rootContainer.removeViewAt(rootContainer.getChildCount() - 1);
             return;

@@ -9,6 +9,7 @@ import com.molvix.android.components.ApplicationLoader;
 import com.molvix.android.models.Episode;
 import com.molvix.android.utils.CryptoUtils;
 
+import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -216,6 +217,16 @@ public class AppPrefs {
 
     public static boolean isSeasonEpisodesRefreshed(String seasonId) {
         return getAppPreferences().getBoolean(AppConstants.SEASON_EPISODES_REFRESHED + seasonId, false);
+    }
+
+    public static void persistMediaPlayBackPositionFor(File activeFile, long currentPosition) {
+        String key = CryptoUtils.getSha256Digest(activeFile.getAbsolutePath());
+        getAppPreferences().edit().putLong(AppConstants.MEDIA_PLAY_BACK_FOR_ + key, currentPosition).apply();
+    }
+
+    public static long getLastMediaPlayBackPositionFor(File file) {
+        String key = CryptoUtils.getSha256Digest(file.getAbsolutePath());
+        return getAppPreferences().getLong(AppConstants.MEDIA_PLAY_BACK_FOR_ + key, 0);
     }
 
 }

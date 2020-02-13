@@ -13,6 +13,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class AppConstants {
 
+    public static final String MEDIA_PLAY_BACK_FOR_ = "media_play_back_for_";
     public static HashMap<String, String> MOVIE_NAME_TO_ART_URL_MAP = new HashMap<>();
     @SuppressLint("ConstantLocale")
     public static final SimpleDateFormat DATE_FORMATTER_IN_12HRS = new SimpleDateFormat("h:mm a", Locale.getDefault());

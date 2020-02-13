@@ -20,9 +20,12 @@ import com.devbrackets.android.exomedia.ui.widget.VideoControls;
 import com.devbrackets.android.exomedia.ui.widget.VideoView;
 import com.molvix.android.R;
 import com.molvix.android.beans.DownloadedVideoItem;
+import com.molvix.android.preferences.AppPrefs;
 import com.molvix.android.utils.UiUtils;
 
+import java.io.File;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -40,6 +43,8 @@ public class MolvixVideoPlayerView extends FrameLayout {
 
     @BindView(R.id.title_view_container)
     View titleViewContainer;
+
+    private AtomicReference<File> activeFileReference = new AtomicReference<>();
 
     public MolvixVideoPlayerView(@NonNull Context context) {
         super(context);
@@ -68,7 +73,18 @@ public class MolvixVideoPlayerView extends FrameLayout {
         configureVideoControls(videoItemList, startIndex);
         videoTitleView.setText(downloadedVideoItem.getTitle());
         videoView.setVideoPath(downloadedVideoItem.getDownloadedFile().getPath());
-        videoView.setOnPreparedListener(() -> videoView.start());
+        videoView.setOnPreparedListener(() -> {
+            try {
+                long lastPlayBackPosition = AppPrefs.getLastMediaPlayBackPositionFor(downloadedVideoItem.getDownloadedFile());
+                if (lastPlayBackPosition > 0) {
+                    videoView.seekTo(lastPlayBackPosition);
+                }
+                videoView.start();
+                activeFileReference.set(downloadedVideoItem.getDownloadedFile());
+            } catch (Exception ignored) {
+
+            }
+        });
         videoNavBackView.setOnClickListener(v -> {
             UiUtils.blinkView(videoNavBackView);
             removePlayer();
@@ -218,6 +234,20 @@ public class MolvixVideoPlayerView extends FrameLayout {
     protected void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         UiUtils.showSafeToast("Orientation is now=" + newConfig.orientation);
+    }
+
+    public void trySaveCurrentPlayerPosition() {
+        File activeFile = activeFileReference.get();
+        if (activeFile != null) {
+            try {
+                long currentPosition = videoView.getCurrentPosition();
+                if (currentPosition != 0) {
+                    AppPrefs.persistMediaPlayBackPositionFor(activeFile, currentPosition);
+                }
+            } catch (Exception ignored) {
+
+            }
+        }
     }
 
 }
