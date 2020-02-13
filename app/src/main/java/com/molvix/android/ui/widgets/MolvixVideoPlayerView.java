@@ -2,6 +2,7 @@ package com.molvix.android.ui.widgets;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.res.Configuration;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -211,6 +212,12 @@ public class MolvixVideoPlayerView extends FrameLayout {
         } catch (Exception ignored) {
 
         }
+    }
+
+    @Override
+    protected void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        UiUtils.showSafeToast("Orientation is now=" + newConfig.orientation);
     }
 
 }

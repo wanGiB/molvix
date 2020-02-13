@@ -44,6 +44,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
+                android:gravity="center"
+                android:padding="5dp"
                 android:text="@string/no_notifications"
                 app:textStyle="medium" />
 
@@ -58,7 +60,6 @@
         android:layout_alignParentEnd="true"
         android:layout_alignParentBottom="true"
         android:layout_margin="20dp"
-        android:visibility="gone"
         app:backgroundTint="@color/white"
         app:rippleColor="@color/ease_gray"
         app:srcCompat="@drawable/ic_clear_all_black_24dp" />

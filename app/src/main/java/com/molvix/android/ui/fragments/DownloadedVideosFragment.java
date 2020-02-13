@@ -5,8 +5,7 @@ import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ProgressBar;
-import android.widget.TextView;
+
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -35,13 +34,13 @@ import butterknife.ButterKnife;
 public class DownloadedVideosFragment extends BaseFragment {
 
     @BindView(R.id.content_loading_layout)
-    View contentLoadingView;
+    View emptyContentsParentView;
 
-    @BindView(R.id.content_loading_progress)
-    ProgressBar contentLoadingProgressBar;
+    @BindView(R.id.loading_view)
+    View loadingView;
 
-    @BindView(R.id.content_loading_progress_msg)
-    TextView contentLoadingProgressMessageView;
+    @BindView(R.id.media_empty_view)
+    View noMediaView;
 
     @BindView(R.id.swipe_refresh_layout)
     SwipeRefreshLayout swipeRefreshLayout;
@@ -137,8 +136,12 @@ public class DownloadedVideosFragment extends BaseFragment {
                 } else {
                     backNav.hide();
                 }
-                if (downloadedVideoItems.get(0).getParentFolderName().equals(FileUtils.videoFolder())) {
-                    backNav.hide();
+                if (!downloadedVideoItems.isEmpty()) {
+                    if (downloadedVideoItems.get(0).getParentFolderName().equals(FileUtils.videoFolder())) {
+                        backNav.hide();
+                    }
+                } else {
+                    displayNoDownloadedVideosView();
                 }
             }
         } else {
@@ -157,12 +160,15 @@ public class DownloadedVideosFragment extends BaseFragment {
     }
 
     private void displayDownloadsAvailableView() {
-        UiUtils.toggleViewVisibility(contentLoadingView, false);
+        UiUtils.toggleViewVisibility(emptyContentsParentView, false);
+        UiUtils.toggleViewVisibility(loadingView, false);
+        UiUtils.toggleViewVisibility(noMediaView, false);
     }
 
     private void displayNoDownloadedVideosView() {
-        UiUtils.toggleViewVisibility(contentLoadingProgressBar, false);
-        UiUtils.toggleViewVisibility(contentLoadingProgressMessageView, true);
+        UiUtils.toggleViewVisibility(emptyContentsParentView, true);
+        UiUtils.toggleViewVisibility(loadingView, false);
+        UiUtils.toggleViewVisibility(noMediaView, true);
     }
 
     @Override

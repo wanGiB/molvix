@@ -41,7 +41,7 @@ public class NotificationsFragment extends BaseFragment {
     View loadingView;
 
     @BindView(R.id.content_loading_layout)
-    View contentLoadingView;
+    View emptyContentParentView;
 
     @BindView(R.id.notifications_empty_view)
     View notificationsEmptyView;
@@ -54,7 +54,7 @@ public class NotificationsFragment extends BaseFragment {
 
     private List<Notification> notifications = new ArrayList<>();
     private NotificationsAdapter notificationsAdapter;
-    private DataSubscription notificationsSubScription;
+    private DataSubscription notificationsSubscription;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -66,12 +66,13 @@ public class NotificationsFragment extends BaseFragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        clearNotificationsFab.hide();
         clearNotificationsFab.setOnClickListener(v -> {
             notifications.clear();
             notificationsAdapter.notifyDataSetChanged();
             MolvixDB.getNotificationBox().removeAll();
-            notificationsCenterLabel.setText(getString(R.string.all_caught_up));
             invalidateUI();
+            notificationsCenterLabel.setText(getString(R.string.all_caught_up));
         });
     }
 
@@ -93,9 +94,9 @@ public class NotificationsFragment extends BaseFragment {
     }
 
     private void removeNotificationsChangeListener() {
-        if (notificationsSubScription != null && !notificationsSubScription.isCanceled()) {
-            notificationsSubScription.cancel();
-            notificationsSubScription = null;
+        if (notificationsSubscription != null && !notificationsSubscription.isCanceled()) {
+            notificationsSubscription.cancel();
+            notificationsSubscription = null;
         }
     }
 
@@ -116,7 +117,7 @@ public class NotificationsFragment extends BaseFragment {
 
     private void fetchNotifications() {
         try {
-            notificationsSubScription = MolvixDB.getNotificationBox().query().build().subscribe().observer(this::loadNotifications);
+            notificationsSubscription = MolvixDB.getNotificationBox().query().build().subscribe().observer(this::loadNotifications);
             new Handler().postDelayed(this::invalidateUI, 5000);
         } catch (Exception ignored) {
 
@@ -145,12 +146,13 @@ public class NotificationsFragment extends BaseFragment {
 
     private void invalidateUI() {
         if (notifications.isEmpty()) {
-            UiUtils.toggleViewVisibility(notificationsEmptyView, true);
+            UiUtils.toggleViewVisibility(emptyContentParentView, true);
             UiUtils.toggleViewVisibility(loadingView, false);
-            UiUtils.toggleViewVisibility(clearNotificationsFab, false);
+            UiUtils.toggleViewVisibility(notificationsEmptyView, true);
+            clearNotificationsFab.hide();
         } else {
-            UiUtils.toggleViewVisibility(contentLoadingView, false);
-            UiUtils.toggleViewVisibility(clearNotificationsFab, true);
+            UiUtils.toggleViewVisibility(emptyContentParentView, false);
+            clearNotificationsFab.show();
         }
         swipeRefreshLayout.setRefreshing(false);
     }
