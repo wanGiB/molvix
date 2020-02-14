@@ -5,7 +5,7 @@
     android:id="@+id/bottom_sheet"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/white"
+    android:background="?attr/app_card_background_color"
     android:orientation="vertical"
     app:behavior_hideable="true"
     app:behavior_peekHeight="100dp"
@@ -45,11 +45,10 @@
 
     </RelativeLayout>
 
-
     <View
         android:layout_width="match_parent"
         android:layout_height="0.5dp"
-        android:background="@color/light_gray" />
+        android:background="?attr/app_updater_divider_background_color" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/bottom_sheet_recycler_view"

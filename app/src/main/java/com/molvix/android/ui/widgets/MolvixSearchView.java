@@ -61,7 +61,7 @@ public class MolvixSearchView extends FrameLayout {
 
     @SuppressLint("ClickableViewAccessibility")
     public void setup() {
-        VectorDrawableCompat searchIcon = VectorDrawableCompat.create(getResources(), R.drawable.ic_search_fair_white_24dp, null);
+        VectorDrawableCompat searchIcon = VectorDrawableCompat.create(getResources(), R.drawable.search_leading_icon, null);
         searchBox.setCompoundDrawablesWithIntrinsicBounds(searchIcon, null, null, null);
         searchBox.setOnClickListener(v -> searchBox.setCursorVisible(true));
         searchBox.setOnTouchListener((v, event) -> {

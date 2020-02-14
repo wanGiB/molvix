@@ -15,7 +15,6 @@ import android.widget.LinearLayout;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat;
 
@@ -81,16 +80,11 @@ public class NotificationView extends FrameLayout {
         notificationDescriptionView.setText(UiUtils.fromHtml(notification.getMessage()));
         int notificationDestination = notification.getDestination();
         if (notificationDestination == AppConstants.DESTINATION_DOWNLOADED_EPISODE) {
-            notificationRootView.setBackgroundColor(ContextCompat.getColor(getContext(), R.color.episode_notification_background_color));
-            VectorDrawableCompat downloadIcon = VectorDrawableCompat.create(getResources(), R.drawable.ic_file_download_white_24dp, null);
+            VectorDrawableCompat downloadIcon = VectorDrawableCompat.create(getResources(), R.drawable.file_download_in_progress, null);
             notificationIconView.setImageDrawable(downloadIcon);
         } else {
-            notificationRootView.setBackgroundColor(ContextCompat.getColor(getContext(), R.color.other_notification_background_color));
-            VectorDrawableCompat newReleaseIcon = VectorDrawableCompat.create(getResources(), R.drawable.ic_new_releases_black_24dp, null);
+            VectorDrawableCompat newReleaseIcon = VectorDrawableCompat.create(getResources(), R.drawable.ic_new_releases, null);
             notificationIconView.setImageDrawable(newReleaseIcon);
-        }
-        if (notification.isSeen()) {
-            notificationRootView.setBackgroundColor(ContextCompat.getColor(getContext(), R.color.white));
         }
         notificationTimeView.setText(AppConstants.DATE_FORMATTER_IN_12HRS.format(new Date(notification.getTimeStamp())));
         View.OnClickListener onClickListener = v -> {

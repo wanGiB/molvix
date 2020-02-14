@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/colorPrimaryDarkTheme">
+    android:background="?attr/app_updater_card_background_color">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -27,7 +27,7 @@
             android:layout_gravity="center_horizontal"
             android:gravity="center_horizontal"
             android:padding="5dp"
-            android:textColor="@color/base_gray"
+            android:textColor="?attr/movie_seasons_color"
             android:textSize="20sp"
             app:textStyle="medium" />
 
@@ -35,7 +35,7 @@
             android:layout_width="match_parent"
             android:layout_height="0.5dp"
             android:layout_margin="16dp"
-            android:background="@color/ease_gray" />
+            android:background="?attr/app_updater_divider_background_color" />
 
         <com.molvix.android.ui.widgets.MolvixTextView
             android:id="@+id/text"
@@ -45,7 +45,7 @@
             android:gravity="center_horizontal"
             android:lineSpacingExtra="2dp"
             android:text="@string/new_update_available_text"
-            android:textColor="@color/ease_gray"
+            android:textColor="?attr/movie_description_color"
             android:textSize="14sp"
             app:textStyle="regular" />
 

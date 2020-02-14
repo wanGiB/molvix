@@ -1,5 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+
+    <attr name="movie_name_color" format="reference|color" />
+    <attr name="movie_description_color" format="reference|color" />
+    <attr name="movie_seasons_color" format="reference|color" />
+    <attr name="movie_card_background_color" format="reference|color" />
+    <attr name="movie_art_background_color" format="reference|color" />
+    <attr name="movie_cell_divider_background_color" format="reference|color" />
+
+    <attr name="app_card_background_color" format="reference|color" />
+    <attr name="app_updater_card_background_color" format="reference|color" />
+    <attr name="app_updater_divider_background_color" format="reference|color" />
+
+    <attr name="search_box_background_color" format="reference|color" />
+    <attr name="search_text_color" format="reference|color" />
+    <attr name="search_hint_color" format="reference|color" />
+    <attr name="search_icon_color" format="reference|color" />
+
+    <attr name="network_error_msg_color" format="reference|color" />
+    <attr name="empty_content_msg_color" format="reference|color" />
+    <attr name="default_vectors_color" format="reference|color" />
+
+    <attr name="bottom_navigation_background_color" format="reference|color" />
+    <attr name="bottom_navigation_item_unselected_color" format="reference|color" />
+    <attr name="bottom_navigation_item_selected_color" format="reference|color" />
+
+    <attr name="downloaded_item_view_bottom_title_color" format="reference|color" />
+    <attr name="downloaded_item_view_path_string_color" format="reference|color" />
+
+    <attr name="root_view_background_color" format="reference|color" />
+    <attr name="anti_root_view_background_color" format="reference|color" />
+
+    <attr name="light_background_color" format="reference|color" />
+    <attr name="app_background_color" format="reference|color" />
+    <attr name="header_text_color" format="reference|color" />
+    <attr name="notification_time_color" format="reference|color" />
+    <attr name="notification_body_color" format="reference|color" />
+
     <declare-styleable name="MolvixTextView">
         <attr name="textStyle" />
         <attr name="text_animationStyle" />

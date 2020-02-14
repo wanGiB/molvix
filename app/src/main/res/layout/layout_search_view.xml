@@ -1,12 +1,12 @@
-<com.google.android.material.card.MaterialCardView android:id="@+id/search_card"
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/search_card"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@color/white"
-    app:cardBackgroundColor="@color/white"
+    android:background="?attr/app_card_background_color"
+    app:cardBackgroundColor="?attr/app_card_background_color"
     app:cardCornerRadius="3dp"
-    app:cardElevation="3dp"
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+    app:cardElevation="3dp">
 
     <LinearLayout
         android:id="@+id/search_box_outer_container"
@@ -20,14 +20,14 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
             android:layout_weight="0.8"
-            android:background="@color/white"
+            android:background="?attr/search_box_background_color"
             android:cursorVisible="false"
             android:drawablePadding="10dp"
             android:gravity="center_vertical"
             android:hint="@string/search_movies"
             android:padding="16dp"
-            android:textColor="@color/black"
-            android:textColorHint="@color/gray50"
+            android:textColor="?attr/search_text_color"
+            android:textColorHint="?attr/search_hint_color"
             android:textSize="14sp" />
 
         <androidx.appcompat.widget.AppCompatImageView
@@ -38,7 +38,7 @@
             android:layout_marginStart="5dp"
             android:layout_marginEnd="5dp"
             android:visibility="gone"
-            app:srcCompat="@drawable/ic_close_black_24dp" />
+            app:srcCompat="@drawable/close_search" />
 
     </LinearLayout>
 

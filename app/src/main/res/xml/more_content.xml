@@ -2,6 +2,15 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
     android:title="General Settings">
 
+    <PreferenceCategory android:title="Theme &amp; Appearance">
+        <SwitchPreferenceCompat
+            android:defaultValue="false"
+            android:key="@string/theme_key"
+            android:summary="Night Mode"
+            android:title="Theme" />
+
+    </PreferenceCategory>
+
     <PreferenceCategory android:title="Notifications">
 
         <SwitchPreferenceCompat

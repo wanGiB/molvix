@@ -5,7 +5,7 @@
     android:id="@+id/notification_root_view"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@color/other_notification_background_color"
+    android:background="?attr/root_view_background_color"
     android:descendantFocusability="beforeDescendants"
     android:orientation="vertical">
 
@@ -21,7 +21,7 @@
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:padding="10dp"
-            app:srcCompat="@drawable/ic_file_download_white_24dp"
+            app:srcCompat="@drawable/file_download_in_progress"
             tools:ignore="ContentDescription" />
 
         <LinearLayout
@@ -37,6 +37,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:ellipsize="end"
+                android:textColor="?attr/notification_body_color"
                 android:textSize="14sp"
                 app:textStyle="regular" />
 
@@ -47,6 +48,7 @@
                 android:layout_gravity="end"
                 android:paddingStart="10dp"
                 android:paddingEnd="10dp"
+                android:textColor="?attr/notification_time_color"
                 android:textSize="12sp"
                 app:textStyle="regular" />
 
@@ -57,6 +59,6 @@
     <View
         android:layout_width="match_parent"
         android:layout_height="0.5dp"
-        android:background="@color/ease_gray" />
+        android:background="?attr/app_updater_divider_background_color" />
 
 </LinearLayout>

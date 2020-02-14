@@ -18,6 +18,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat;
@@ -246,7 +247,7 @@ public class EpisodeView extends FrameLayout {
             if (episodeActiveDownloadProgress == 0) {
                 downloadOrPlayButton.setText(getContext().getString(R.string.preparing));
                 downloadOrPlayButton.setTextColor(ContextCompat.getColor(getContext(), R.color.colorAccent));
-                episodeNameView.setTextColor(ContextCompat.getColor(getContext(), R.color.blue_grey_active));
+                setEpisodeNameViewDefaultColor();
                 downloadOrPlayButton.setCompoundDrawablesWithIntrinsicBounds(null, null, null, null);
                 UiUtils.toggleViewVisibility(downloadProgressContainer, false);
                 if (StringUtils.isNotEmpty(AppPrefs.getEpisodeDownloadProgressText(episode.getEpisodeId()))) {
@@ -259,6 +260,15 @@ public class EpisodeView extends FrameLayout {
             downloadOrPlayButton.clearAnimation();
             UiUtils.toggleViewVisibility(downloadProgressContainer, false);
             checkToSeeIfEpisodeAlreadyDownloaded(episode.getEpisodeName());
+        }
+    }
+
+    private void setEpisodeNameViewDefaultColor() {
+        int activeTheme = AppCompatDelegate.getDefaultNightMode();
+        if (activeTheme == AppCompatDelegate.MODE_NIGHT_NO) {
+            episodeNameView.setTextColor(ContextCompat.getColor(getContext(), R.color.dracula_primary));
+        } else {
+            episodeNameView.setTextColor(ContextCompat.getColor(getContext(), R.color.white));
         }
     }
 
@@ -306,8 +316,8 @@ public class EpisodeView extends FrameLayout {
     }
 
     private void setToDownloadable() {
-        episodeNameView.setTextColor(ContextCompat.getColor(getContext(), R.color.blue_grey_active));
-        VectorDrawableCompat downloadIcon = VectorDrawableCompat.create(getResources(), R.drawable.ic_file_download_white_24dp, null);
+        setEpisodeNameViewDefaultColor();
+        VectorDrawableCompat downloadIcon = VectorDrawableCompat.create(getResources(), R.drawable.file_download_in_progress, null);
         downloadOrPlayButton.setText(getContext().getString(R.string.download));
         downloadOrPlayButton.setCompoundDrawablesWithIntrinsicBounds(downloadIcon, null, null, null);
         downloadOrPlayButton.setTextColor(ContextCompat.getColor(getContext(), R.color.colorAccent));
@@ -318,7 +328,7 @@ public class EpisodeView extends FrameLayout {
         //A successfully Downloaded Video should be at least 10MB in size
         if (existingFileLength >= 10) {
             downloadOrPlayButton.setText(getContext().getString(R.string.play));
-            VectorDrawableCompat playIcon = VectorDrawableCompat.create(getResources(), R.drawable.ic_play_arrow_blue_24dp, null);
+            VectorDrawableCompat playIcon = VectorDrawableCompat.create(getResources(), R.drawable.ic_play_arrow, null);
             downloadOrPlayButton.setCompoundDrawablesWithIntrinsicBounds(playIcon, null, null, null);
             episodeNameView.setTextColor(ContextCompat.getColor(getContext(), R.color.colorGreen));
             downloadOrPlayButton.setTextColor(ContextCompat.getColor(getContext(), R.color.colorGreen));

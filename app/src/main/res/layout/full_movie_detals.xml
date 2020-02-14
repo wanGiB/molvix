@@ -1,67 +1,60 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/parent_card_view"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@color/white"
     android:clipChildren="true"
-    android:clipToPadding="true">
+    android:clipToPadding="true"
+    android:orientation="vertical">
 
-    <LinearLayout
+    <com.molvix.android.ui.widgets.LoadingImageView
+        android:id="@+id/movie_art_view"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:background="?attr/movie_art_background_color"
+        android:scaleType="centerCrop"
+        tools:ignore="ContentDescription" />
+
+    <com.molvix.android.ui.widgets.MolvixTextView
+        android:id="@+id/movie_name_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:padding="8dp"
+        android:textColor="?attr/movie_name_color"
+        android:textSize="17sp"
+        app:textStyle="bold" />
 
-        <com.molvix.android.ui.widgets.LoadingImageView
-            android:id="@+id/movie_art_view"
-            android:layout_width="match_parent"
-            android:layout_height="200dp"
-            android:background="@color/light_gray"
-            android:scaleType="centerCrop"
-            tools:ignore="ContentDescription" />
+    <com.molvix.android.ui.widgets.MolvixTextView
+        android:id="@+id/movie_description_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ellipsize="end"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        android:paddingBottom="8dp"
+        android:textColor="?attr/movie_description_color"
+        android:textSize="14sp"
+        app:textStyle="regular" />
 
-        <com.molvix.android.ui.widgets.MolvixTextView
-            android:id="@+id/movie_name_view"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:padding="8dp"
-            android:textColor="@color/black"
-            android:textSize="17sp"
-            app:textStyle="bold" />
+    <com.molvix.android.ui.widgets.MolvixTextView
+        android:id="@+id/movie_seasons_count_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical|end"
+        android:gravity="center_vertical"
+        android:paddingStart="8dp"
+        android:paddingTop="5dp"
+        android:paddingEnd="8dp"
+        android:paddingBottom="2dp"
+        android:textColor="?attr/movie_seasons_color"
+        android:textSize="14sp"
+        app:textStyle="medium" />
 
-        <com.molvix.android.ui.widgets.MolvixTextView
-            android:id="@+id/movie_description_view"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:ellipsize="end"
-            android:paddingStart="8dp"
-            android:paddingEnd="8dp"
-            android:paddingBottom="8dp"
-            android:textColor="@color/text_light_dark"
-            android:textSize="14sp"
-            app:textStyle="regular" />
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0.5dp"
+        android:background="?attr/app_updater_divider_background_color" />
 
-        <com.molvix.android.ui.widgets.MolvixTextView
-            android:id="@+id/movie_seasons_count_view"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical|end"
-            android:gravity="center_vertical"
-            android:paddingStart="8dp"
-            android:paddingTop="5dp"
-            android:paddingEnd="8dp"
-            android:paddingBottom="2dp"
-            android:textColor="@color/ease_gray_dark"
-            android:textSize="14sp"
-            app:textStyle="medium" />
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="0.5dp"
-            android:background="@color/light_grey" />
-
-    </LinearLayout>
-
-</FrameLayout>
+</LinearLayout>

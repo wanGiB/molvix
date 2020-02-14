@@ -1,11 +1,12 @@
 package com.molvix.android.ui.fragments;
 
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -15,6 +16,8 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.molvix.android.R;
 import com.molvix.android.beans.DownloadedVideoItem;
+import com.molvix.android.components.ApplicationLoader;
+import com.molvix.android.eventbuses.DownloadedFileDeletedEvent;
 import com.molvix.android.eventbuses.LoadDownloadedVideosFromFile;
 import com.molvix.android.managers.DownloadedItemsPositionsManager;
 import com.molvix.android.ui.adapters.DownloadedVideosAdapter;
@@ -22,6 +25,8 @@ import com.molvix.android.ui.decorators.MarginDecoration;
 import com.molvix.android.ui.widgets.AutoFitRecyclerView;
 import com.molvix.android.utils.FileUtils;
 import com.molvix.android.utils.UiUtils;
+
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -51,9 +56,14 @@ public class DownloadedVideosFragment extends BaseFragment {
     @BindView(R.id.back_nav)
     FloatingActionButton backNav;
 
+    @BindView(R.id.back_nav_container)
+    View backNavContainer;
+
+    @BindView(R.id.nav_path_view)
+    TextView navPathView;
+
     public static List<DownloadedVideoItem> downloadedVideoItems = new ArrayList<>();
     private DownloadedVideosAdapter downloadedVideosAdapter;
-
     private Handler mUIHandler = new Handler();
 
     @Nullable
@@ -68,6 +78,7 @@ public class DownloadedVideosFragment extends BaseFragment {
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         backNav.hide();
+        UiUtils.toggleViewVisibility(navPathView, false);
         backNav.setOnClickListener(v -> Objects.requireNonNull(getActivity()).onBackPressed());
         setupSwipeRefreshLayoutColorScheme();
         setupAdapter();
@@ -113,10 +124,10 @@ public class DownloadedVideosFragment extends BaseFragment {
 
     private void loadDownloadedVideos(String parentFolder, File dir) {
         if (dir.exists()) {
-            downloadedVideoItems.clear();
-            downloadedVideosAdapter.notifyDataSetChanged();
             File[] children = dir.listFiles();
             if (children != null && children.length > 0) {
+                downloadedVideoItems.clear();
+                downloadedVideosAdapter.notifyDataSetChanged();
                 for (File file : children) {
                     String thumbnailPath = getThumbnailPath(file);
                     if (!file.isHidden() && thumbnailPath != null) {
@@ -128,26 +139,47 @@ public class DownloadedVideosFragment extends BaseFragment {
                         downloadedVideoItem.setParentFolderName(parentFolder);
                         downloadedVideoItems.add(downloadedVideoItem);
                         downloadedVideosAdapter.notifyItemInserted(downloadedVideoItems.size() - 1);
+                        if (downloadedVideoItem.getParentFolderName().equals(FileUtils.videoFolder())) {
+                            backNav.hide();
+                            UiUtils.toggleViewVisibility(navPathView, false);
+                        } else {
+                            backNav.show();
+                            drawPathString(downloadedVideoItem);
+                        }
                     }
                 }
-                displayDownloadsAvailableView();
-                if (DownloadedItemsPositionsManager.canShowBackNav()) {
-                    backNav.show();
-                } else {
-                    backNav.hide();
-                }
-                if (!downloadedVideoItems.isEmpty()) {
-                    if (downloadedVideoItems.get(0).getParentFolderName().equals(FileUtils.videoFolder())) {
-                        backNav.hide();
-                    }
-                } else {
+                if (downloadedVideoItems.isEmpty()) {
                     displayNoDownloadedVideosView();
+                } else {
+                    displayDownloadsAvailableView();
                 }
             }
         } else {
             displayNoDownloadedVideosView();
         }
         swipeRefreshLayout.setRefreshing(false);
+    }
+
+    private void drawPathString(DownloadedVideoItem downloadedVideoItem) {
+        File downloadedFileItem = downloadedVideoItem.getDownloadedFile();
+        String fileName = downloadedFileItem.getName();
+        String filePath = downloadedFileItem.getPath();
+        if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())) {
+            File externalFilesDir = ApplicationLoader.getInstance().getExternalFilesDir(null);
+            if (externalFilesDir != null && externalFilesDir.exists()) {
+                String externalStoragePath = externalFilesDir.getPath();
+                filePath = StringUtils.remove(filePath, externalStoragePath).replace("/" + FileUtils.getRootFolder(), "").replace("/" + FileUtils.videoFolder(), "");
+            }
+        }
+        filePath = filePath.replace("/Android/data/com.molvix.android/files", "");
+        filePath = StringUtils.remove(filePath, "/" + FileUtils.getRootFolder()).replace("/" + FileUtils.videoFolder(), "");
+        filePath = filePath.replace(fileName, "");
+        UiUtils.toggleViewVisibility(navPathView, true);
+        navPathView.setText("...".concat(filePath));
+        if (StringUtils.isEmpty(filePath)) {
+            UiUtils.toggleViewVisibility(navPathView, false);
+            backNav.hide();
+        }
     }
 
     private void scrollToLastPosition() {
@@ -177,6 +209,11 @@ public class DownloadedVideosFragment extends BaseFragment {
             if (event instanceof LoadDownloadedVideosFromFile) {
                 LoadDownloadedVideosFromFile downloadedVideosFromFile = (LoadDownloadedVideosFromFile) event;
                 loadDownloadedVideos(downloadedVideosFromFile.getParentFolderName(), downloadedVideosFromFile.getParentFolder());
+            } else if (event instanceof DownloadedFileDeletedEvent) {
+                DownloadedFileDeletedEvent downloadedFileDeletedEvent = (DownloadedFileDeletedEvent) event;
+                DownloadedVideoItem downloadedVideoItem = downloadedFileDeletedEvent.getDownloadedVideoItem();
+                downloadedVideoItems.remove(downloadedVideoItem);
+                downloadedVideosAdapter.notifyDataSetChanged();
             }
         });
     }

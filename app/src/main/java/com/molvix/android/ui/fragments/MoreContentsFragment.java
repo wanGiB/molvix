@@ -1,9 +1,11 @@
 package com.molvix.android.ui.fragments;
 
+import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.SwitchPreferenceCompat;
@@ -11,6 +13,7 @@ import androidx.preference.SwitchPreferenceCompat;
 import com.molvix.android.R;
 import com.molvix.android.components.ApplicationLoader;
 import com.molvix.android.preferences.AppPrefs;
+import com.molvix.android.ui.activities.MainActivity;
 import com.morsebyte.shailesh.twostagerating.TwoStageRate;
 
 public class MoreContentsFragment extends PreferenceFragmentCompat implements Preference.OnPreferenceChangeListener {
@@ -53,6 +56,11 @@ public class MoreContentsFragment extends PreferenceFragmentCompat implements Pr
 
             }
         }
+        SwitchPreferenceCompat themePref = findPreference(getString(R.string.theme_key));
+        if (themePref != null) {
+            themePref.setDefaultValue(AppCompatDelegate.getDefaultNightMode() != AppCompatDelegate.MODE_NIGHT_NO);
+            themePref.setOnPreferenceChangeListener(this);
+        }
     }
 
     private void initAppRater() {
@@ -71,6 +79,17 @@ public class MoreContentsFragment extends PreferenceFragmentCompat implements Pr
         } else if (preference.getKey().equals(getString(R.string.downloaded_movies_update_key))) {
             AppPrefs.setDownloadedMoviesUpdatable((Boolean) newValue);
             downloadedMoviesUpdateSwitch.setDefaultValue(newValue);
+        } else if (preference.getKey().equals(getString(R.string.theme_key))) {
+            if (((Boolean) newValue)) {
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+            } else {
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+            }
+            if (getActivity() != null) {
+                Intent reIntent = new Intent(getActivity(), MainActivity.class);
+                startActivity(reIntent);
+                getActivity().finish();
+            }
         }
         return true;
     }

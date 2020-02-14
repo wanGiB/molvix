@@ -1,28 +1,49 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:animateLayoutChanges="true"
-    android:background="@color/light_gray">
+    android:background="?attr/light_background_color">
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/back_nav"
+    <FrameLayout
+        android:id="@+id/back_nav_container"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:visibility="gone"
-        app:backgroundTint="@color/white"
-        app:elevation="0dp"
-        app:fabCustomSize="45dp"
-        app:rippleColor="@color/colorAccent"
-        app:srcCompat="@drawable/nav_back"
-        app:useCompatPadding="true" />
+        android:layout_marginStart="5dp">
+
+        <com.molvix.android.ui.widgets.MolvixTextView
+            android:id="@+id/nav_path_view"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_marginStart="40dp"
+            android:background="@drawable/file_path_nav_background"
+            android:gravity="center_vertical"
+            android:padding="5dp"
+            android:textColor="?attr/movie_seasons_color"
+            app:textStyle="medium" />
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/back_nav"
+            android:layout_width="45dp"
+            android:layout_height="45dp"
+            android:padding="0dp"
+            app:backgroundTint="?attr/root_view_background_color"
+            app:elevation="0dp"
+            app:fabCustomSize="45dp"
+            app:rippleColor="@color/colorAccent"
+            app:srcCompat="@drawable/nav_back"
+            app:useCompatPadding="false" />
+
+    </FrameLayout>
 
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/swipe_refresh_layout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@+id/back_nav">
+        android:layout_below="@+id/back_nav_container">
 
         <com.molvix.android.ui.widgets.AutoFitRecyclerView
             android:id="@+id/downloaded_videos_recycler_view"
@@ -30,7 +51,8 @@
             android:layout_height="match_parent"
             android:clipToPadding="false"
             android:columnWidth="@dimen/column_width"
-            android:padding="@dimen/item_margin" />
+            android:padding="@dimen/item_margin"
+            tools:listitem="@layout/downloaded_video_item_view" />
 
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
@@ -64,6 +86,7 @@
                 android:gravity="center"
                 android:padding="5dp"
                 android:text="@string/no_downloaded_videos"
+                android:textColor="?attr/movie_seasons_color"
                 app:textStyle="medium" />
 
         </LinearLayout>

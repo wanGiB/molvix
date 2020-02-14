@@ -22,12 +22,28 @@ public abstract class BaseActivity extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
+        configureThemePreference();
         super.onCreate(savedInstanceState);
         checkAndRegisterEventBus();
-        tintToolbarAndTabLayout(ContextCompat.getColor(this, R.color.light_grey));
+        tintStatusBar(ContextCompat.getColor(this, R.color.light_grey));
     }
 
-    protected void tintToolbarAndTabLayout(int colorPrimary) {
+    private void configureThemePreference() {
+        int themeSelection = AppCompatDelegate.getDefaultNightMode();
+        if (themeSelection == AppCompatDelegate.MODE_NIGHT_NO) {
+            setTheme(R.style.LightTheme);
+            if (this instanceof SplashActivity) {
+                setTheme(R.style.SplashAppLightTheme);
+            }
+        } else {
+            setTheme(R.style.DarkTheme);
+            if (this instanceof SplashActivity) {
+                setTheme(R.style.SplashAppDarkTheme);
+            }
+        }
+    }
+
+    protected void tintStatusBar(int colorPrimary) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             Window window = getWindow();
             window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);

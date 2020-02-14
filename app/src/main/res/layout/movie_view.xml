@@ -5,7 +5,7 @@
     android:id="@+id/parent_card_view"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@color/white"
+    android:background="?attr/movie_card_background_color"
     android:orientation="vertical">
 
     <LinearLayout
@@ -17,7 +17,7 @@
             android:id="@+id/movie_art_view"
             android:layout_width="match_parent"
             android:layout_height="200dp"
-            android:background="@color/light_gray"
+            android:background="?attr/movie_art_background_color"
             android:scaleType="centerCrop"
             tools:ignore="ContentDescription" />
 
@@ -26,7 +26,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="8dp"
-            android:textColor="@color/black"
+            android:textColor="?attr/movie_name_color"
             android:textSize="15sp"
             app:textStyle="bold" />
 
@@ -39,7 +39,7 @@
             android:paddingStart="8dp"
             android:paddingEnd="8dp"
             android:paddingBottom="8dp"
-            android:textColor="@color/text_light_dark"
+            android:textColor="?attr/movie_description_color"
             android:textSize="14sp"
             app:textStyle="regular" />
 
@@ -52,7 +52,7 @@
             android:paddingStart="8dp"
             android:paddingEnd="8dp"
             android:paddingBottom="8dp"
-            android:textColor="@color/ease_gray_dark"
+            android:textColor="?attr/movie_seasons_color"
             android:textSize="14sp"
             app:textStyle="medium" />
 
@@ -61,6 +61,6 @@
     <View
         android:layout_width="match_parent"
         android:layout_height="15dp"
-        android:background="@color/light_gray" />
+        android:background="?attr/movie_cell_divider_background_color" />
 
 </LinearLayout>

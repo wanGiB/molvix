@@ -64,6 +64,8 @@
     <string name="update">UPDATE</string>
     <string name="no_downloaded_videos">Successfully downloaded videos would show up here</string>
     <string name="title_downloaded_videos">Downloads</string>
+    <string name="theme_key">theme_pref_key</string>
+    <string name="loading">Loading…</string>
     <string-array name="reply_choices">
         <item>Yes</item>
         <item>No</item>

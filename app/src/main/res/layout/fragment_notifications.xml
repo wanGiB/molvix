@@ -2,8 +2,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@color/light_gray">
+    android:layout_height="match_parent">
 
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/swipe_refresh_layout"
@@ -37,7 +36,7 @@
                 android:layout_width="50dp"
                 android:layout_height="50dp"
                 android:layout_gravity="center"
-                app:srcCompat="@drawable/ic_notifications_black_24dp" />
+                app:srcCompat="@drawable/ic_notifications" />
 
             <com.molvix.android.ui.widgets.MolvixTextView
                 android:id="@+id/notifications_center_label"
@@ -47,6 +46,7 @@
                 android:gravity="center"
                 android:padding="5dp"
                 android:text="@string/no_notifications"
+                android:textColor="?attr/movie_seasons_color"
                 app:textStyle="medium" />
 
         </LinearLayout>
@@ -60,8 +60,8 @@
         android:layout_alignParentEnd="true"
         android:layout_alignParentBottom="true"
         android:layout_margin="20dp"
-        app:backgroundTint="@color/white"
+        app:backgroundTint="?attr/light_background_color"
         app:rippleColor="@color/ease_gray"
-        app:srcCompat="@drawable/ic_clear_all_black_24dp" />
+        app:srcCompat="@drawable/ic_clear_all" />
 
 </RelativeLayout>

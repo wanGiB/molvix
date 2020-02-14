@@ -108,6 +108,7 @@ public class MolvixVideoPlayerView extends FrameLayout {
             listenToControlButtonClicks(downloadedVideoItems, startIndex, videoControls);
             listenToControlsVisibilityChange(videoControls);
             videoView.setOnCompletionListener(() -> {
+                AppPrefs.persistMediaPlayBackPositionFor(downloadedVideoItems.get(startIndex).getDownloadedFile(), 0);
                 int nextIndex = startIndex + 1;
                 try {
                     DownloadedVideoItem nextOnList = downloadedVideoItems.get(nextIndex);
@@ -233,7 +234,10 @@ public class MolvixVideoPlayerView extends FrameLayout {
     @Override
     protected void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
-        UiUtils.showSafeToast("Orientation is now=" + newConfig.orientation);
+        int newOrientation = newConfig.orientation;
+        if (newOrientation == Configuration.ORIENTATION_LANDSCAPE) {
+            //TODO Go full screen immersive like android 19+
+        }
     }
 
     public void trySaveCurrentPlayerPosition() {

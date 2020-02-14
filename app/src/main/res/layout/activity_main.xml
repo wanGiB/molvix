@@ -4,19 +4,20 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/container"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="?attr/app_background_color">
 
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/light_gray"
+        android:background="?attr/root_view_background_color"
         tools:ignore="UselessParent">
 
         <com.molvix.android.ui.widgets.MolvixSearchView
             android:id="@+id/search_view"
-            android:layout_margin="8dp"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:layout_margin="8dp" />
 
         <androidx.viewpager.widget.ViewPager
             android:id="@+id/fragment_pager"
@@ -32,7 +33,7 @@
             android:layout_alignParentBottom="true"
             android:layout_marginStart="0dp"
             android:layout_marginEnd="0dp"
-            android:background="@color/white"
+            android:background="?attr/bottom_navigation_background_color"
             app:menu="@menu/bottom_nav_menu" />
 
     </RelativeLayout>

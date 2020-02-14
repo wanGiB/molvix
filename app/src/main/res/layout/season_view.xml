@@ -4,7 +4,7 @@
     android:id="@+id/root_view"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@color/white"
+    android:background="?attr/root_view_background_color"
     android:orientation="vertical">
 
     <LinearLayout
@@ -35,14 +35,14 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
             android:layout_marginEnd="5dp"
-            app:srcCompat="@drawable/ic_chevron_right_accent_24dp" />
+            app:srcCompat="@drawable/season_entrance_arrow" />
 
     </LinearLayout>
 
     <View
         android:layout_width="match_parent"
         android:layout_height="0.5dp"
-        android:background="@color/ease_gray" />
+        android:background="?attr/app_updater_divider_background_color" />
 
 </LinearLayout>
 

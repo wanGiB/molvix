@@ -2,6 +2,7 @@ package com.molvix.android.ui.widgets;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.graphics.drawable.ColorDrawable;
 import android.media.MediaPlayer;
 import android.net.Uri;
@@ -15,10 +16,12 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
 
 import com.molvix.android.R;
 import com.molvix.android.beans.DownloadedVideoItem;
+import com.molvix.android.eventbuses.DownloadedFileDeletedEvent;
 import com.molvix.android.eventbuses.LoadDownloadedVideosFromFile;
 import com.molvix.android.managers.DownloadedItemsPositionsManager;
 import com.molvix.android.ui.activities.MainActivity;
@@ -37,9 +40,6 @@ public class DownloadedVideoItemView extends FrameLayout {
 
     @BindView(R.id.video_preview)
     ImageView videoPreview;
-
-    @BindView(R.id.top_title_view)
-    TextView topTitleView;
 
     @BindView(R.id.bottom_title_view)
     TextView bottomTitleView;
@@ -73,27 +73,20 @@ public class DownloadedVideoItemView extends FrameLayout {
         File downloadedFile = downloadedVideoItem.getDownloadedFile();
         String parentFolderName = downloadedVideoItem.getParentFolderName();
         if (parentFolderName.equals(FileUtils.videoFolder())) {
-            UiUtils.toggleViewVisibility(topTitleView, false);
             UiUtils.toggleViewVisibility(durationTextView, false);
             //this is the video name folder
             String videoName = downloadedFile.getName();
             bottomTitleView.setText(videoName.concat(enumerateSeasonsInFolder(downloadedFile)));
         } else {
             if (downloadedFile.isDirectory()) {
-                UiUtils.toggleViewVisibility(topTitleView, true);
                 UiUtils.toggleViewVisibility(durationTextView, false);
-                topTitleView.setText(parentFolderName);
                 bottomTitleView.setText(downloadedFile.getName());
             } else {
-                UiUtils.toggleViewVisibility(topTitleView, true);
                 UiUtils.toggleViewVisibility(durationTextView, true);
                 String downloadedFilePath = downloadedFile.getPath();
                 downloadedFilePath = StringUtils.remove(downloadedFilePath, File.separator + parentFolderName);
                 downloadedFilePath = StringUtils.remove(downloadedFilePath, File.separator + downloadedFile.getName());
                 String movieName = StringUtils.substringAfterLast(downloadedFilePath, File.separator);
-                if (StringUtils.isNotEmpty(movieName)) {
-                    topTitleView.setText(movieName);
-                }
                 String episodeName = downloadedFile.getName();
                 String seasonAbbrev = "S-" + StringUtils.substringAfterLast(parentFolderName, "-");
                 String episodeAbbrev = "E-" + StringUtils.substringAfterLast(episodeName, "-");
@@ -131,8 +124,29 @@ public class DownloadedVideoItemView extends FrameLayout {
         setOnClickListener(onClickListener);
         bottomTitleView.setOnClickListener(onClickListener);
         videoPreview.setOnClickListener(onClickListener);
-        topTitleView.setOnClickListener(onClickListener);
         durationTextView.setOnClickListener(onClickListener);
+
+        View.OnLongClickListener onLongClickListener = v -> {
+            AlertDialog.Builder deletePromptDialogBuilder = new AlertDialog.Builder(getContext());
+            deletePromptDialogBuilder.setTitle("Attention!");
+            deletePromptDialogBuilder.setMessage("Delete "+downloadedFile.getName()+"?");
+            deletePromptDialogBuilder.setPositiveButton("DELETE", (dialog, which) -> {
+                dialog.dismiss();
+                boolean deleted = downloadedFile.delete();
+                if (deleted) {
+                    EventBus.getDefault().post(new DownloadedFileDeletedEvent(downloadedVideoItem));
+                } else {
+                    UiUtils.showSafeToast("Sorry, failed to delete file. Please try again.");
+                }
+            });
+            deletePromptDialogBuilder.setNegativeButton("CANCEL", (dialog, which) -> dialog.dismiss());
+            deletePromptDialogBuilder.create().show();
+            return true;
+        };
+        setOnLongClickListener(onLongClickListener);
+        bottomTitleView.setOnLongClickListener(onLongClickListener);
+        videoPreview.setOnLongClickListener(onLongClickListener);
+        durationTextView.setOnLongClickListener(onLongClickListener);
     }
 
     private String enumerateSeasonsInFolder(File downloadedFile) {

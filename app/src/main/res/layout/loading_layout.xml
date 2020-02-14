@@ -16,8 +16,8 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
         android:gravity="center_horizontal"
-        android:text="loading"
-        android:textColor="@color/gray50"
+        android:text="@string/loading"
+        android:textColor="?attr/movie_seasons_color"
         android:textSize="13sp" />
 
 </LinearLayout>

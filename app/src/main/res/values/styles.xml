@@ -9,11 +9,75 @@
         <item name="android:windowBackground">@color/white</item>
     </style>
 
-    <style name="SplashAppTheme" parent="Theme.AppCompat.Light.NoActionBar">
-        <!-- Customize your theme here. -->
+    <style name="LightTheme" parent="AppTheme">
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
-        <item name="colorAccent">@color/colorAccent</item>
+        <item name="movie_name_color">@color/black</item>
+        <item name="movie_card_background_color">@color/white</item>
+        <item name="movie_art_background_color">@color/light_gray</item>
+        <item name="movie_description_color">@color/text_light_dark</item>
+        <item name="movie_seasons_color">@color/ease_gray_dark</item>
+        <item name="movie_cell_divider_background_color">@color/window_background</item>
+        <item name="root_view_background_color">@color/window_background</item>
+        <item name="bottom_navigation_background_color">@color/white</item>
+        <item name="app_card_background_color">@color/white</item>
+        <item name="search_box_background_color">@color/white</item>
+        <item name="search_text_color">@color/black</item>
+        <item name="search_hint_color">@color/gray50</item>
+        <item name="search_icon_color">@color/gray50</item>
+        <item name="android:windowBackground">@color/white</item>
+        <item name="app_updater_card_background_color">@color/white</item>
+        <item name="app_updater_divider_background_color">@color/light_gray</item>
+        <item name="anti_root_view_background_color">@color/dracula_primary</item>
+        <item name="light_background_color">@color/light_gray</item>
+        <item name="app_background_color">@color/light_gray</item>
+        <item name="header_text_color">@color/gray50</item>
+        <item name="notification_time_color">@color/gray50</item>
+        <item name="notification_body_color">@color/black</item>
+    </style>
+
+    <style name="DarkTheme" parent="AppTheme">
+        <item name="colorPrimary">@color/dracula_primary</item>
+        <item name="colorPrimaryDark">@color/dracula_primary_dark</item>
+        <item name="movie_name_color">@color/white</item>
+        <item name="movie_card_background_color">@color/dracula_album_popup_bg</item>
+        <item name="movie_art_background_color">
+            @color/dracula_album_dropdown_thumbnail_placeholder
+        </item>
+        <item name="movie_description_color">@color/dracula_text_description</item>
+        <item name="movie_seasons_color">@color/dracula_album_dropdown_title_text</item>
+        <item name="movie_cell_divider_background_color">@color/dracula_window_background</item>
+        <item name="root_view_background_color">@color/dracula_window_background</item>
+        <item name="bottom_navigation_background_color">@color/dracula_primary_dark</item>
+        <item name="app_card_background_color">@color/dracula_album_popup_bg</item>
+        <item name="search_box_background_color">
+            @color/dracula_album_dropdown_thumbnail_placeholder
+        </item>
+        <item name="search_text_color">@color/white</item>
+        <item name="search_hint_color">@color/dracula_album_dropdown_title_text</item>
+        <item name="search_icon_color">@color/dracula_album_dropdown_title_text</item>
+        <item name="android:windowBackground">@color/dracula_primary</item>
+        <item name="app_updater_card_background_color">@color/dracula_primary</item>
+        <item name="app_updater_divider_background_color">
+            @color/dracula_album_dropdown_thumbnail_placeholder
+        </item>
+        <item name="anti_root_view_background_color">@color/colorPrimary</item>
+        <item name="light_background_color">@color/dracula_album_dropdown_thumbnail_placeholder
+        </item>
+        <item name="app_background_color">@color/dracula_primary</item>
+        <item name="header_text_color">@color/colorPrimary</item>
+        <item name="notification_time_color">@color/dracula_album_dropdown_title_text</item>
+        <item name="notification_body_color">@color/white</item>
+    </style>
+
+    <style name="SplashAppLightTheme" parent="LightTheme">
+        <!-- Customize your theme here. -->
+        <item name="root_view_background_color">@color/white</item>
+        <item name="android:windowBackground">@drawable/splash_background</item>
+    </style>
+
+    <style name="SplashAppDarkTheme" parent="DarkTheme">
+        <!-- Customize your theme here. -->
         <item name="android:windowBackground">@drawable/splash_background</item>
     </style>
 

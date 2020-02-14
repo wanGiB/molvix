@@ -19,6 +19,7 @@ import android.webkit.WebViewClient;
 import android.widget.FrameLayout;
 
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.viewpager.widget.ViewPager;
@@ -462,16 +463,27 @@ public class MainActivity extends BaseActivity {
     }
 
     private void initNavBarTints() {
-        ColorStateList iconsColorStates = new ColorStateList(
+
+        ColorStateList lightModeIconsColorStates = new ColorStateList(
                 new int[][]{new int[]{-android.R.attr.state_checked}, new int[]{android.R.attr.state_checked}},
                 new int[]{ContextCompat.getColor(this, R.color.grey500), Color.BLACK});
 
-        ColorStateList textColorStates = new ColorStateList(
+        ColorStateList lightModeTextColorStates = new ColorStateList(
                 new int[][]{new int[]{-android.R.attr.state_checked},
                         new int[]{android.R.attr.state_checked}},
                 new int[]{ContextCompat.getColor(this, R.color.grey500), Color.BLACK});
-        bottomNavView.setItemIconTintList(iconsColorStates);
-        bottomNavView.setItemTextColor(textColorStates);
+
+        ColorStateList darkModeIconsColorStates = new ColorStateList(
+                new int[][]{new int[]{-android.R.attr.state_checked}, new int[]{android.R.attr.state_checked}},
+                new int[]{ContextCompat.getColor(this, R.color.light_gray_inactive_icon), Color.WHITE});
+
+        ColorStateList darkModeTextColorStates = new ColorStateList(
+                new int[][]{new int[]{-android.R.attr.state_checked},
+                        new int[]{android.R.attr.state_checked}},
+                new int[]{ContextCompat.getColor(this, R.color.light_gray_inactive_icon), Color.WHITE});
+
+        bottomNavView.setItemIconTintList(AppCompatDelegate.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_NO ? lightModeIconsColorStates : darkModeIconsColorStates);
+        bottomNavView.setItemTextColor(AppCompatDelegate.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_NO ? lightModeTextColorStates : darkModeTextColorStates);
     }
 
     @Override
@@ -522,7 +534,7 @@ public class MainActivity extends BaseActivity {
                         versionCode = packageInfo.versionCode;
                     }
                     if (forcedVersionCodeUpdate > versionCode) {
-                        tintToolbarAndTabLayout(ContextCompat.getColor(this, R.color.colorPrimaryDarkTheme));
+                        tintStatusBar(ContextCompat.getColor(this, R.color.colorPrimaryDarkTheme));
                         NewUpdateAvailableView newUpdateAvailableView = new NewUpdateAvailableView(this);
                         rootContainer.addView(newUpdateAvailableView, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
                         newUpdateAvailableView.displayNewUpdate(forcedVersionNameUpdate);

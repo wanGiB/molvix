@@ -3,41 +3,32 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="200dp">
 
     <ImageView
         android:id="@+id/video_preview"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/ease_gray"
+        android:background="?attr/movie_art_background_color"
         android:scaleType="centerCrop"
         tools:ignore="ContentDescription" />
-
-    <com.molvix.android.ui.widgets.MolvixTextView
-        android:id="@+id/top_title_view"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="top"
-        android:gravity="center_vertical"
-        android:padding="5dp"
-        android:textColor="@color/white"
-        android:textSize="14sp"
-        android:visibility="gone"
-        app:textStyle="medium" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
+        android:padding="5dp"
+        android:background="@color/semi_transparent"
         android:orientation="horizontal">
 
         <com.molvix.android.ui.widgets.MolvixTextView
             android:id="@+id/bottom_title_view"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
+            android:layout_gravity="center_vertical"
             android:layout_weight="1"
-            android:padding="5dp"
+            android:ellipsize="end"
+            android:maxLines="1"
             android:textColor="@color/white"
             android:textSize="13sp"
             app:textStyle="medium" />
@@ -46,8 +37,9 @@
             android:id="@+id/duration_text_view"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="bottom"
-            android:padding="8dp"
+            android:layout_gravity="center_vertical"
+            android:ellipsize="end"
+            android:maxLines="1"
             android:textColor="@color/white"
             android:textSize="12sp"
             app:textStyle="medium" />

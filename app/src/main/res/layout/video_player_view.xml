@@ -32,7 +32,7 @@
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:layout_gravity="center_vertical"
-                app:srcCompat="@drawable/ic_chevron_left_white_24dp"
+                app:srcCompat="@drawable/player_back_arrow"
                 tools:ignore="ContentDescription" />
 
             <com.molvix.android.ui.widgets.MolvixTextView

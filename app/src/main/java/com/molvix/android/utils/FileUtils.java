@@ -7,6 +7,8 @@ import android.webkit.MimeTypeMap;
 
 import com.molvix.android.components.ApplicationLoader;
 
+import org.jetbrains.annotations.Nullable;
+
 import java.io.File;
 import java.util.Locale;
 
@@ -25,10 +27,13 @@ public class FileUtils {
 
     public static File getVideosDir() {
         File filePath;
-        File dir;
+        String folder = "/" + getRootFolder() + MOLVIX_VIDEOS_FOLDER;
+        File dir = new File(folder);
         if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())) {
-            String folder = "/" + getRootFolder() + MOLVIX_VIDEOS_FOLDER;
-            dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + folder);
+            File externalFilesDir = getAppExternalFilesDir();
+            if (externalFilesDir != null) {
+                dir = new File(externalFilesDir.getAbsoluteFile() + folder);
+            }
         } else {
             ContextWrapper cw = new ContextWrapper(ApplicationLoader.getInstance());
             dir = cw.getDir(MOLVIX_VIDEOS_FOLDER, Context.MODE_PRIVATE);
@@ -37,14 +42,23 @@ public class FileUtils {
         return filePath;
     }
 
+    @Nullable
+    private static File getAppExternalFilesDir() {
+        File externalFilesDir = ApplicationLoader.getInstance().getExternalFilesDir(null);
+        if (externalFilesDir != null && !externalFilesDir.exists()) {
+            externalFilesDir.mkdir();
+        }
+        return externalFilesDir;
+    }
+
     public static File getFilePath(String movieFolder, String seasonFolder) {
         File filePath;
-        File dir;
+        String folder = "/" + getRootFolder() + MOLVIX_VIDEOS_FOLDER + "/" + movieFolder + "/" + seasonFolder;
+        File dir = new File(folder);
         if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())) {
-            String folder = "/" + getRootFolder() + MOLVIX_VIDEOS_FOLDER + "/" + movieFolder + "/" + seasonFolder;
-            dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + folder);
-            if (!dir.exists()) {
-                dir.mkdirs();
+            File externalFilesDir = getAppExternalFilesDir();
+            if (externalFilesDir != null) {
+                dir = new File(externalFilesDir.getAbsoluteFile() + folder);
             }
         } else {
             ContextWrapper cw = new ContextWrapper(ApplicationLoader.getInstance());
@@ -59,12 +73,12 @@ public class FileUtils {
 
     public static File getFilePath(String fileName, String movieFolder, String seasonFolder) {
         File filePath;
-        File dir;
+        String folder = "/" + getRootFolder() + MOLVIX_VIDEOS_FOLDER + "/" + movieFolder + "/" + seasonFolder;
+        File dir = new File(folder);
         if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())) {
-            String folder = "/" + getRootFolder() + MOLVIX_VIDEOS_FOLDER + "/" + movieFolder + "/" + seasonFolder;
-            dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + folder);
-            if (!dir.exists()) {
-                dir.mkdirs();
+            File externalFilesDir = getAppExternalFilesDir();
+            if (externalFilesDir != null) {
+                dir = new File(externalFilesDir.getAbsoluteFile() + folder);
             }
         } else {
             ContextWrapper cw = new ContextWrapper(ApplicationLoader.getInstance());
@@ -79,12 +93,12 @@ public class FileUtils {
 
     public static File getDataFilePath(String fileName) {
         File filePath;
-        File dir;
+        String folder = "/" + getRootFolder() + "/Data";
+        File dir = new File(folder);
         if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())) {
-            String folder = "/" + getRootFolder() + "/Data";
-            dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + folder);
-            if (!dir.exists()) {
-                dir.mkdirs();
+            File externalFilesDir = getAppExternalFilesDir();
+            if (externalFilesDir != null) {
+                dir = new File(externalFilesDir.getAbsoluteFile() + folder);
             }
         } else {
             ContextWrapper cw = new ContextWrapper(ApplicationLoader.getInstance());

@@ -4,6 +4,6 @@
     android:viewportWidth="24.0"
     android:viewportHeight="24.0">
     <path
-        android:fillColor="?attr/anti_root_view_background_color"
-        android:pathData="M15.41,7.41L14,6l-6,6 6,6 1.41,-1.41L10.83,12z" />
+        android:fillColor="@color/colorGreen"
+        android:pathData="M8,5v14l11,-7z" />
 </vector>
