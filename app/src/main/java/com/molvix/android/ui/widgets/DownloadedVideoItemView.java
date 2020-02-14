@@ -31,6 +31,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.greenrobot.eventbus.EventBus;
 
 import java.io.File;
+import java.io.IOException;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -122,21 +123,33 @@ public class DownloadedVideoItemView extends FrameLayout {
         bottomTitleView.setOnClickListener(onClickListener);
         videoPreview.setOnClickListener(onClickListener);
         durationTextView.setOnClickListener(onClickListener);
-
         View.OnLongClickListener onLongClickListener = v -> {
             AlertDialog.Builder deletePromptDialogBuilder = new AlertDialog.Builder(getContext());
             deletePromptDialogBuilder.setTitle("Attention!");
             deletePromptDialogBuilder.setMessage("Delete " + downloadedFile.getName() + "?");
             deletePromptDialogBuilder.setPositiveButton("DELETE", (dialog, which) -> {
                 dialog.dismiss();
-                boolean deleted = downloadedFile.delete();
-                if (deleted) {
-                    EventBus.getDefault().post(new DownloadedFileDeletedEvent(downloadedVideoItem));
-                } else {
-                    if (downloadedFile.isDirectory()) {
-                        UiUtils.showSafeToast("Sorry, you can't delete the entire season at once.Delete in episodes");
+                if (!downloadedFile.isDirectory()) {
+                    boolean deleted = downloadedFile.delete();
+                    if (deleted) {
+                        EventBus.getDefault().post(new DownloadedFileDeletedEvent(downloadedVideoItem));
                     } else {
-                        UiUtils.showSafeToast("Sorry, we couldn't delete this episode at this point in time. Please try again later.");
+                        UiUtils.showSafeToast("Sorry, we couldn't delete the episode at this point in time. Please try again later.");
+                    }
+                } else {
+                    try {
+                        boolean deleted = deleteDirectory(downloadedFile);
+                        if (deleted) {
+                            EventBus.getDefault().post(new DownloadedFileDeletedEvent(downloadedVideoItem));
+                        } else {
+                            UiUtils.showSafeToast("Sorry, failed to delete directory.Please try again");
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        UiUtils.showSafeToast("Sorry, failed to delete directory.Please try again");
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                        UiUtils.showSafeToast("Sorry, failed to delete directory.Please try again");
                     }
                 }
             });
@@ -148,6 +161,17 @@ public class DownloadedVideoItemView extends FrameLayout {
         bottomTitleView.setOnLongClickListener(onLongClickListener);
         videoPreview.setOnLongClickListener(onLongClickListener);
         durationTextView.setOnLongClickListener(onLongClickListener);
+    }
+
+    public boolean deleteDirectory(File file) throws IOException, InterruptedException {
+        if (file.exists()) {
+            String deleteCommand = "rm -rf " + file.getAbsolutePath();
+            Runtime runtime = Runtime.getRuntime();
+            Process process = runtime.exec(deleteCommand);
+            process.waitFor();
+            return true;
+        }
+        return false;
     }
 
     private String enumerateSeasonsInFolder(File downloadedFile) {
