@@ -7,6 +7,7 @@
     android:layout_height="wrap_content"
     android:clipChildren="true"
     android:clipToPadding="true"
+    android:background="?attr/app_vibrant_background_color"
     android:orientation="vertical">
 
     <com.molvix.android.ui.widgets.LoadingImageView
