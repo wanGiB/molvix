@@ -216,6 +216,9 @@ public class DownloadedVideosFragment extends BaseFragment {
                 DownloadedVideoItem downloadedVideoItem = downloadedFileDeletedEvent.getDownloadedVideoItem();
                 downloadedVideoItems.remove(downloadedVideoItem);
                 downloadedVideosAdapter.notifyDataSetChanged();
+                if (downloadedVideoItems.isEmpty()) {
+                    displayNoDownloadedVideosView();
+                }
             }
         });
     }

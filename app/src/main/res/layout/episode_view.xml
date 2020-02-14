@@ -49,6 +49,8 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
             android:drawablePadding="5dp"
+            android:ellipsize="end"
+            android:maxLines="1"
             android:paddingStart="8dp"
             android:paddingEnd="16dp"
             android:text="@string/download"

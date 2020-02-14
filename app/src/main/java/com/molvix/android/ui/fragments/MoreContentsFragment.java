@@ -16,6 +16,7 @@ import com.molvix.android.components.ApplicationLoader;
 import com.molvix.android.managers.ThemeManager;
 import com.molvix.android.preferences.AppPrefs;
 import com.molvix.android.ui.activities.SplashActivity;
+import com.molvix.android.utils.UiUtils;
 import com.morsebyte.shailesh.twostagerating.TwoStageRate;
 
 public class MoreContentsFragment extends PreferenceFragmentCompat implements Preference.OnPreferenceChangeListener {
@@ -87,6 +88,7 @@ public class MoreContentsFragment extends PreferenceFragmentCompat implements Pr
             } else {
                 ThemeManager.setThemeSelection(ThemeManager.ThemeSelection.LIGHT);
             }
+            UiUtils.snackMessage(getString(R.string.please_wait),getView(),false,null,null);
             restartApp();
         }
         return true;

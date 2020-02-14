@@ -18,6 +18,7 @@ import androidx.core.content.ContextCompat;
 import com.molvix.android.R;
 import com.molvix.android.managers.ContentManager;
 import com.molvix.android.managers.MovieManager;
+import com.molvix.android.managers.ThemeManager;
 import com.molvix.android.models.Movie;
 import com.molvix.android.models.Season;
 import com.molvix.android.ui.activities.MainActivity;
@@ -135,10 +136,11 @@ public class MovieView extends FrameLayout {
         } else {
             movieSeasonsCountView.setText("");
         }
+        ThemeManager.ThemeSelection themeSelection = ThemeManager.getThemeSelection();
         if (StringUtils.isNotEmpty(movieArtUrl)) {
             UiUtils.loadImageIntoView(movieArtView, movieArtUrl);
         } else {
-            movieArtView.setImageDrawable(new ColorDrawable(ContextCompat.getColor(getContext(), R.color.light_grey)));
+            movieArtView.setImageDrawable(new ColorDrawable(ContextCompat.getColor(getContext(), themeSelection == ThemeManager.ThemeSelection.DARK ? R.color.surface_color : R.color.icons_unselected_color)));
         }
     }
 
