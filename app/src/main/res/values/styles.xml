@@ -34,8 +34,8 @@
         <item name="header_text_color">@color/gray50</item>
         <item name="notification_time_color">@color/gray50</item>
         <item name="notification_body_color">@color/black</item>
-        <item name="root_background_vibrant">@color/white</item>
-        <item name="anti_root_background_vibrant">@color/lighter_blue</item>
+        <item name="app_vibrant_background_color">@color/white</item>
+        <item name="anti_app_vibrant_background_color">@color/lighter_blue</item>
         <item name="surface_color">@color/white</item>
         <item name="season_view_underline_color">@color/ease_gray</item>
     </style>
@@ -72,8 +72,8 @@
         <item name="header_text_color">@color/colorPrimary</item>
         <item name="notification_time_color">@color/movie_seasons_color</item>
         <item name="notification_body_color">@color/white</item>
-        <item name="root_background_vibrant">@color/dracula_primary</item>
-        <item name="anti_root_background_vibrant">@color/surface_color</item>
+        <item name="app_vibrant_background_color">@color/dracula_primary</item>
+        <item name="anti_app_vibrant_background_color">@color/surface_color</item>
         <item name="surface_color">@color/surface_color</item>
         <item name="season_view_underline_color">@color/dracula_primary</item>
     </style>

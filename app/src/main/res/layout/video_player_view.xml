@@ -14,37 +14,28 @@
         app:useDefaultControls="true" />
 
     <LinearLayout
+        android:id="@+id/title_view_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@android:color/transparent"
-        android:animateLayoutChanges="true"
-        android:orientation="vertical">
+        android:padding="15dp"
+        tools:ignore="UselessParent">
 
-        <LinearLayout
-            android:id="@+id/title_view_container"
-            android:layout_width="match_parent"
+        <ImageView
+            android:id="@+id/video_nav_back"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_gravity="center_vertical"
+            app:srcCompat="@drawable/player_back_arrow"
+            tools:ignore="ContentDescription" />
+
+        <com.molvix.android.ui.widgets.MolvixTextView
+            android:id="@+id/video_title_view"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:padding="15dp"
-            tools:ignore="UselessParent">
-
-            <ImageView
-                android:id="@+id/video_nav_back"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_gravity="center_vertical"
-                app:srcCompat="@drawable/player_back_arrow"
-                tools:ignore="ContentDescription" />
-
-            <com.molvix.android.ui.widgets.MolvixTextView
-                android:id="@+id/video_title_view"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_vertical"
-                android:textColor="@color/white"
-                android:textSize="16sp"
-                app:textStyle="medium" />
-
-        </LinearLayout>
+            android:layout_gravity="center_vertical"
+            android:textColor="@color/white"
+            android:textSize="16sp"
+            app:textStyle="medium" />
 
     </LinearLayout>
 
