@@ -15,10 +15,12 @@ import android.widget.LinearLayout;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.FileProvider;
 import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat;
 
 import com.molvix.android.R;
+import com.molvix.android.beans.DownloadedVideoItem;
 import com.molvix.android.companions.AppConstants;
 import com.molvix.android.database.MolvixDB;
 import com.molvix.android.eventbuses.UpdateNotification;
@@ -28,13 +30,17 @@ import com.molvix.android.models.Notification;
 import com.molvix.android.models.Season;
 import com.molvix.android.ui.activities.MainActivity;
 import com.molvix.android.utils.FileUtils;
+import com.molvix.android.utils.ThumbNailUtils;
 import com.molvix.android.utils.UiUtils;
 
 import org.apache.commons.lang3.text.WordUtils;
 import org.greenrobot.eventbus.EventBus;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -100,18 +106,7 @@ public class NotificationView extends FrameLayout {
                     if (downloadedFile.exists()) {
                         notification.setSeen(true);
                         EventBus.getDefault().post(new UpdateNotification(notification));
-                        Intent videoIntent = new Intent(Intent.ACTION_VIEW);
-                        Uri videoUri;
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                            videoUri = FileProvider.getUriForFile(getContext(),
-                                    getContext().getApplicationContext()
-                                            .getPackageName() + ".provider", downloadedFile);
-                        } else {
-                            videoUri = Uri.fromFile(downloadedFile);
-                        }
-                        videoIntent.setDataAndType(videoUri, "video/*");
-                        videoIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                        getContext().startActivity(videoIntent);
+                        initPlayScope(downloadedFile);
                     } else {
                         UiUtils.showSafeToast("Oops! Sorry, an error occurred while attempting to play video.The file must have being deleted or moved to another folder.");
                     }
@@ -128,6 +123,87 @@ public class NotificationView extends FrameLayout {
         notificationIconView.setOnClickListener(onClickListener);
         notificationDescriptionView.setOnClickListener(onClickListener);
         notificationTimeView.setOnClickListener(onClickListener);
+    }
+
+    private void playWithinApp(File file) {
+        File seasonDir = file.getParentFile();
+        DownloadedVideoItem downloadedVideoItem = getDownloadedVideoItem(file, seasonDir);
+        List<DownloadedVideoItem> downloadedVideoItems = new ArrayList<>();
+        downloadedVideoItems.add(downloadedVideoItem);
+        if (seasonDir != null) {
+            File[] otherEpisodes = seasonDir.listFiles();
+            if (otherEpisodes != null && otherEpisodes.length > 0) {
+                for (File episode : otherEpisodes) {
+                    String fileThumbNailPath = ThumbNailUtils.getThumbnailPath(episode);
+                    if (!episode.isHidden() && fileThumbNailPath != null) {
+                        if (FileUtils.isAtLeast10mB(new File(fileThumbNailPath))) {
+                            File immediateParentDir = episode.getParentFile();
+                            DownloadedVideoItem downloadedEpisodeItem = getDownloadedVideoItem(episode, immediateParentDir);
+                            if (!downloadedVideoItems.contains(downloadedEpisodeItem)) {
+                                downloadedVideoItems.add(downloadedEpisodeItem);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        if (!downloadedVideoItems.isEmpty()) {
+            if (getContext() instanceof MainActivity) {
+                MainActivity mainActivity = (MainActivity) getContext();
+                mainActivity.playVideo(downloadedVideoItems, downloadedVideoItem);
+            }
+        }
+    }
+
+    @NotNull
+    private DownloadedVideoItem getDownloadedVideoItem(File file, File seasonDir) {
+        String movieName = null;
+        String episodeName = file.getName();
+        DownloadedVideoItem downloadedVideoItem = new DownloadedVideoItem();
+        downloadedVideoItem.setDownloadedFile(file);
+        String parentFolderName = null;
+        File movieDir = null;
+        if (seasonDir != null) {
+            parentFolderName = seasonDir.getName();
+            movieDir = seasonDir.getParentFile();
+        }
+        if (parentFolderName != null) {
+            downloadedVideoItem.setParentFolderName(parentFolderName);
+        }
+        if (movieDir != null) {
+            movieName = movieDir.getName();
+        }
+        downloadedVideoItem.setTitle(movieName + ", " + parentFolderName + "-" + episodeName);
+        return downloadedVideoItem;
+    }
+
+    private void initPlayScope(File file) {
+        AlertDialog.Builder filePlayScopeOptionsBuilder = new AlertDialog.Builder(getContext());
+        filePlayScopeOptionsBuilder.setTitle("Play");
+        filePlayScopeOptionsBuilder.setSingleChoiceItems(new CharSequence[]{"Within Molvix", "Outside Molvix"}, 0, (dialog, which) -> {
+            dialog.dismiss();
+            if (which == 0) {
+                playWithinApp(file);
+            } else if (which == 1) {
+                playOutSideApp(file);
+            }
+        });
+        filePlayScopeOptionsBuilder.create().show();
+    }
+
+    private void playOutSideApp(File downloadedFile) {
+        Intent videoIntent = new Intent(Intent.ACTION_VIEW);
+        Uri videoUri;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            videoUri = FileProvider.getUriForFile(getContext(),
+                    getContext().getApplicationContext()
+                            .getPackageName() + ".provider", downloadedFile);
+        } else {
+            videoUri = Uri.fromFile(downloadedFile);
+        }
+        videoIntent.setDataAndType(videoUri, "video/*");
+        videoIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        getContext().startActivity(videoIntent);
     }
 
 }

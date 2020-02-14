@@ -18,12 +18,14 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat;
 
 import com.molvix.android.R;
+import com.molvix.android.beans.DownloadedVideoItem;
 import com.molvix.android.companions.AppConstants;
 import com.molvix.android.database.MolvixDB;
 import com.molvix.android.managers.EpisodesManager;
@@ -33,13 +35,16 @@ import com.molvix.android.models.Episode;
 import com.molvix.android.models.Movie;
 import com.molvix.android.models.Season;
 import com.molvix.android.preferences.AppPrefs;
+import com.molvix.android.ui.activities.MainActivity;
 import com.molvix.android.utils.ConnectivityUtils;
 import com.molvix.android.utils.FileUtils;
 import com.molvix.android.utils.MolvixLogger;
+import com.molvix.android.utils.ThumbNailUtils;
 import com.molvix.android.utils.UiUtils;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.text.WordUtils;
+import org.jetbrains.annotations.NotNull;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -203,6 +208,72 @@ public class EpisodeView extends FrameLayout {
         return episodeName;
     }
 
+    private void initPlayScope(File file) {
+        AlertDialog.Builder filePlayScopeOptionsBuilder = new AlertDialog.Builder(getContext());
+        filePlayScopeOptionsBuilder.setTitle("Play");
+        filePlayScopeOptionsBuilder.setSingleChoiceItems(new CharSequence[]{"Within Molvix", "Outside Molvix"}, 0, (dialog, which) -> {
+            dialog.dismiss();
+            if (which == 0) {
+                playWithinApp(file);
+            } else if (which == 1) {
+                playOutSideApp(file);
+            }
+        });
+        filePlayScopeOptionsBuilder.create().show();
+    }
+
+    private void playWithinApp(File file) {
+        File seasonDir = file.getParentFile();
+        DownloadedVideoItem downloadedVideoItem = getDownloadedVideoItem(file, seasonDir);
+        List<DownloadedVideoItem> downloadedVideoItems = new ArrayList<>();
+        downloadedVideoItems.add(downloadedVideoItem);
+        if (seasonDir != null) {
+            File[] otherEpisodes = seasonDir.listFiles();
+            if (otherEpisodes != null && otherEpisodes.length > 0) {
+                for (File episode : otherEpisodes) {
+                    String fileThumbNailPath = ThumbNailUtils.getThumbnailPath(episode);
+                    if (!episode.isHidden() && fileThumbNailPath != null) {
+                        if (FileUtils.isAtLeast10mB(new File(fileThumbNailPath))) {
+                            File immediateParentDir = episode.getParentFile();
+                            DownloadedVideoItem downloadedEpisodeItem = getDownloadedVideoItem(episode, immediateParentDir);
+                            if (!downloadedVideoItems.contains(downloadedEpisodeItem)) {
+                                downloadedVideoItems.add(downloadedEpisodeItem);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        if (!downloadedVideoItems.isEmpty()) {
+            if (getContext() instanceof MainActivity) {
+                MainActivity mainActivity = (MainActivity) getContext();
+                mainActivity.playVideo(downloadedVideoItems, downloadedVideoItem);
+            }
+        }
+    }
+
+    @NotNull
+    private DownloadedVideoItem getDownloadedVideoItem(File file, File seasonDir) {
+        String movieName = null;
+        String episodeName = file.getName();
+        DownloadedVideoItem downloadedVideoItem = new DownloadedVideoItem();
+        downloadedVideoItem.setDownloadedFile(file);
+        String parentFolderName = null;
+        File movieDir = null;
+        if (seasonDir != null) {
+            parentFolderName = seasonDir.getName();
+            movieDir = seasonDir.getParentFile();
+        }
+        if (parentFolderName != null) {
+            downloadedVideoItem.setParentFolderName(parentFolderName);
+        }
+        if (movieDir != null) {
+            movieName = movieDir.getName();
+        }
+        downloadedVideoItem.setTitle(movieName + ", " + parentFolderName + "-" + episodeName);
+        return downloadedVideoItem;
+    }
+
     private void initDownloadOrPlayButtonEventListener(Episode episode, String episodeName) {
         downloadOrPlayButton.setOnClickListener(v -> {
             UiUtils.blinkView(v);
@@ -211,18 +282,7 @@ public class EpisodeView extends FrameLayout {
                 String fileName = episodeName + ".mp4";
                 File downloadedFile = FileUtils.getFilePath(fileName, WordUtils.capitalize(movie.getMovieName()), season.getSeasonName());
                 if (downloadedFile.exists()) {
-                    Intent videoIntent = new Intent(Intent.ACTION_VIEW);
-                    Uri videoUri;
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                        videoUri = FileProvider.getUriForFile(getContext(),
-                                getContext().getApplicationContext()
-                                        .getPackageName() + ".provider", downloadedFile);
-                    } else {
-                        videoUri = Uri.fromFile(downloadedFile);
-                    }
-                    videoIntent.setDataAndType(videoUri, "video/*");
-                    videoIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                    getContext().startActivity(videoIntent);
+                    initPlayScope(downloadedFile);
                 } else {
                     UiUtils.showSafeToast("Oops! Sorry, an error occurred while attempting to play video.");
                 }
@@ -258,6 +318,21 @@ public class EpisodeView extends FrameLayout {
             }
         });
         clickableDummyView.setOnClickListener(v -> downloadOrPlayButton.performClick());
+    }
+
+    private void playOutSideApp(File downloadedFile) {
+        Intent videoIntent = new Intent(Intent.ACTION_VIEW);
+        Uri videoUri;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            videoUri = FileProvider.getUriForFile(getContext(),
+                    getContext().getApplicationContext()
+                            .getPackageName() + ".provider", downloadedFile);
+        } else {
+            videoUri = Uri.fromFile(downloadedFile);
+        }
+        videoIntent.setDataAndType(videoUri, "video/*");
+        videoIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        getContext().startActivity(videoIntent);
     }
 
     private void checkEpisodeActiveDownloadStatus(Episode episode) {
@@ -343,9 +418,7 @@ public class EpisodeView extends FrameLayout {
     }
 
     private void setToPlayable(File existingFile) {
-        float existingFileLength = FileUtils.getFileSizeInMB(existingFile.length());
-        //A successfully Downloaded Video should be at least 10MB in size
-        if (existingFileLength >= 10) {
+        if (FileUtils.isAtLeast10mB(existingFile)) {
             downloadOrPlayButton.setText(getContext().getString(R.string.play));
             VectorDrawableCompat playIcon = VectorDrawableCompat.create(getResources(), R.drawable.ic_play_arrow, null);
             downloadOrPlayButton.setCompoundDrawablesWithIntrinsicBounds(playIcon, null, null, null);

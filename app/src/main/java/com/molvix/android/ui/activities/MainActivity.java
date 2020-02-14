@@ -563,13 +563,13 @@ public class MainActivity extends BaseActivity {
         finish();
     }
 
-    public void playVideo(DownloadedVideoItem downloadedVideoItem) {
+    public void playVideo(List<DownloadedVideoItem>downloadedVideoItems,DownloadedVideoItem downloadedVideoItem) {
         if (rootContainer.getChildAt(rootContainer.getChildCount() - 1) instanceof MolvixVideoPlayerView) {
             rootContainer.removeViewAt(rootContainer.getChildCount() - 1);
         }
         MolvixVideoPlayerView molvixVideoPlayerView = new MolvixVideoPlayerView(this);
         rootContainer.addView(molvixVideoPlayerView, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-        molvixVideoPlayerView.loadVideo(DownloadedVideosFragment.downloadedVideoItems, DownloadedVideosFragment.downloadedVideoItems.indexOf(downloadedVideoItem));
+        molvixVideoPlayerView.loadVideo(downloadedVideoItems, DownloadedVideosFragment.downloadedVideoItems.indexOf(downloadedVideoItem));
     }
 
 }

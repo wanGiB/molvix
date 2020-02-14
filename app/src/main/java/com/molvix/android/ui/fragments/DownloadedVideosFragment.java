@@ -36,6 +36,9 @@ import java.util.Objects;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
+import static com.molvix.android.utils.FileUtils.isAtLeast10mB;
+import static com.molvix.android.utils.ThumbNailUtils.getThumbnailPath;
+
 public class DownloadedVideosFragment extends BaseFragment {
 
     @BindView(R.id.content_loading_layout)
@@ -104,24 +107,6 @@ public class DownloadedVideosFragment extends BaseFragment {
         downloadedMoviesRecyclerView.setAdapter(downloadedVideosAdapter);
     }
 
-    private String getThumbnailPath(File file) {
-        if (file.isDirectory()) {
-            File[] children = file.listFiles();
-            if (children != null && children.length > 0) {
-                return getThumbnailPath(children[0]);
-            } else {
-                return null;
-            }
-        } else {
-            return file.getPath();
-        }
-    }
-
-    private boolean atLeast10mB(File existingFile) {
-        float existingFileLength = FileUtils.getFileSizeInMB(existingFile.length());
-        return existingFileLength >= 10;
-    }
-
     private void loadDownloadedVideos(String parentFolder, File dir) {
         if (dir.exists()) {
             File[] children = dir.listFiles();
@@ -131,7 +116,7 @@ public class DownloadedVideosFragment extends BaseFragment {
                 for (File file : children) {
                     String thumbnailPath = getThumbnailPath(file);
                     if (!file.isHidden() && thumbnailPath != null) {
-                        if (!atLeast10mB(new File(thumbnailPath))) {
+                        if (!isAtLeast10mB(new File(thumbnailPath))) {
                             return;
                         }
                         DownloadedVideoItem downloadedVideoItem = new DownloadedVideoItem();

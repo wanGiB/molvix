@@ -124,8 +124,13 @@ public class FileUtils {
         return String.format(Locale.ENGLISH, "%.2fMb", bytes / (1024.00 * 1024.00));
     }
 
-    public static float getFileSizeInMB(long fileLength) {
+    private static float getFileSizeInMB(long fileLength) {
         return (float) (fileLength / (1024.00 * 1024.00));
+    }
+
+    public static boolean isAtLeast10mB(File existingFile) {
+        float existingFileLength = getFileSizeInMB(existingFile.length());
+        return existingFileLength >= 10;
     }
 
 }

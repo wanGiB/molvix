@@ -24,6 +24,7 @@ import com.molvix.android.eventbuses.DownloadedFileDeletedEvent;
 import com.molvix.android.eventbuses.LoadDownloadedVideosFromFile;
 import com.molvix.android.managers.DownloadedItemsPositionsManager;
 import com.molvix.android.ui.activities.MainActivity;
+import com.molvix.android.ui.fragments.DownloadedVideosFragment;
 import com.molvix.android.utils.FileUtils;
 import com.molvix.android.utils.UiUtils;
 
@@ -115,7 +116,7 @@ public class DownloadedVideoItemView extends FrameLayout {
                 //Play Video Here
                 if (getContext() instanceof MainActivity) {
                     MainActivity mainActivity = (MainActivity) getContext();
-                    mainActivity.playVideo(downloadedVideoItem);
+                    mainActivity.playVideo(DownloadedVideosFragment.downloadedVideoItems, downloadedVideoItem);
                 }
             }
         };

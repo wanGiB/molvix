@@ -1,6 +1,7 @@
 package com.molvix.android.ui.widgets;
 
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.os.Build;
@@ -87,6 +88,16 @@ public class MolvixVideoPlayerView extends FrameLayout {
             } catch (Exception ignored) {
 
             }
+        });
+        videoView.setOnErrorListener(e -> {
+            AlertDialog.Builder errorBuilder = new AlertDialog.Builder(getContext());
+            errorBuilder.setMessage("Sorry, couldn't play video.It seems this video is corrupt or not fully downloaded.");
+            errorBuilder.setPositiveButton("OK", (dialog, which) -> {
+                dialog.dismiss();
+                removePlayer();
+            });
+            errorBuilder.create().show();
+            return true;
         });
         videoNavBackView.setOnClickListener(v -> {
             UiUtils.blinkView(videoNavBackView);
@@ -213,6 +224,12 @@ public class MolvixVideoPlayerView extends FrameLayout {
         });
         titleViewContainer.clearAnimation();
         titleViewContainer.startAnimation(slideDownAnim);
+    }
+
+    @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        leaveImmersiveMode();
     }
 
     private void listenToControlButtonClicks(List<DownloadedVideoItem> downloadedVideoItems, int startIndex, VideoControls videoControls) {
