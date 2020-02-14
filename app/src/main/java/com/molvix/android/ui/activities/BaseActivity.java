@@ -26,11 +26,11 @@ public abstract class BaseActivity extends AppCompatActivity {
         configureThemePreference();
         super.onCreate(savedInstanceState);
         checkAndRegisterEventBus();
-        int themeSelection = AppCompatDelegate.getDefaultNightMode();
-        if (themeSelection == AppCompatDelegate.MODE_NIGHT_NO) {
-            tintStatusBar(ContextCompat.getColor(this, R.color.light_grey));
-        } else {
+        ThemeManager.ThemeSelection themeSelection = ThemeManager.getThemeSelection();
+        if (themeSelection == ThemeManager.ThemeSelection.DARK) {
             tintStatusBar(ContextCompat.getColor(this, R.color.dracula_primary));
+        } else {
+            tintStatusBar(ContextCompat.getColor(this, R.color.light_gray));
         }
     }
 

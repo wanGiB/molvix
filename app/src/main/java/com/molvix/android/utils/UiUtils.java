@@ -143,7 +143,7 @@ public class UiUtils {
         }
     }
 
-    private static Animation getAnimation(Context context, int animationId) {
+    public static Animation getAnimation(Context context, int animationId) {
         return AnimationUtils.loadAnimation(context, animationId);
     }
 

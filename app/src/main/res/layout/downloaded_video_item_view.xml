@@ -17,9 +17,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
-        android:padding="5dp"
         android:background="@color/semi_transparent"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:padding="5dp">
 
         <com.molvix.android.ui.widgets.MolvixTextView
             android:id="@+id/bottom_title_view"

@@ -3,10 +3,12 @@ package com.molvix.android.ui.widgets;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.res.Configuration;
+import android.os.Build;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -21,6 +23,7 @@ import com.devbrackets.android.exomedia.ui.widget.VideoView;
 import com.molvix.android.R;
 import com.molvix.android.beans.DownloadedVideoItem;
 import com.molvix.android.preferences.AppPrefs;
+import com.molvix.android.ui.activities.MainActivity;
 import com.molvix.android.utils.UiUtils;
 
 import java.io.File;
@@ -128,14 +131,88 @@ public class MolvixVideoPlayerView extends FrameLayout {
         videoControls.setVisibilityListener(new VideoControlsVisibilityListener() {
             @Override
             public void onControlsShown() {
-                UiUtils.toggleViewVisibility(titleViewContainer, true);
+                showTitleViewContainer();
             }
 
             @Override
             public void onControlsHidden() {
-                UiUtils.toggleViewVisibility(titleViewContainer, false);
+                hideTitleViewContainer();
             }
         });
+    }
+
+    private void hideTitleViewContainer() {
+        Animation slideUpAnim = UiUtils.getAnimation(getContext(), R.anim.slide_up);
+        slideUpAnim.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) {
+            }
+
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                UiUtils.toggleViewVisibility(titleViewContainer, false);
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+
+            }
+        });
+        titleViewContainer.clearAnimation();
+        titleViewContainer.startAnimation(slideUpAnim);
+    }
+
+    // Shows the system bars by removing all the flags// except for the ones that make the content appear under the system bars.
+    private void leaveImmersiveMode() {
+        if (getContext() instanceof MainActivity) {
+            MainActivity mainActivity = (MainActivity) getContext();
+            View decorView = mainActivity.getWindow().getDecorView();
+            decorView.setSystemUiVisibility(
+                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                            | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                            | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
+        }
+    }
+
+    private void enterImmersiveMode() {
+        if (getContext() instanceof MainActivity) {
+            MainActivity mainActivity = (MainActivity) getContext();
+            View decorView = mainActivity.getWindow().getDecorView();
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                decorView.setSystemUiVisibility(
+                        View.SYSTEM_UI_FLAG_IMMERSIVE
+                                // Set the content to appear under the system bars so that the
+                                // content doesn't resize when the system bars hide and show.
+                                | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                                | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                                // Hide the nav bar and status bar
+                                | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                                | View.SYSTEM_UI_FLAG_FULLSCREEN);
+            }
+        }
+    }
+
+    private void showTitleViewContainer() {
+        Animation slideDownAnim = UiUtils.getAnimation(getContext(), R.anim.slide_down);
+        slideDownAnim.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) {
+                UiUtils.toggleViewVisibility(titleViewContainer, true);
+            }
+
+            @Override
+            public void onAnimationEnd(Animation animation) {
+
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+
+            }
+        });
+        titleViewContainer.clearAnimation();
+        titleViewContainer.startAnimation(slideDownAnim);
     }
 
     private void listenToControlButtonClicks(List<DownloadedVideoItem> downloadedVideoItems, int startIndex, VideoControls videoControls) {
@@ -236,7 +313,9 @@ public class MolvixVideoPlayerView extends FrameLayout {
         super.onConfigurationChanged(newConfig);
         int newOrientation = newConfig.orientation;
         if (newOrientation == Configuration.ORIENTATION_LANDSCAPE) {
-            //TODO Go full screen immersive like android 19+
+            enterImmersiveMode();
+        } else {
+            leaveImmersiveMode();
         }
     }
 

@@ -229,7 +229,7 @@
     <color name="divider_color">#F0F0F0</color>
     <color name="black">#000000</color>
     <color name="transparent">#00000000</color>
-    <color name="semi_transparent">#11000000</color>
+    <color name="semi_transparent">#7b000000</color>
     <color name="suggestion_item_regular_color">#FAFAFA</color>
     <color name="suggestion_item_pressed_color">#bbbbbb</color>
     <color name="suggestion_list_color">#FFFFFF</color>
