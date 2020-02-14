@@ -56,7 +56,7 @@ public class MovieDetailsHeaderView extends FrameLayout {
     }
 
     private void init(Context context) {
-        @SuppressLint("InflateParams") View headerView = LayoutInflater.from(context).inflate(R.layout.full_movie_detals, null);
+        @SuppressLint("InflateParams") View headerView = LayoutInflater.from(context).inflate(R.layout.movie_details_header_layout, null);
         ButterKnife.bind(this, headerView);
         removeAllViews();
         addView(headerView, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));

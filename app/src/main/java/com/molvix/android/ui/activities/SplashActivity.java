@@ -14,7 +14,7 @@ import com.karumi.dexter.PermissionToken;
 import com.karumi.dexter.listener.PermissionRequest;
 import com.karumi.dexter.listener.multi.MultiplePermissionsListener;
 import com.molvix.android.R;
-import com.molvix.android.contracts.DoneCallback;
+import com.molvix.android.managers.ThemeManager;
 import com.molvix.android.utils.UiUtils;
 
 import java.util.List;
@@ -32,7 +32,12 @@ public class SplashActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
         ButterKnife.bind(this);
-        UiUtils.loadImageIntoView(splashIcon, R.mipmap.ic_launcher, (result, e) -> checkAndNavigate());
+        ThemeManager.ThemeSelection themeSelection = ThemeManager.getThemeSelection();
+        UiUtils.loadImageIntoView(splashIcon,
+                themeSelection == ThemeManager.ThemeSelection.DARK
+                        ? R.drawable.ic_stat_molvix_logo
+                        : R.drawable.web_hi_res_512,
+                (result, e) -> checkAndNavigate());
     }
 
     private void checkAndNavigate() {

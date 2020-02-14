@@ -70,7 +70,7 @@ public class NotificationView extends FrameLayout {
 
     private void init(Context context) {
         removeAllViews();
-        @SuppressLint("InflateParams") View notificationView = LayoutInflater.from(context).inflate(R.layout.notificaton_view, null);
+        @SuppressLint("InflateParams") View notificationView = LayoutInflater.from(context).inflate(R.layout.notification_view, null);
         ButterKnife.bind(this, notificationView);
         addView(notificationView, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
     }

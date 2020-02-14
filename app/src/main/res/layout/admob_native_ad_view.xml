@@ -44,6 +44,7 @@
                         android:paddingEnd="5dp"
                         android:paddingBottom="5dp"
                         android:scaleType="centerCrop"
+                        android:src="@mipmap/ic_launcher"
                         tools:ignore="ContentDescription" />
 
                     <LinearLayout
@@ -62,14 +63,15 @@
 
                         <LinearLayout
                             android:layout_width="match_parent"
-                            android:layout_height="wrap_content">
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="6dp">
 
                             <com.molvix.android.ui.widgets.MolvixTextView
                                 android:id="@+id/ad_advertiser"
                                 android:layout_width="wrap_content"
                                 android:layout_height="match_parent"
                                 android:gravity="bottom"
-                                android:textColor="?attr/movie_seasons_color"
+                                android:textColor="@color/colorAccent"
                                 android:textSize="14sp"
                                 app:textStyle="bold" />
 
@@ -78,8 +80,11 @@
                                 style="?android:attr/ratingBarStyleSmall"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
+                                android:layout_marginStart="5dp"
+                                android:layout_marginEnd="5dp"
                                 android:isIndicator="true"
                                 android:numStars="5"
+                                android:rating="3"
                                 android:stepSize="0.5" />
 
                         </LinearLayout>
@@ -98,8 +103,8 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="20dp"
+                        android:paddingTop="5dp"
                         android:textColor="?attr/movie_description_color"
-                        android:textSize="12sp"
                         app:textStyle="regular" />
 
                     <com.google.android.gms.ads.formats.MediaView
@@ -125,9 +130,10 @@
                             android:paddingLeft="5dp"
                             android:paddingEnd="5dp"
                             android:paddingRight="5dp"
+                            android:textAllCaps="true"
                             android:textColor="?attr/movie_seasons_color"
                             android:textSize="12sp"
-                            app:textStyle="regular" />
+                            app:textStyle="medium" />
 
                         <com.molvix.android.ui.widgets.MolvixTextView
                             android:id="@+id/ad_store"

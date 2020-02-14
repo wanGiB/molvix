@@ -5,7 +5,7 @@
     android:id="@+id/notification_root_view"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="?attr/root_view_background_color"
+    android:background="?attr/surface_color"
     android:descendantFocusability="beforeDescendants"
     android:orientation="vertical">
 
@@ -36,6 +36,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:text="This is a sample notification text"
                 android:ellipsize="end"
                 android:textColor="?attr/notification_body_color"
                 android:textSize="14sp"
@@ -43,9 +44,10 @@
 
             <com.molvix.android.ui.widgets.MolvixTextView
                 android:id="@+id/notification_time_view"
+                android:text="12:02PM"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="end"
+                android:layout_gravity="end|bottom"
                 android:paddingStart="10dp"
                 android:paddingEnd="10dp"
                 android:textColor="?attr/notification_time_color"

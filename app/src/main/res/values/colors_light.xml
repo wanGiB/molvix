@@ -55,7 +55,7 @@
     <color name="conversation_received_item_tint_color">@color/white</color>
     <color name="main_color_grey_700">#616161</color>
     <color name="tab_unselected_color">#bfb0bd</color>
-    <color name="emenu_color_one">#3EB890</color>
+    <color name="rating_bar_progress_tint">#3EB890</color>
     <color name="emenu_color_two">#70CADB</color>
     <color name="emenu_color_three">#E8A723</color>
     <color name="emenu_color_four">#E01765</color>
@@ -311,7 +311,7 @@
     <color name="colorBackgroundHighlightWhite">#8dffffff</color>
 
     <color name="text_black_87">#de000000</color>
-    <color name="text_white_87">#deFFFFFF</color>
+    <color name="text_white_87">#AEFFFFFF</color>
 
     <color name="story_background_color">#6e88ab</color>
 

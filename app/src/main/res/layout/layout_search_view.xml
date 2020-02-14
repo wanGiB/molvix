@@ -3,7 +3,7 @@
     android:id="@+id/search_card"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    app:cardBackgroundColor="?attr/app_card_background_color"
+    app:cardBackgroundColor="?attr/surface_color"
     app:cardCornerRadius="3dp"
     app:cardElevation="3dp">
 

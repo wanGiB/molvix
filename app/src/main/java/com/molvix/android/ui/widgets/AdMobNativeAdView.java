@@ -60,7 +60,8 @@ public class AdMobNativeAdView extends FrameLayout {
         adView.setCallToActionView(adView.findViewById(R.id.ad_call_to_action));
         adView.setIconView(adView.findViewById(R.id.ad_app_icon));
         adView.setPriceView(adView.findViewById(R.id.ad_price));
-        adView.setStarRatingView(adView.findViewById(R.id.ad_stars));
+        RatingBar ratingBar = adView.findViewById(R.id.ad_stars);
+        adView.setStarRatingView(ratingBar);
         adView.setStoreView(adView.findViewById(R.id.ad_store));
         adView.setAdvertiserView(adView.findViewById(R.id.ad_advertiser));
         // The headline is guaranteed to be in every UnifiedNativeAd.

@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="?attr/movie_card_background_color"
+    android:background="?attr/surface_color"
     android:orientation="vertical">
 
     <LinearLayout
@@ -94,7 +94,7 @@
                 android:layout_weight="1"
                 android:textAlignment="center"
                 android:textColor="?attr/anti_root_view_background_color"
-                app:textStyle="regular" />
+                app:textStyle="medium" />
 
             <LinearLayout
                 android:layout_width="wrap_content"
@@ -115,7 +115,7 @@
                     android:layout_height="40dp"
                     android:layout_marginStart="16dp"
                     android:layout_marginEnd="16dp"
-                    app:srcCompat="@drawable/ic_cancel_download"
+                    app:srcCompat="@drawable/ic_cancel_download_dark"
                     tools:ignore="ContentDescription" />
 
             </LinearLayout>
@@ -138,7 +138,7 @@
     <View
         android:layout_width="match_parent"
         android:layout_height="0.5dp"
-        android:background="?attr/anti_root_view_background_color"
+        android:background="?attr/season_view_underline_color"
         android:paddingTop="5dp" />
 
 </LinearLayout>

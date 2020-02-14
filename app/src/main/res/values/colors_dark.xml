@@ -4,10 +4,10 @@
     <color name="dracula_primary_dark">#1D282C</color>
 
     <color name="dracula_album_popup_bg">#34474E</color>
-    <color name="dracula_album_dropdown_title_text">#DEFFFFFF</color>
+    <color name="movie_seasons_color">#CEFFFFFF</color>
     <color name="dracula_text_description">#8899A6</color>
     <color name="dracula_album_dropdown_count_text">#89FFFFFF</color>
-    <color name="dracula_album_dropdown_thumbnail_placeholder">#455A64</color>
+    <color name="surface_color">#455A64</color>
     <color name="dracula_album_empty_view">#4DFFFFFF</color>
     <color name="dracula_window_background">@color/dracula_primary</color>
 
@@ -19,7 +19,7 @@
     <color name="dracula_page_bg">#232E32</color>
     <color name="dracula_bottom_toolbar_bg">#34474E</color>
 
-    <color name="dracula_bottom_toolbar_preview_text">#DEFFFFFF</color>
+    <color name="movie_description_color">#DEFFFFFF</color>
     <color name="dracula_bottom_toolbar_preview_text_disable">#4DFFFFFF</color>
     <color name="dracula_bottom_toolbar_apply_text">#03A9F4</color>
     <color name="dracula_bottom_toolbar_apply_text_disable">#4D03A9F4</color>

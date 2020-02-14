@@ -121,7 +121,17 @@ public class EpisodeView extends FrameLayout {
         initSpinner(episode);
         checkEpisodeActiveDownloadStatus(episode);
         initDownloadOrPlayButtonEventListener(episode, episodeName);
+        initCancelDownloadButton();
         initActionButtonsEventListener();
+    }
+
+    private void initCancelDownloadButton() {
+        ThemeManager.ThemeSelection themeSelection = ThemeManager.getThemeSelection();
+        VectorDrawableCompat cancelButtonIcon = VectorDrawableCompat.create(getResources(),
+                themeSelection == ThemeManager.ThemeSelection.DARK
+                        ? R.drawable.ic_cancel_download_white :
+                        R.drawable.ic_cancel_download_dark, null);
+        cancelDownloadBtn.setImageDrawable(cancelButtonIcon);
     }
 
     public void showDownloadDirInstr() {
