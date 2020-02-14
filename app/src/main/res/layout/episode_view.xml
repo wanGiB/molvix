@@ -106,7 +106,7 @@
                     android:id="@+id/pause_or_resume_download_btn"
                     android:layout_width="40dp"
                     android:layout_height="40dp"
-                    app:srcCompat="@drawable/ic_pause_black_24dp"
+                    app:srcCompat="@drawable/ic_pause_dark"
                     tools:ignore="ContentDescription" />
 
                 <ImageView

@@ -8,6 +8,7 @@ import android.util.AttributeSet;
 import androidx.core.content.ContextCompat;
 
 import com.molvix.android.R;
+import com.molvix.android.managers.ThemeManager;
 
 /**
  * @author Wan Clem
@@ -32,7 +33,8 @@ public class LoadingImageView extends RoundedImageView {
 
     private void init(Context context) {
         loadingPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        loadingPaint.setColor(ContextCompat.getColor(context, R.color.gray5));
+        ThemeManager.ThemeSelection themeSelection = ThemeManager.getThemeSelection();
+        loadingPaint.setColor(ContextCompat.getColor(context, themeSelection == ThemeManager.ThemeSelection.DARK ? R.color.dracula_primary : R.color.gray5));
         ripplePaint = new Paint();
         ripplePaint.setColor(ContextCompat.getColor(context, R.color.icons_unselected_color));
     }

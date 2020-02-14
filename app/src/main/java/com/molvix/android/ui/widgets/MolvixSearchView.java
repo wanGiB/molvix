@@ -17,6 +17,7 @@ import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat;
 
 import com.molvix.android.R;
 import com.molvix.android.eventbuses.SearchEvent;
+import com.molvix.android.managers.ThemeManager;
 import com.molvix.android.utils.UiUtils;
 
 import org.apache.commons.lang3.StringUtils;
@@ -61,7 +62,12 @@ public class MolvixSearchView extends FrameLayout {
 
     @SuppressLint("ClickableViewAccessibility")
     public void setup() {
-        VectorDrawableCompat searchIcon = VectorDrawableCompat.create(getResources(), R.drawable.search_leading_icon, null);
+        ThemeManager.ThemeSelection themeSelection = ThemeManager.getThemeSelection();
+        VectorDrawableCompat searchIcon = VectorDrawableCompat.create(getResources(),
+                themeSelection == ThemeManager.ThemeSelection.DARK
+                        ? R.drawable.search_leading_icon_light
+                        : R.drawable.search_leading_icon_dark,
+                null);
         searchBox.setCompoundDrawablesWithIntrinsicBounds(searchIcon, null, null, null);
         searchBox.setOnClickListener(v -> searchBox.setCursorVisible(true));
         searchBox.setOnTouchListener((v, event) -> {

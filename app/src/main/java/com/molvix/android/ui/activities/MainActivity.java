@@ -19,7 +19,6 @@ import android.webkit.WebViewClient;
 import android.widget.FrameLayout;
 
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.viewpager.widget.ViewPager;
@@ -39,6 +38,7 @@ import com.molvix.android.managers.AdsLoadManager;
 import com.molvix.android.managers.ContentManager;
 import com.molvix.android.managers.EpisodesManager;
 import com.molvix.android.managers.FileDownloadManager;
+import com.molvix.android.managers.ThemeManager;
 import com.molvix.android.models.DownloadableEpisode;
 import com.molvix.android.models.Episode;
 import com.molvix.android.models.Presets;
@@ -482,8 +482,10 @@ public class MainActivity extends BaseActivity {
                         new int[]{android.R.attr.state_checked}},
                 new int[]{ContextCompat.getColor(this, R.color.light_gray_inactive_icon), Color.WHITE});
 
-        bottomNavView.setItemIconTintList(AppCompatDelegate.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_NO ? lightModeIconsColorStates : darkModeIconsColorStates);
-        bottomNavView.setItemTextColor(AppCompatDelegate.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_NO ? lightModeTextColorStates : darkModeTextColorStates);
+        ThemeManager.ThemeSelection themeSelection = ThemeManager.getThemeSelection();
+
+        bottomNavView.setItemIconTintList(themeSelection == ThemeManager.ThemeSelection.DARK ? darkModeIconsColorStates : lightModeIconsColorStates);
+        bottomNavView.setItemTextColor(themeSelection == ThemeManager.ThemeSelection.DARK ? darkModeTextColorStates : lightModeTextColorStates);
     }
 
     @Override

@@ -32,7 +32,6 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
-@SuppressWarnings("unused")
 public class MovieView extends FrameLayout {
 
     @BindView(R.id.parent_card_view)

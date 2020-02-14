@@ -43,7 +43,6 @@ import okhttp3.Response;
 import okhttp3.ResponseBody;
 
 public class ContentManager {
-
     public static void fetchPresets() {
         if (ConnectivityUtils.isDeviceConnectedToTheInternet()) {
             if (StringUtils.isNotEmpty(AppConstants.PRESETS_DOWNSTREAM_URL)) {

@@ -3,7 +3,6 @@
     android:id="@+id/search_card"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="?attr/app_card_background_color"
     app:cardBackgroundColor="?attr/app_card_background_color"
     app:cardCornerRadius="3dp"
     app:cardElevation="3dp">
@@ -20,7 +19,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
             android:layout_weight="0.8"
-            android:background="?attr/search_box_background_color"
+            android:background="@android:color/transparent"
             android:cursorVisible="false"
             android:drawablePadding="10dp"
             android:gravity="center_vertical"

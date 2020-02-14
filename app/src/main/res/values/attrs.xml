@@ -37,6 +37,9 @@
     <attr name="notification_time_color" format="reference|color" />
     <attr name="notification_body_color" format="reference|color" />
 
+    <attr name="root_background_vibrant" format="reference|color" />
+    <attr name="anti_root_background_vibrant" format="reference|color" />
+
     <declare-styleable name="MolvixTextView">
         <attr name="textStyle" />
         <attr name="text_animationStyle" />

@@ -153,6 +153,8 @@ public class DownloadedVideosFragment extends BaseFragment {
                 } else {
                     displayDownloadsAvailableView();
                 }
+            } else {
+                displayNoDownloadedVideosView();
             }
         } else {
             displayNoDownloadedVideosView();

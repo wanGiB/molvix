@@ -2,7 +2,6 @@ package com.molvix.android.ui.widgets;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.graphics.drawable.ColorDrawable;
 import android.media.MediaPlayer;
 import android.net.Uri;
@@ -88,10 +87,8 @@ public class DownloadedVideoItemView extends FrameLayout {
                 downloadedFilePath = StringUtils.remove(downloadedFilePath, File.separator + downloadedFile.getName());
                 String movieName = StringUtils.substringAfterLast(downloadedFilePath, File.separator);
                 String episodeName = downloadedFile.getName();
-                String seasonAbbrev = "S-" + StringUtils.substringAfterLast(parentFolderName, "-");
                 String episodeAbbrev = "E-" + StringUtils.substringAfterLast(episodeName, "-");
-                String bottomTitle = seasonAbbrev + "/" + episodeAbbrev;
-                bottomTitleView.setText(bottomTitle);
+                bottomTitleView.setText(episodeAbbrev);
                 downloadedVideoItem.setTitle(movieName + ", " + parentFolderName + "-" + episodeName);
                 try {
                     int videoDuration = MediaPlayer.create(getContext(), Uri.fromFile(downloadedFile)).getDuration();
@@ -129,14 +126,18 @@ public class DownloadedVideoItemView extends FrameLayout {
         View.OnLongClickListener onLongClickListener = v -> {
             AlertDialog.Builder deletePromptDialogBuilder = new AlertDialog.Builder(getContext());
             deletePromptDialogBuilder.setTitle("Attention!");
-            deletePromptDialogBuilder.setMessage("Delete "+downloadedFile.getName()+"?");
+            deletePromptDialogBuilder.setMessage("Delete " + downloadedFile.getName() + "?");
             deletePromptDialogBuilder.setPositiveButton("DELETE", (dialog, which) -> {
                 dialog.dismiss();
                 boolean deleted = downloadedFile.delete();
                 if (deleted) {
                     EventBus.getDefault().post(new DownloadedFileDeletedEvent(downloadedVideoItem));
                 } else {
-                    UiUtils.showSafeToast("Sorry, failed to delete file. Please try again.");
+                    if (downloadedFile.isDirectory()) {
+                        UiUtils.showSafeToast("Sorry, you can't delete the entire season at once.Delete in episodes");
+                    } else {
+                        UiUtils.showSafeToast("Sorry, we couldn't delete this episode at this point in time. Please try again later.");
+                    }
                 }
             });
             deletePromptDialogBuilder.setNegativeButton("CANCEL", (dialog, which) -> dialog.dismiss());

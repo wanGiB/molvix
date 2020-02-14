@@ -1,7 +1,7 @@
 <resources>
 
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+    <style name="AppTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
         <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
@@ -34,6 +34,8 @@
         <item name="header_text_color">@color/gray50</item>
         <item name="notification_time_color">@color/gray50</item>
         <item name="notification_body_color">@color/black</item>
+        <item name="root_background_vibrant">@color/white</item>
+        <item name="anti_root_background_vibrant">@color/lighter_blue</item>
     </style>
 
     <style name="DarkTheme" parent="AppTheme">
@@ -68,17 +70,8 @@
         <item name="header_text_color">@color/colorPrimary</item>
         <item name="notification_time_color">@color/dracula_album_dropdown_title_text</item>
         <item name="notification_body_color">@color/white</item>
-    </style>
-
-    <style name="SplashAppLightTheme" parent="LightTheme">
-        <!-- Customize your theme here. -->
-        <item name="root_view_background_color">@color/white</item>
-        <item name="android:windowBackground">@drawable/splash_background</item>
-    </style>
-
-    <style name="SplashAppDarkTheme" parent="DarkTheme">
-        <!-- Customize your theme here. -->
-        <item name="android:windowBackground">@drawable/splash_background</item>
+        <item name="root_background_vibrant">@color/dracula_primary</item>
+        <item name="anti_root_background_vibrant">@color/dracula_album_dropdown_thumbnail_placeholder</item>
     </style>
 
     <style name="AppTheme.AdAttribution">

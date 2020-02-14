@@ -1,7 +1,5 @@
 package com.molvix.android.beans;
 
-import com.molvix.android.models.Movie;
-
 import java.io.File;
 
 public class DownloadedVideoItem {

@@ -31,6 +31,7 @@ import com.bumptech.glide.request.RequestOptions;
 import com.bumptech.glide.request.target.Target;
 import com.google.android.material.snackbar.Snackbar;
 import com.molvix.android.components.ApplicationLoader;
+import com.molvix.android.contracts.DoneCallback;
 import com.molvix.android.contracts.SnackBarActionClickedListener;
 import com.molvix.android.ui.widgets.LoadingImageView;
 
@@ -78,6 +79,40 @@ public class UiUtils {
                             LoadingImageView loadingImageView = (LoadingImageView) imageView;
                             loadingImageView.stopLoading();
                         }
+                        return false;
+                    }
+                })
+                .into(imageView);
+    }
+
+    public static void loadImageIntoView(ImageView imageView, int resId, DoneCallback<Boolean> doneCallback) {
+        if (imageView instanceof LoadingImageView) {
+            LoadingImageView loadingImageView = (LoadingImageView) imageView;
+            loadingImageView.startLoading();
+        }
+        RequestOptions imageLoadRequestOptions = new RequestOptions()
+                .diskCacheStrategy(DiskCacheStrategy.ALL);
+        Glide.with(ApplicationLoader.getInstance())
+                .load(resId)
+                .apply(imageLoadRequestOptions)
+                .listener(new RequestListener<Drawable>() {
+                    @Override
+                    public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
+                        if (imageView instanceof LoadingImageView) {
+                            LoadingImageView loadingImageView = (LoadingImageView) imageView;
+                            loadingImageView.stopLoading();
+                        }
+                        doneCallback.done(true, null);
+                        return false;
+                    }
+
+                    @Override
+                    public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
+                        if (imageView instanceof LoadingImageView) {
+                            LoadingImageView loadingImageView = (LoadingImageView) imageView;
+                            loadingImageView.stopLoading();
+                        }
+                        doneCallback.done(true, null);
                         return false;
                     }
                 })

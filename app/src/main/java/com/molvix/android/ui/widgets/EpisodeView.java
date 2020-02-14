@@ -28,6 +28,7 @@ import com.molvix.android.companions.AppConstants;
 import com.molvix.android.database.MolvixDB;
 import com.molvix.android.managers.EpisodesManager;
 import com.molvix.android.managers.FileDownloadManager;
+import com.molvix.android.managers.ThemeManager;
 import com.molvix.android.models.Episode;
 import com.molvix.android.models.Movie;
 import com.molvix.android.models.Season;
@@ -161,13 +162,21 @@ public class EpisodeView extends FrameLayout {
     }
 
     private void showPauseButton() {
-        VectorDrawableCompat pauseBtn = VectorDrawableCompat.create(getResources(), R.drawable.ic_pause_black_24dp, null);
+        ThemeManager.ThemeSelection themeSelection = ThemeManager.getThemeSelection();
+        VectorDrawableCompat pauseBtn = VectorDrawableCompat.create(getResources(),
+                themeSelection == ThemeManager.ThemeSelection.DARK
+                        ? R.drawable.ic_pause_light :
+                        R.drawable.ic_pause_dark, null);
         pauseOrResumeBtn.setImageDrawable(pauseBtn);
         downloadOrPlayButton.setText(getContext().getString(R.string.downloading));
     }
 
     private void showResumeButton() {
-        VectorDrawableCompat resumeBtn = VectorDrawableCompat.create(getResources(), R.drawable.ic_resume_download, null);
+        ThemeManager.ThemeSelection themeSelection = ThemeManager.getThemeSelection();
+        VectorDrawableCompat resumeBtn = VectorDrawableCompat.create(getResources(),
+                themeSelection == ThemeManager.ThemeSelection.DARK ?
+                        R.drawable.ic_resume_light :
+                        R.drawable.ic_resume_dark, null);
         pauseOrResumeBtn.setImageDrawable(resumeBtn);
         downloadOrPlayButton.setText(getContext().getString(R.string.paused));
     }

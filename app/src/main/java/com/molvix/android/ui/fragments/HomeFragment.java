@@ -1,11 +1,7 @@
 package com.molvix.android.ui.fragments;
 
 import android.annotation.SuppressLint;
-import android.content.Context;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.LayoutInflater;
@@ -23,10 +19,8 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.liucanwen.app.headerfooterrecyclerview.HeaderAndFooterRecyclerViewAdapter;
 import com.liucanwen.app.headerfooterrecyclerview.RecyclerViewUtils;
-import com.molvix.android.BuildConfig;
 import com.molvix.android.R;
 import com.molvix.android.companions.AppConstants;
-import com.molvix.android.components.ApplicationLoader;
 import com.molvix.android.database.MolvixDB;
 import com.molvix.android.eventbuses.ConnectivityChangedEvent;
 import com.molvix.android.eventbuses.SearchEvent;
@@ -36,20 +30,11 @@ import com.molvix.android.models.Movie;
 import com.molvix.android.models.Movie_;
 import com.molvix.android.ui.adapters.MoviesAdapter;
 import com.molvix.android.utils.ConnectivityUtils;
-import com.molvix.android.utils.FileUtils;
-import com.molvix.android.utils.MolvixLogger;
 import com.molvix.android.utils.UiUtils;
 
 import org.apache.commons.lang3.StringUtils;
 import org.greenrobot.eventbus.EventBus;
-import org.json.JSONArray;
-import org.json.JSONObject;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -287,93 +272,93 @@ public class HomeFragment extends BaseFragment {
                 displayFoundResults(result);
             }
             swipeRefreshLayout.setRefreshing(false);
-            if (!movies.isEmpty() && BuildConfig.DEBUG) {
-                //Let's grab the movies and create Presets
-                createPresetsFromMovies(movies);
-            }
+//            if (!movies.isEmpty() && BuildConfig.DEBUG) {
+//                //Let's grab the movies and create Presets
+//                createPresetsFromMovies(movies);
+//            }
         });
     }
 
-    private void createPresetsFromMovies(List<Movie> movies) {
-        try {
-            PackageManager packageManager = ApplicationLoader.getInstance().getPackageManager();
-            if (packageManager != null) {
-                PackageInfo packageInfo = packageManager.getPackageInfo(ApplicationLoader.getInstance().getPackageName(), 0);
-                if (packageInfo != null) {
-                    long versionCode;
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                        versionCode = packageInfo.getLongVersionCode();
-                    } else {
-                        versionCode = packageInfo.versionCode;
-                    }
-                    String versionName = packageInfo.versionName;
-                    JSONObject presetsObject = new JSONObject();
-                    JSONArray data = new JSONArray();
-                    presetsObject.put(AppConstants.FORCED_VERSION_CODE_UPDATE, versionCode);
-                    presetsObject.put(AppConstants.FORCED_VERSION_NAME_UPDATE, versionName);
-                    for (Movie movie : movies) {
-                        if (!movie.isAd()) {
-                            JSONObject movieObject = new JSONObject();
-                            movieObject.put(AppConstants.MOVIE_NAME, movie.getMovieName().toLowerCase());
-                            String movieArtUrl = movie.getMovieArtUrl();
-                            if (StringUtils.isEmpty(movieArtUrl)) {
-                                movieObject.put(AppConstants.MOVIE_ART_URL, "");
-                            } else {
-                                if (!movieArtUrl.contains("o2tvseries")) {
-                                    movieObject.put(AppConstants.MOVIE_ART_URL, movieArtUrl);
-                                }
-                            }
-                            data.put(movieObject);
-                        }
-                    }
-                    presetsObject.put(AppConstants.DATA, data);
-                    String presetsString = presetsObject.toString();
-                    File dataFile = FileUtils.getDataFilePath("presets.json");
-                    writeDataToFile(dataFile, presetsString);
-                }
-            }
-        } catch (Exception ignored) {
+//    private void createPresetsFromMovies(List<Movie> movies) {
+//        try {
+//            PackageManager packageManager = ApplicationLoader.getInstance().getPackageManager();
+//            if (packageManager != null) {
+//                PackageInfo packageInfo = packageManager.getPackageInfo(ApplicationLoader.getInstance().getPackageName(), 0);
+//                if (packageInfo != null) {
+//                    long versionCode;
+//                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+//                        versionCode = packageInfo.getLongVersionCode();
+//                    } else {
+//                        versionCode = packageInfo.versionCode;
+//                    }
+//                    String versionName = packageInfo.versionName;
+//                    JSONObject presetsObject = new JSONObject();
+//                    JSONArray data = new JSONArray();
+//                    presetsObject.put(AppConstants.FORCED_VERSION_CODE_UPDATE, versionCode);
+//                    presetsObject.put(AppConstants.FORCED_VERSION_NAME_UPDATE, versionName);
+//                    for (Movie movie : movies) {
+//                        if (!movie.isAd()) {
+//                            JSONObject movieObject = new JSONObject();
+//                            movieObject.put(AppConstants.MOVIE_NAME, movie.getMovieName().toLowerCase());
+//                            String movieArtUrl = movie.getMovieArtUrl();
+//                            if (StringUtils.isEmpty(movieArtUrl)) {
+//                                movieObject.put(AppConstants.MOVIE_ART_URL, "");
+//                            } else {
+//                                if (!movieArtUrl.contains("o2tvseries")) {
+//                                    movieObject.put(AppConstants.MOVIE_ART_URL, movieArtUrl);
+//                                }
+//                            }
+//                            data.put(movieObject);
+//                        }
+//                    }
+//                    presetsObject.put(AppConstants.DATA, data);
+//                    String presetsString = presetsObject.toString();
+//                    File dataFile = FileUtils.getDataFilePath("presets.json");
+//                    writeDataToFile(dataFile, presetsString);
+//                }
+//            }
+//        } catch (Exception ignored) {
+//
+//        }
+//    }
 
-        }
-    }
-
-    private void writeDataToFile(File dataFile, String presetsString) {
-        FileWriter fileWriter = null;
-        BufferedWriter bufferedWriter = null;
-        try {
-            fileWriter = new FileWriter(dataFile.getPath());
-            bufferedWriter = new BufferedWriter(fileWriter);
-            bufferedWriter.write(presetsString);
-            MolvixLogger.d(ContentManager.class.getSimpleName(), "Presets Written to File Successfully!!!");
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-            String errorMessage = e.getMessage();
-            if (errorMessage != null) {
-                MolvixLogger.d(ContentManager.class.getSimpleName(), "Error saving presets due to " + errorMessage);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-            String errorMessage = e.getMessage();
-            if (errorMessage != null) {
-                MolvixLogger.d(ContentManager.class.getSimpleName(), "Error saving presets due to " + errorMessage);
-            }
-        } finally {
-            if (bufferedWriter != null) {
-                try {
-                    bufferedWriter.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-            if (fileWriter != null) {
-                try {
-                    fileWriter.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
+//    private void writeDataToFile(File dataFile, String presetsString) {
+//        FileWriter fileWriter = null;
+//        BufferedWriter bufferedWriter = null;
+//        try {
+//            fileWriter = new FileWriter(dataFile.getPath());
+//            bufferedWriter = new BufferedWriter(fileWriter);
+//            bufferedWriter.write(presetsString);
+//            MolvixLogger.d(ContentManager.class.getSimpleName(), "Presets Written to File Successfully!!!");
+//        } catch (FileNotFoundException e) {
+//            e.printStackTrace();
+//            String errorMessage = e.getMessage();
+//            if (errorMessage != null) {
+//                MolvixLogger.d(ContentManager.class.getSimpleName(), "Error saving presets due to " + errorMessage);
+//            }
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//            String errorMessage = e.getMessage();
+//            if (errorMessage != null) {
+//                MolvixLogger.d(ContentManager.class.getSimpleName(), "Error saving presets due to " + errorMessage);
+//            }
+//        } finally {
+//            if (bufferedWriter != null) {
+//                try {
+//                    bufferedWriter.close();
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//            if (fileWriter != null) {
+//                try {
+//                    fileWriter.close();
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//        }
+//    }
 
     @SuppressLint("SetTextI18n")
     private void displayTotalNumberOfMoviesLoadedInHeader() {

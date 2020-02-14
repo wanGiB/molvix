@@ -6,6 +6,7 @@ import android.content.SharedPreferences;
 
 import com.molvix.android.companions.AppConstants;
 import com.molvix.android.components.ApplicationLoader;
+import com.molvix.android.managers.ThemeManager;
 import com.molvix.android.models.Episode;
 import com.molvix.android.utils.CryptoUtils;
 
@@ -227,6 +228,14 @@ public class AppPrefs {
     public static long getLastMediaPlayBackPositionFor(File file) {
         String key = CryptoUtils.getSha256Digest(file.getAbsolutePath());
         return getAppPreferences().getLong(AppConstants.MEDIA_PLAY_BACK_FOR_ + key, 0);
+    }
+
+    public static void savePreferredTheme(ThemeManager.ThemeSelection themeSelection) {
+        getAppPreferences().edit().putInt(AppConstants.PREFERRED_APP_THEME, themeSelection.ordinal()).apply();
+    }
+
+    public static int getSavedPreferredTheme() {
+        return getAppPreferences().getInt(AppConstants.PREFERRED_APP_THEME, 0);
     }
 
 }

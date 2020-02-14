@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
+import android.widget.ImageView;
 
 import androidx.annotation.Nullable;
 
@@ -13,14 +14,28 @@ import com.karumi.dexter.PermissionToken;
 import com.karumi.dexter.listener.PermissionRequest;
 import com.karumi.dexter.listener.multi.MultiplePermissionsListener;
 import com.molvix.android.R;
+import com.molvix.android.contracts.DoneCallback;
+import com.molvix.android.utils.UiUtils;
 
 import java.util.List;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+
 public class SplashActivity extends BaseActivity {
+
+    @BindView(R.id.splash_icon)
+    ImageView splashIcon;
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
+        ButterKnife.bind(this);
+        UiUtils.loadImageIntoView(splashIcon, R.mipmap.ic_launcher, (result, e) -> checkAndNavigate());
+    }
+
+    private void checkAndNavigate() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             checkRuntimePermissions();
         } else {

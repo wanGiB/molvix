@@ -11,6 +11,7 @@ import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.content.ContextCompat;
 
 import com.molvix.android.R;
+import com.molvix.android.managers.ThemeManager;
 import com.molvix.android.utils.UiUtils;
 
 import org.greenrobot.eventbus.EventBus;
@@ -25,21 +26,22 @@ public abstract class BaseActivity extends AppCompatActivity {
         configureThemePreference();
         super.onCreate(savedInstanceState);
         checkAndRegisterEventBus();
-        tintStatusBar(ContextCompat.getColor(this, R.color.light_grey));
+        int themeSelection = AppCompatDelegate.getDefaultNightMode();
+        if (themeSelection == AppCompatDelegate.MODE_NIGHT_NO) {
+            tintStatusBar(ContextCompat.getColor(this, R.color.light_grey));
+        } else {
+            tintStatusBar(ContextCompat.getColor(this, R.color.dracula_primary));
+        }
     }
 
     private void configureThemePreference() {
-        int themeSelection = AppCompatDelegate.getDefaultNightMode();
-        if (themeSelection == AppCompatDelegate.MODE_NIGHT_NO) {
-            setTheme(R.style.LightTheme);
-            if (this instanceof SplashActivity) {
-                setTheme(R.style.SplashAppLightTheme);
-            }
-        } else {
+        ThemeManager.ThemeSelection themeSelection = ThemeManager.getThemeSelection();
+        if (themeSelection == ThemeManager.ThemeSelection.DARK) {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
             setTheme(R.style.DarkTheme);
-            if (this instanceof SplashActivity) {
-                setTheme(R.style.SplashAppDarkTheme);
-            }
+        } else {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+            setTheme(R.style.LightTheme);
         }
     }
 

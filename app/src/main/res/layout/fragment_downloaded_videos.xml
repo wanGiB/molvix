@@ -4,8 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:animateLayoutChanges="true"
-    android:background="?attr/light_background_color">
+    android:animateLayoutChanges="true">
 
     <FrameLayout
         android:id="@+id/back_nav_container"
@@ -20,8 +19,12 @@
             android:layout_gravity="center_vertical"
             android:layout_marginStart="40dp"
             android:background="@drawable/file_path_nav_background"
+            android:ellipsize="end"
             android:gravity="center_vertical"
-            android:padding="5dp"
+            android:paddingStart="10dp"
+            android:paddingTop="5dp"
+            android:paddingEnd="5dp"
+            android:paddingBottom="5dp"
             android:textColor="?attr/movie_seasons_color"
             app:textStyle="medium" />
 
@@ -30,7 +33,7 @@
             android:layout_width="45dp"
             android:layout_height="45dp"
             android:padding="0dp"
-            app:backgroundTint="?attr/root_view_background_color"
+            app:backgroundTint="?attr/anti_root_background_vibrant"
             app:elevation="0dp"
             app:fabCustomSize="45dp"
             app:rippleColor="@color/colorAccent"

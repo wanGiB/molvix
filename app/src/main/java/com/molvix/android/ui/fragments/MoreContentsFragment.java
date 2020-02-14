@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.os.Handler;
 
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.preference.Preference;
@@ -12,8 +13,9 @@ import androidx.preference.SwitchPreferenceCompat;
 
 import com.molvix.android.R;
 import com.molvix.android.components.ApplicationLoader;
+import com.molvix.android.managers.ThemeManager;
 import com.molvix.android.preferences.AppPrefs;
-import com.molvix.android.ui.activities.MainActivity;
+import com.molvix.android.ui.activities.SplashActivity;
 import com.morsebyte.shailesh.twostagerating.TwoStageRate;
 
 public class MoreContentsFragment extends PreferenceFragmentCompat implements Preference.OnPreferenceChangeListener {
@@ -81,17 +83,23 @@ public class MoreContentsFragment extends PreferenceFragmentCompat implements Pr
             downloadedMoviesUpdateSwitch.setDefaultValue(newValue);
         } else if (preference.getKey().equals(getString(R.string.theme_key))) {
             if (((Boolean) newValue)) {
-                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+                ThemeManager.setThemeSelection(ThemeManager.ThemeSelection.DARK);
             } else {
-                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+                ThemeManager.setThemeSelection(ThemeManager.ThemeSelection.LIGHT);
             }
-            if (getActivity() != null) {
-                Intent reIntent = new Intent(getActivity(), MainActivity.class);
-                startActivity(reIntent);
-                getActivity().finish();
-            }
+            restartApp();
         }
         return true;
+    }
+
+    private void restartApp() {
+        new Handler().postDelayed(() -> {
+            Intent splashIntent = new Intent(getContext(), SplashActivity.class);
+            startActivity(splashIntent);
+            if (getActivity() != null) {
+                getActivity().finish();
+            }
+        }, 1000);
     }
 
 }
