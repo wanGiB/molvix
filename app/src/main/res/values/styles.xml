@@ -38,6 +38,7 @@
         <item name="anti_app_vibrant_background_color">@color/lighter_blue</item>
         <item name="surface_color">@color/white</item>
         <item name="season_view_underline_color">@color/ease_gray</item>
+        <item name="movie_details_back_icon_color">@color/black</item>
     </style>
 
     <style name="DarkTheme" parent="AppTheme">
@@ -76,6 +77,7 @@
         <item name="anti_app_vibrant_background_color">@color/surface_color</item>
         <item name="surface_color">@color/surface_color</item>
         <item name="season_view_underline_color">@color/dracula_primary</item>
+        <item name="movie_details_back_icon_color">@color/white</item>
     </style>
 
     <style name="AppTheme.AdAttribution">

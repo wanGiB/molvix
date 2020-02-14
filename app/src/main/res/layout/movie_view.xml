@@ -26,7 +26,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="8dp"
-            android:text="Spartacus"
             android:textColor="?attr/movie_name_color"
             android:textSize="15sp"
             app:textStyle="bold" />
@@ -36,7 +35,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:ellipsize="end"
-            android:text="What is beneath your feeth?\nBlood and sand"
             android:maxLines="3"
             android:paddingStart="8dp"
             android:paddingEnd="8dp"
@@ -49,7 +47,6 @@
             android:id="@+id/movie_seasons_count_view"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="2 Seasons"
             android:layout_gravity="center_vertical"
             android:gravity="center_vertical"
             android:paddingStart="8dp"
