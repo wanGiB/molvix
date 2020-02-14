@@ -10,6 +10,8 @@ import android.widget.ImageView;
 import android.widget.RatingBar;
 import android.widget.TextView;
 
+import androidx.appcompat.widget.AppCompatRatingBar;
+
 import com.google.android.gms.ads.VideoController;
 import com.google.android.gms.ads.formats.MediaView;
 import com.google.android.gms.ads.formats.UnifiedNativeAd;
@@ -60,7 +62,7 @@ public class AdMobNativeAdView extends FrameLayout {
         adView.setCallToActionView(adView.findViewById(R.id.ad_call_to_action));
         adView.setIconView(adView.findViewById(R.id.ad_app_icon));
         adView.setPriceView(adView.findViewById(R.id.ad_price));
-        RatingBar ratingBar = adView.findViewById(R.id.ad_stars);
+        AppCompatRatingBar ratingBar = adView.findViewById(R.id.ad_stars);
         adView.setStarRatingView(ratingBar);
         adView.setStoreView(adView.findViewById(R.id.ad_store));
         adView.setAdvertiserView(adView.findViewById(R.id.ad_advertiser));
