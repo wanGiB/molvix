@@ -9,6 +9,7 @@ import android.media.AudioManager;
 import android.os.Build;
 import android.os.Handler;
 import android.provider.Settings;
+import android.provider.Settings.System;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,12 +18,10 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
-import android.widget.SeekBar;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.widget.AppCompatSeekBar;
 
 import com.devbrackets.android.exomedia.listener.VideoControlsButtonListener;
 import com.devbrackets.android.exomedia.listener.VideoControlsVisibilityListener;
@@ -45,8 +44,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
-import android.provider.Settings.System;
-
 public class MolvixVideoPlayerView extends FrameLayout {
 
     @BindView(R.id.video_title_view)
@@ -61,17 +58,11 @@ public class MolvixVideoPlayerView extends FrameLayout {
     @BindView(R.id.title_view_container)
     View titleViewContainer;
 
-    @BindView(R.id.volume_controller_container)
-    View volumeControllerContainer;
-
-    @BindView(R.id.brightness_controller_container)
-    View brightnessControllerContainer;
-
     @BindView(R.id.volume_controller)
-    AppCompatSeekBar volumeController;
+    CircleSeekBar volumeController;
 
     @BindView(R.id.brightness_controller)
-    AppCompatSeekBar brightnessController;
+    CircleSeekBar brightnessController;
 
     private AtomicReference<File> activeFileReference = new AtomicReference<>();
     private AtomicInteger currentOrientation = new AtomicInteger(1);
@@ -115,58 +106,65 @@ public class MolvixVideoPlayerView extends FrameLayout {
             volumeController.setMax(audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC));
             int volume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
             initialVolume.set(volume);
-            volumeController.setProgress(volume);
-            volumeController.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-                public void onProgressChanged(SeekBar bar, int progress,
-                                              boolean fromUser) {
-                    audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, progress,
+            volumeController.setSeekBarChangeListener(new CircleSeekBar.OnSeekBarChangedListener() {
+                @Override
+                public void onPointsChanged(CircleSeekBar circleSeekBar, int points, boolean fromUser) {
+                    audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, points,
                             0);
                 }
 
-                public void onStartTrackingTouch(SeekBar bar) {
-                    // no-op
+                @Override
+                public void onStartTrackingTouch(CircleSeekBar circleSeekBar) {
+
                 }
 
-                public void onStopTrackingTouch(SeekBar bar) {
-                    // no-op
+                @Override
+                public void onStopTrackingTouch(CircleSeekBar circleSeekBar) {
+
+                }
+
+            });
+            volumeController.setProgressDisplayAndInvalidate(volume);
+            cResolver = getContext().getContentResolver();
+            window = ((MainActivity) getContext()).getWindow();
+            brightnessController.setMax(255);
+            brightnessController.setStep(1);
+            try {
+                brightness = System.getInt(cResolver, System.SCREEN_BRIGHTNESS);
+                initialBrightness.set(brightness);
+                brightnessHandleAvailable.set(true);
+            } catch (Settings.SettingNotFoundException e) {
+                UiUtils.toggleViewVisibility(brightnessController, false);
+                brightnessHandleAvailable.set(false);
+                MolvixLogger.d("Error", "Cannot access system brightness");
+                e.printStackTrace();
+            }
+            brightnessController.setSeekBarChangeListener(new CircleSeekBar.OnSeekBarChangedListener() {
+                @Override
+                public void onPointsChanged(CircleSeekBar circleSeekBar, int points, boolean fromUser) {
+                    if (points <= 20) {
+                        brightness = 20;
+                    } else {
+                        brightness = points;
+                    }
+                    System.putInt(cResolver, System.SCREEN_BRIGHTNESS, brightness);
+                    WindowManager.LayoutParams windowLayoutParams = window.getAttributes();
+                    windowLayoutParams.screenBrightness = brightness / (float) 255;
+                    window.setAttributes(windowLayoutParams);
+                }
+
+                @Override
+                public void onStartTrackingTouch(CircleSeekBar circleSeekBar) {
+
+                }
+
+                @Override
+                public void onStopTrackingTouch(CircleSeekBar circleSeekBar) {
+
                 }
             });
+            brightnessController.setProgressDisplayAndInvalidate(brightness);
         }
-        cResolver = getContext().getContentResolver();
-        window = ((MainActivity) getContext()).getWindow();
-        brightnessController.setMax(255);
-        brightnessController.setKeyProgressIncrement(1);
-        try {
-            brightness = System.getInt(cResolver, System.SCREEN_BRIGHTNESS);
-            initialBrightness.set(brightness);
-            brightnessHandleAvailable.set(true);
-        } catch (Settings.SettingNotFoundException e) {
-            UiUtils.toggleViewVisibility(brightnessControllerContainer, false);
-            brightnessHandleAvailable.set(false);
-            MolvixLogger.d("Error", "Cannot access system brightness");
-            e.printStackTrace();
-        }
-        brightnessController.setProgress(brightness);
-        brightnessController.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            public void onStopTrackingTouch(SeekBar seekBar) {
-                System.putInt(cResolver, System.SCREEN_BRIGHTNESS, brightness);
-                WindowManager.LayoutParams windowLayoutParams = window.getAttributes();
-                windowLayoutParams.screenBrightness = brightness / (float) 255;
-                window.setAttributes(windowLayoutParams);
-            }
-
-            public void onStartTrackingTouch(SeekBar seekBar) {
-
-            }
-
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                if (progress <= 20) {
-                    brightness = 20;
-                } else {
-                    brightness = progress;
-                }
-            }
-        });
     }
 
     private void resetBrightnessAndVolumeToInitials() {
@@ -230,7 +228,8 @@ public class MolvixVideoPlayerView extends FrameLayout {
     }
 
     @SuppressWarnings("deprecation")
-    private void configureVideoControls(List<DownloadedVideoItem> downloadedVideoItems, int startIndex) {
+    private void configureVideoControls(List<DownloadedVideoItem> downloadedVideoItems,
+                                        int startIndex) {
         VideoControls videoControls = videoView.getVideoControls();
         if (videoControls != null) {
             tryShowNextButton(downloadedVideoItems, startIndex, videoControls);
@@ -288,9 +287,9 @@ public class MolvixVideoPlayerView extends FrameLayout {
     }
 
     private void animateVolumeAndBrightnessContainerVisibility(boolean toVisible) {
-        UiUtils.toggleViewVisibility(volumeControllerContainer, toVisible);
+        UiUtils.toggleViewVisibility(volumeController, toVisible);
         if (brightnessHandleAvailable.get()) {
-            UiUtils.toggleViewVisibility(brightnessControllerContainer, toVisible);
+            UiUtils.toggleViewVisibility(volumeController, toVisible);
         }
         initVolumeAndBrightnessController();
     }
@@ -336,7 +335,8 @@ public class MolvixVideoPlayerView extends FrameLayout {
         leaveImmersiveMode();
     }
 
-    private void listenToControlButtonClicks(List<DownloadedVideoItem> downloadedVideoItems, int startIndex, VideoControls videoControls) {
+    private void listenToControlButtonClicks(List<DownloadedVideoItem> downloadedVideoItems,
+                                             int startIndex, VideoControls videoControls) {
         videoControls.setButtonListener(new VideoControlsButtonListener() {
             @Override
             public boolean onPlayPauseClicked() {
@@ -368,7 +368,8 @@ public class MolvixVideoPlayerView extends FrameLayout {
         });
     }
 
-    private void tryShowPreviousButton(List<DownloadedVideoItem> downloadedVideoItems, int startIndex, VideoControls videoControls) {
+    private void tryShowPreviousButton(List<DownloadedVideoItem> downloadedVideoItems,
+                                       int startIndex, VideoControls videoControls) {
         int previousIndex = startIndex - 1;
         try {
             DownloadedVideoItem previousOnList = downloadedVideoItems.get(previousIndex);
@@ -382,7 +383,8 @@ public class MolvixVideoPlayerView extends FrameLayout {
         }
     }
 
-    private void tryShowNextButton(List<DownloadedVideoItem> downloadedVideoItems, int startIndex, VideoControls videoControls) {
+    private void tryShowNextButton(List<DownloadedVideoItem> downloadedVideoItems,
+                                   int startIndex, VideoControls videoControls) {
         int nextIndex = startIndex + 1;
         try {
             DownloadedVideoItem nextOnList = downloadedVideoItems.get(nextIndex);
@@ -396,7 +398,8 @@ public class MolvixVideoPlayerView extends FrameLayout {
         }
     }
 
-    private void tryPlayPreviousEpisode(List<DownloadedVideoItem> downloadedVideoItems, int startIndex) {
+    private void tryPlayPreviousEpisode(List<DownloadedVideoItem> downloadedVideoItems,
+                                        int startIndex) {
         try {
             DownloadedVideoItem previous = downloadedVideoItems.get(startIndex - 1);
             if (previous != null) {
@@ -407,7 +410,8 @@ public class MolvixVideoPlayerView extends FrameLayout {
         }
     }
 
-    private void tryPlayNextEpisode(List<DownloadedVideoItem> downloadedVideoItems, int startIndex) {
+    private void tryPlayNextEpisode(List<DownloadedVideoItem> downloadedVideoItems,
+                                    int startIndex) {
         try {
             DownloadedVideoItem next = downloadedVideoItems.get(startIndex + 1);
             if (next != null) {

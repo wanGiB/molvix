@@ -47,6 +47,29 @@
         <attr name="textStyle" />
         <attr name="text_animationStyle" />
     </declare-styleable>
+
+    <declare-styleable name="CircleSeekBar">
+        <attr name="csb_progress" format="integer"/>
+        <attr name="csb_min" format="integer"/>
+        <attr name="csb_max" format="integer"/>
+        <attr name="csb_step" format="integer"/>
+
+        <attr name="csb_thumbDrawable" format="reference"/>
+        <attr name="csb_thumbSize" format="dimension" />
+
+        <attr name="csb_progressColor" format="color"/>
+        <attr name="csb_progressWidth" format="dimension"/>
+
+        <attr name="csb_arcColor" format="color"/>
+        <attr name="csb_arcWidth" format="dimension"/>
+
+        <attr name="csb_textSize" format="dimension"/>
+        <attr name="csb_textColor" format="color"/>
+
+        <attr name="csb_isShowText" format="boolean" />
+
+    </declare-styleable>
+
     <attr name="textStyle" format="enum">
         <enum name="regular" value="0" />
         <enum name="bold" value="1" />
@@ -56,6 +79,7 @@
         <enum name="thin" value="5" />
         <enum name="none" value="6" />
     </attr>
+
     <declare-styleable name="RoundedImageView">
         <attr name="riv_corner_radius" format="dimension" />
         <attr name="riv_corner_radius_top_left" format="dimension" />
@@ -84,4 +108,5 @@
             <enum name="mirror" value="2" />
         </attr>
     </declare-styleable>
+
 </resources>
