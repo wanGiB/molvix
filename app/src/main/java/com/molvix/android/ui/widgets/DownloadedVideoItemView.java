@@ -26,6 +26,7 @@ import com.molvix.android.managers.DownloadedItemsPositionsManager;
 import com.molvix.android.ui.activities.MainActivity;
 import com.molvix.android.ui.fragments.DownloadedVideosFragment;
 import com.molvix.android.utils.FileUtils;
+import com.molvix.android.utils.ThumbNailUtils;
 import com.molvix.android.utils.UiUtils;
 
 import org.apache.commons.lang3.StringUtils;
@@ -101,9 +102,9 @@ public class DownloadedVideoItemView extends FrameLayout {
                 }
             }
         }
-        String thumbnailPath = getThumbnailPath(downloadedFile);
+        String thumbnailPath = ThumbNailUtils.getThumbnailPath(downloadedFile);
         if (thumbnailPath != null) {
-            UiUtils.loadImageIntoView(videoPreview, thumbnailPath);
+            UiUtils.loadVideoThumbNailIntoView(videoPreview, thumbnailPath);
         } else {
             videoPreview.setImageDrawable(new ColorDrawable(ContextCompat.getColor(getContext(), R.color.ease_gray)));
         }
@@ -193,19 +194,6 @@ public class DownloadedVideoItemView extends FrameLayout {
             return "(" + StringUtils.stripEnd(seasonsCountBuilder.toString(), ",") + ")";
         }
         return "";
-    }
-
-    private String getThumbnailPath(File file) {
-        if (file.isDirectory()) {
-            File[] children = file.listFiles();
-            if (children != null && children.length > 0) {
-                return getThumbnailPath(children[0]);
-            } else {
-                return null;
-            }
-        } else {
-            return file.getPath();
-        }
     }
 
 }
