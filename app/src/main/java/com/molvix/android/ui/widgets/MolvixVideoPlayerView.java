@@ -120,7 +120,7 @@ public class MolvixVideoPlayerView extends FrameLayout {
                 public void onProgressChanged(SeekBar bar, int progress,
                                               boolean fromUser) {
                     audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, progress,
-                            AudioManager.FLAG_PLAY_SOUND);
+                            0);
                 }
 
                 public void onStartTrackingTouch(SeekBar bar) {
@@ -173,7 +173,7 @@ public class MolvixVideoPlayerView extends FrameLayout {
         try {
             if (initialVolume.get() != 0 && audioManager != null) {
                 audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, initialVolume.get(),
-                        AudioManager.FLAG_PLAY_SOUND);
+                        0);
             }
             if (brightnessHandleAvailable.get() && initialBrightness.get() != 0) {
                 System.putInt(cResolver, System.SCREEN_BRIGHTNESS, brightness);

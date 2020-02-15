@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -43,46 +43,73 @@
         android:id="@+id/volume_and_brightness_views_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"
+        android:layout_below="@+id/title_view_container"
+        android:layout_marginTop="10dp"
         android:animateLayoutChanges="true"
         android:gravity="center_vertical"
         android:padding="15dp"
         tools:ignore="UselessParent">
 
-        <FrameLayout
+        <LinearLayout
             android:id="@+id/brightness_controller_container"
-            android:layout_width="32dp"
-            android:layout_height="180dp"
-            android:layout_alignParentStart="true"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <androidx.appcompat.widget.AppCompatSeekBar
-                android:id="@+id/brightness_controller"
-                android:layout_width="180dp"
-                android:layout_height="32dp"
-                android:layout_gravity="center"
-                android:rotation="270"
-                android:theme="@style/Theme.SeekBar" />
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:srcCompat="@drawable/ic_brightness_3_white_24dp"
+                tools:ignore="ContentDescription" />
 
-        </FrameLayout>
+            <FrameLayout
+                android:layout_width="32dp"
+                android:layout_height="180dp"
+                android:layout_alignParentStart="true"
+                android:orientation="vertical">
 
-        <FrameLayout
+                <androidx.appcompat.widget.AppCompatSeekBar
+                    android:id="@+id/brightness_controller"
+                    android:layout_width="180dp"
+                    android:layout_height="32dp"
+                    android:layout_gravity="center"
+                    android:rotation="270"
+                    android:theme="@style/Theme.SeekBar" />
+
+            </FrameLayout>
+
+        </LinearLayout>
+
+        <LinearLayout
             android:id="@+id/volume_controller_container"
-            android:layout_width="32dp"
-            android:layout_height="180dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"
             android:orientation="vertical">
 
-            <androidx.appcompat.widget.AppCompatSeekBar
-                android:id="@+id/volume_controller"
-                android:layout_width="180dp"
-                android:layout_height="32dp"
-                android:layout_gravity="center"
-                android:rotation="270"
-                android:theme="@style/Theme.SeekBar" />
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:srcCompat="@drawable/ic_volume_up_white_24dp"
+                tools:ignore="ContentDescription" />
 
-        </FrameLayout>
+            <FrameLayout
+                android:layout_width="32dp"
+                android:layout_height="180dp"
+                android:orientation="vertical">
+
+                <androidx.appcompat.widget.AppCompatSeekBar
+                    android:id="@+id/volume_controller"
+                    android:layout_width="180dp"
+                    android:layout_height="32dp"
+                    android:layout_gravity="center"
+                    android:rotation="270"
+                    android:theme="@style/Theme.SeekBar" />
+
+            </FrameLayout>
+
+        </LinearLayout>
 
     </RelativeLayout>
 
-</FrameLayout>
+</RelativeLayout>
