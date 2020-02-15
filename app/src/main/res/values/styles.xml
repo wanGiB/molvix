@@ -113,5 +113,9 @@
     <style name="Theme.Rating" parent="Theme.AppCompat.Light">
         <item name="colorAccent">@color/rating_bar_progress_tint</item>
     </style>
-    
+
+    <style name="Theme.SeekBar" parent="Theme.AppCompat.Light">
+        <item name="colorAccent">@color/white</item>
+    </style>
+
 </resources>

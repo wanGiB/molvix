@@ -2,20 +2,27 @@ package com.molvix.android.ui.widgets;
 
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.res.Configuration;
+import android.media.AudioManager;
 import android.os.Build;
 import android.os.Handler;
+import android.provider.Settings;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.SeekBar;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.widget.AppCompatSeekBar;
 
 import com.devbrackets.android.exomedia.listener.VideoControlsButtonListener;
 import com.devbrackets.android.exomedia.listener.VideoControlsVisibilityListener;
@@ -26,6 +33,7 @@ import com.molvix.android.R;
 import com.molvix.android.beans.DownloadedVideoItem;
 import com.molvix.android.preferences.AppPrefs;
 import com.molvix.android.ui.activities.MainActivity;
+import com.molvix.android.utils.MolvixLogger;
 import com.molvix.android.utils.UiUtils;
 
 import java.io.File;
@@ -36,6 +44,8 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+
+import android.provider.Settings.System;
 
 public class MolvixVideoPlayerView extends FrameLayout {
 
@@ -51,10 +61,31 @@ public class MolvixVideoPlayerView extends FrameLayout {
     @BindView(R.id.title_view_container)
     View titleViewContainer;
 
+    @BindView(R.id.volume_controller_container)
+    View volumeControllerContainer;
+
+    @BindView(R.id.brightness_controller_container)
+    View brightnessControllerContainer;
+
+    @BindView(R.id.volume_controller)
+    AppCompatSeekBar volumeController;
+
+    @BindView(R.id.brightness_controller)
+    AppCompatSeekBar brightnessController;
+
     private AtomicReference<File> activeFileReference = new AtomicReference<>();
     private AtomicInteger currentOrientation = new AtomicInteger(1);
     private AtomicBoolean controlsShown = new AtomicBoolean(false);
     private AtomicBoolean titleContainerVisible = new AtomicBoolean(true);
+    private AtomicBoolean brightnessHandleAvailable = new AtomicBoolean(true);
+    private AudioManager audioManager;
+
+    private AtomicInteger initialBrightness = new AtomicInteger(0);
+    private AtomicInteger initialVolume = new AtomicInteger(0);
+
+    private int brightness;
+    private ContentResolver cResolver;
+    private Window window;
 
     public MolvixVideoPlayerView(@NonNull Context context) {
         super(context);
@@ -78,7 +109,85 @@ public class MolvixVideoPlayerView extends FrameLayout {
         addView(playerView, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
     }
 
+    private void initVolumeAndBrightnessController() {
+        audioManager = (AudioManager) getContext().getSystemService(Context.AUDIO_SERVICE);
+        if (audioManager != null) {
+            volumeController.setMax(audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC));
+            int volume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
+            initialVolume.set(volume);
+            volumeController.setProgress(volume);
+            volumeController.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+                public void onProgressChanged(SeekBar bar, int progress,
+                                              boolean fromUser) {
+                    audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, progress,
+                            AudioManager.FLAG_PLAY_SOUND);
+                }
+
+                public void onStartTrackingTouch(SeekBar bar) {
+                    // no-op
+                }
+
+                public void onStopTrackingTouch(SeekBar bar) {
+                    // no-op
+                }
+            });
+        }
+        cResolver = getContext().getContentResolver();
+        window = ((MainActivity) getContext()).getWindow();
+        brightnessController.setMax(255);
+        brightnessController.setKeyProgressIncrement(1);
+        try {
+            brightness = System.getInt(cResolver, System.SCREEN_BRIGHTNESS);
+            initialBrightness.set(brightness);
+            brightnessHandleAvailable.set(true);
+        } catch (Settings.SettingNotFoundException e) {
+            UiUtils.toggleViewVisibility(brightnessControllerContainer, false);
+            brightnessHandleAvailable.set(false);
+            MolvixLogger.d("Error", "Cannot access system brightness");
+            e.printStackTrace();
+        }
+        brightnessController.setProgress(brightness);
+        brightnessController.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                System.putInt(cResolver, System.SCREEN_BRIGHTNESS, brightness);
+                WindowManager.LayoutParams windowLayoutParams = window.getAttributes();
+                windowLayoutParams.screenBrightness = brightness / (float) 255;
+                window.setAttributes(windowLayoutParams);
+            }
+
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if (progress <= 20) {
+                    brightness = 20;
+                } else {
+                    brightness = progress;
+                }
+            }
+        });
+    }
+
+    private void resetBrightnessAndVolumeToInitials() {
+        try {
+            if (initialVolume.get() != 0 && audioManager != null) {
+                audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, initialVolume.get(),
+                        AudioManager.FLAG_PLAY_SOUND);
+            }
+            if (brightnessHandleAvailable.get() && initialBrightness.get() != 0) {
+                System.putInt(cResolver, System.SCREEN_BRIGHTNESS, brightness);
+                WindowManager.LayoutParams windowLayoutParams = window.getAttributes();
+                windowLayoutParams.screenBrightness = initialBrightness.get() / (float) 255;
+                window.setAttributes(windowLayoutParams);
+            }
+        } catch (Exception ignored) {
+
+        }
+    }
+
     public void loadVideo(List<DownloadedVideoItem> videoItemList, int startIndex) {
+        initVolumeAndBrightnessController();
         DownloadedVideoItem downloadedVideoItem = videoItemList.get(startIndex);
         configureVideoControls(videoItemList, startIndex);
         videoTitleView.setText(downloadedVideoItem.getTitle());
@@ -116,6 +225,7 @@ public class MolvixVideoPlayerView extends FrameLayout {
 
     private void removePlayer() {
         cleanUpVideoView();
+        resetBrightnessAndVolumeToInitials();
         ((ViewGroup) getParent()).removeView(MolvixVideoPlayerView.this);
     }
 
@@ -161,18 +271,28 @@ public class MolvixVideoPlayerView extends FrameLayout {
             @Override
             public void onControlsShown() {
                 animateTitleContainerVisibility(true);
+                animateVolumeAndBrightnessContainerVisibility(true);
                 controlsShown.set(true);
             }
 
             @Override
             public void onControlsHidden() {
                 animateTitleContainerVisibility(false);
+                animateVolumeAndBrightnessContainerVisibility(false);
                 if (currentOrientation.get() == Configuration.ORIENTATION_LANDSCAPE) {
                     enterImmersiveMode();
                 }
                 controlsShown.set(false);
             }
         });
+    }
+
+    private void animateVolumeAndBrightnessContainerVisibility(boolean toVisible) {
+        UiUtils.toggleViewVisibility(volumeControllerContainer, toVisible);
+        if (brightnessHandleAvailable.get()) {
+            UiUtils.toggleViewVisibility(brightnessControllerContainer, toVisible);
+        }
+        initVolumeAndBrightnessController();
     }
 
     private void animateTitleContainerVisibility(boolean toVisible) {

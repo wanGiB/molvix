@@ -45,11 +45,13 @@
 
         <com.molvix.android.ui.widgets.MolvixTextView
             android:id="@+id/episode_download_button_view"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
+            android:layout_weight="1"
             android:drawablePadding="5dp"
             android:ellipsize="end"
+            android:gravity="end"
             android:maxLines="1"
             android:paddingStart="8dp"
             android:paddingEnd="16dp"

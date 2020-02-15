@@ -10,6 +10,7 @@ import com.molvix.android.components.ApplicationLoader;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Locale;
 
 @SuppressWarnings("ResultOfMethodCallIgnored")
@@ -131,6 +132,17 @@ public class FileUtils {
     public static boolean isAtLeast10mB(File existingFile) {
         float existingFileLength = getFileSizeInMB(existingFile.length());
         return existingFileLength >= 10;
+    }
+
+    public static boolean deleteDirectory(File file) throws IOException, InterruptedException {
+        if (file.exists()) {
+            String deleteCommand = "rm -rf " + file.getAbsolutePath();
+            Runtime runtime = Runtime.getRuntime();
+            Process process = runtime.exec(deleteCommand);
+            process.waitFor();
+            return true;
+        }
+        return false;
     }
 
 }

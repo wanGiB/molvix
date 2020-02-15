@@ -30,16 +30,10 @@ import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.RequestOptions;
 import com.bumptech.glide.request.target.Target;
 import com.google.android.material.snackbar.Snackbar;
-import com.molvix.android.beans.DownloadedVideoItem;
 import com.molvix.android.components.ApplicationLoader;
 import com.molvix.android.contracts.DoneCallback;
 import com.molvix.android.contracts.SnackBarActionClickedListener;
-import com.molvix.android.eventbuses.DownloadedFileDeletedEvent;
 import com.molvix.android.ui.widgets.LoadingImageView;
-
-import org.greenrobot.eventbus.EventBus;
-
-import java.io.File;
 
 import static org.apache.commons.lang3.StringUtils.containsIgnoreCase;
 import static org.apache.commons.lang3.StringUtils.indexOfIgnoreCase;
@@ -107,21 +101,6 @@ public class UiUtils {
                         if (imageView instanceof LoadingImageView) {
                             LoadingImageView loadingImageView = (LoadingImageView) imageView;
                             loadingImageView.stopLoading();
-                        }
-                        File thumbNailFile = new File(videoThumbNailUrl);
-                        if (thumbNailFile.exists()) {
-                            File parentFile = thumbNailFile.getParentFile();
-                            String parentFileName = null;
-                            if (parentFile != null && parentFile.exists()) {
-                                parentFileName = parentFile.getName();
-                            }
-                            boolean deleted = thumbNailFile.delete();
-                            if (deleted) {
-                                DownloadedVideoItem downloadedVideoItem = new DownloadedVideoItem();
-                                downloadedVideoItem.setParentFolderName(parentFileName);
-                                downloadedVideoItem.setDownloadedFile(thumbNailFile);
-                                EventBus.getDefault().post(new DownloadedFileDeletedEvent(downloadedVideoItem));
-                            }
                         }
                         return false;
                     }

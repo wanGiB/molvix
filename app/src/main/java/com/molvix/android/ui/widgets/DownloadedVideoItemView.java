@@ -140,7 +140,7 @@ public class DownloadedVideoItemView extends FrameLayout {
                     }
                 } else {
                     try {
-                        boolean deleted = deleteDirectory(downloadedFile);
+                        boolean deleted = FileUtils.deleteDirectory(downloadedFile);
                         if (deleted) {
                             EventBus.getDefault().post(new DownloadedFileDeletedEvent(downloadedVideoItem));
                         } else {
@@ -163,17 +163,6 @@ public class DownloadedVideoItemView extends FrameLayout {
         bottomTitleView.setOnLongClickListener(onLongClickListener);
         videoPreview.setOnLongClickListener(onLongClickListener);
         durationTextView.setOnLongClickListener(onLongClickListener);
-    }
-
-    public boolean deleteDirectory(File file) throws IOException, InterruptedException {
-        if (file.exists()) {
-            String deleteCommand = "rm -rf " + file.getAbsolutePath();
-            Runtime runtime = Runtime.getRuntime();
-            Process process = runtime.exec(deleteCommand);
-            process.waitFor();
-            return true;
-        }
-        return false;
     }
 
     private String enumerateSeasonsInFolder(File downloadedFile) {
