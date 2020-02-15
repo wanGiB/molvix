@@ -180,7 +180,7 @@ public class NotificationView extends FrameLayout {
     private void initPlayScope(File file) {
         AlertDialog.Builder filePlayScopeOptionsBuilder = new AlertDialog.Builder(getContext());
         filePlayScopeOptionsBuilder.setTitle("Play");
-        filePlayScopeOptionsBuilder.setSingleChoiceItems(new CharSequence[]{"Within Molvix", "Outside Molvix"}, 0, (dialog, which) -> {
+        filePlayScopeOptionsBuilder.setSingleChoiceItems(new CharSequence[]{"Within Molvix", "Outside Molvix"}, -1, (dialog, which) -> {
             dialog.dismiss();
             if (which == 0) {
                 playWithinApp(file);

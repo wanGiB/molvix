@@ -5,11 +5,11 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.os.Build;
+import android.os.Handler;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.Animation;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -19,6 +19,7 @@ import androidx.annotation.Nullable;
 
 import com.devbrackets.android.exomedia.listener.VideoControlsButtonListener;
 import com.devbrackets.android.exomedia.listener.VideoControlsVisibilityListener;
+import com.devbrackets.android.exomedia.ui.animation.TopViewHideShowAnimation;
 import com.devbrackets.android.exomedia.ui.widget.VideoControls;
 import com.devbrackets.android.exomedia.ui.widget.VideoView;
 import com.molvix.android.R;
@@ -29,6 +30,8 @@ import com.molvix.android.utils.UiUtils;
 
 import java.io.File;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import butterknife.BindView;
@@ -49,6 +52,9 @@ public class MolvixVideoPlayerView extends FrameLayout {
     View titleViewContainer;
 
     private AtomicReference<File> activeFileReference = new AtomicReference<>();
+    private AtomicInteger currentOrientation = new AtomicInteger(1);
+    private AtomicBoolean controlsShown = new AtomicBoolean(false);
+    private AtomicBoolean titleContainerVisible = new AtomicBoolean(true);
 
     public MolvixVideoPlayerView(@NonNull Context context) {
         super(context);
@@ -135,53 +141,53 @@ public class MolvixVideoPlayerView extends FrameLayout {
                     removePlayer();
                 }
             });
+            setOnSystemUiVisibilityChangeListener(visibility -> {
+                if (visibility == View.SYSTEM_UI_FLAG_VISIBLE && currentOrientation.get() == Configuration.ORIENTATION_LANDSCAPE) {
+                    if (!controlsShown.get()) {
+                        reEnterImmersiveModeDelayed();
+                    }
+                }
+            });
         }
+    }
+
+    private void reEnterImmersiveModeDelayed() {
+        new Handler().postDelayed(this::enterImmersiveMode, (long) 3000);
     }
 
     private void listenToControlsVisibilityChange(VideoControls videoControls) {
         videoControls.setVisibilityListener(new VideoControlsVisibilityListener() {
+
             @Override
             public void onControlsShown() {
-                showTitleViewContainer();
+                animateTitleContainerVisibility(true);
+                controlsShown.set(true);
             }
 
             @Override
             public void onControlsHidden() {
-                hideTitleViewContainer();
+                animateTitleContainerVisibility(false);
+                if (currentOrientation.get() == Configuration.ORIENTATION_LANDSCAPE) {
+                    enterImmersiveMode();
+                }
+                controlsShown.set(false);
             }
         });
     }
 
-    private void hideTitleViewContainer() {
-        Animation slideUpAnim = UiUtils.getAnimation(getContext(), R.anim.slide_up);
-        slideUpAnim.setAnimationListener(new Animation.AnimationListener() {
-            @Override
-            public void onAnimationStart(Animation animation) {
-            }
-
-            @Override
-            public void onAnimationEnd(Animation animation) {
-                UiUtils.toggleViewVisibility(titleViewContainer, false);
-            }
-
-            @Override
-            public void onAnimationRepeat(Animation animation) {
-
-            }
-        });
-        titleViewContainer.clearAnimation();
-        titleViewContainer.startAnimation(slideUpAnim);
+    private void animateTitleContainerVisibility(boolean toVisible) {
+        if (titleContainerVisible.get() == toVisible) {
+            return;
+        }
+        titleViewContainer.startAnimation(new TopViewHideShowAnimation(titleViewContainer, toVisible, 300L));
+        titleContainerVisible.set(toVisible);
     }
 
-    // Shows the system bars by removing all the flags// except for the ones that make the content appear under the system bars.
     private void leaveImmersiveMode() {
         if (getContext() instanceof MainActivity) {
             MainActivity mainActivity = (MainActivity) getContext();
             View decorView = mainActivity.getWindow().getDecorView();
-            decorView.setSystemUiVisibility(
-                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                            | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                            | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
+            decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
         }
     }
 
@@ -202,28 +208,6 @@ public class MolvixVideoPlayerView extends FrameLayout {
                                 | View.SYSTEM_UI_FLAG_FULLSCREEN);
             }
         }
-    }
-
-    private void showTitleViewContainer() {
-        Animation slideDownAnim = UiUtils.getAnimation(getContext(), R.anim.slide_down);
-        slideDownAnim.setAnimationListener(new Animation.AnimationListener() {
-            @Override
-            public void onAnimationStart(Animation animation) {
-                UiUtils.toggleViewVisibility(titleViewContainer, true);
-            }
-
-            @Override
-            public void onAnimationEnd(Animation animation) {
-
-            }
-
-            @Override
-            public void onAnimationRepeat(Animation animation) {
-
-            }
-        });
-        titleViewContainer.clearAnimation();
-        titleViewContainer.startAnimation(slideDownAnim);
     }
 
     @Override
@@ -329,6 +313,7 @@ public class MolvixVideoPlayerView extends FrameLayout {
     protected void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         int newOrientation = newConfig.orientation;
+        currentOrientation.set(newOrientation);
         if (newOrientation == Configuration.ORIENTATION_LANDSCAPE) {
             enterImmersiveMode();
         } else {

@@ -237,22 +237,25 @@ public class UiUtils {
     }
 
     public static Spannable highlightTextIfNecessary(String search, String originalText, int color) {
-        if (isNotEmpty(search)) {
-            if (containsIgnoreCase(originalText, search.trim())) {
-                int startPost = indexOfIgnoreCase(originalText, search.trim());
-                int endPost = startPost + search.length();
-                Spannable spanText = Spannable.Factory.getInstance().newSpannable(originalText);
-                if (startPost != -1) {
-                    spanText.setSpan(new ForegroundColorSpan(color), startPost, endPost, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-                    return spanText;
+        try {
+            if (isNotEmpty(search)) {
+                if (containsIgnoreCase(originalText, search.trim())) {
+                    int startPost = indexOfIgnoreCase(originalText, search.trim());
+                    int endPost = startPost + search.length();
+                    Spannable spanText = Spannable.Factory.getInstance().newSpannable(originalText);
+                    if (startPost != -1) {
+                        spanText.setSpan(new ForegroundColorSpan(color), startPost, endPost, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                        return spanText;
+                    } else {
+                        return new SpannableString(originalText);
+                    }
                 } else {
                     return new SpannableString(originalText);
                 }
             } else {
                 return new SpannableString(originalText);
             }
-
-        } else {
+        } catch (Exception e) {
             return new SpannableString(originalText);
         }
     }
@@ -281,4 +284,5 @@ public class UiUtils {
             return new SpannableString(originalText);
         }
     }
+
 }

@@ -202,7 +202,9 @@ public class FileDownloadManager {
     private static void deleteDirPath(String dirPath) {
         File dirPathFile = new File(dirPath);
         if (dirPathFile.exists()) {
-            dirPathFile.delete();
+            if (!FileUtils.isAtLeast10mB(dirPathFile)) {
+                dirPathFile.delete();
+            }
         }
     }
 

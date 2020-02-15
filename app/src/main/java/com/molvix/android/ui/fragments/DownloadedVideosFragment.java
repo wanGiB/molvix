@@ -24,6 +24,7 @@ import com.molvix.android.ui.adapters.DownloadedVideosAdapter;
 import com.molvix.android.ui.decorators.MarginDecoration;
 import com.molvix.android.ui.widgets.AutoFitRecyclerView;
 import com.molvix.android.utils.FileUtils;
+import com.molvix.android.utils.ThumbNailUtils;
 import com.molvix.android.utils.UiUtils;
 
 import org.apache.commons.lang3.StringUtils;
@@ -114,7 +115,7 @@ public class DownloadedVideosFragment extends BaseFragment {
                 downloadedVideoItems.clear();
                 downloadedVideosAdapter.notifyDataSetChanged();
                 for (File file : children) {
-                    String thumbnailPath = getThumbnailPath(file);
+                    String thumbnailPath = ThumbNailUtils.getThumbnailPath(file);
                     if (!file.isHidden() && thumbnailPath != null) {
                         if (!isAtLeast10mB(new File(thumbnailPath))) {
                             return;

@@ -211,7 +211,7 @@ public class EpisodeView extends FrameLayout {
     private void initPlayScope(File file) {
         AlertDialog.Builder filePlayScopeOptionsBuilder = new AlertDialog.Builder(getContext());
         filePlayScopeOptionsBuilder.setTitle("Play");
-        filePlayScopeOptionsBuilder.setSingleChoiceItems(new CharSequence[]{"Within Molvix", "Outside Molvix"}, 0, (dialog, which) -> {
+        filePlayScopeOptionsBuilder.setSingleChoiceItems(new CharSequence[]{"Within Molvix", "Outside Molvix"}, -1, (dialog, which) -> {
             dialog.dismiss();
             if (which == 0) {
                 playWithinApp(file);
@@ -247,6 +247,8 @@ public class EpisodeView extends FrameLayout {
         if (!downloadedVideoItems.isEmpty()) {
             if (getContext() instanceof MainActivity) {
                 MainActivity mainActivity = (MainActivity) getContext();
+                //Close the BottomSheetDialog before playing video
+                mainActivity.onBackPressed();
                 mainActivity.playVideo(downloadedVideoItems, downloadedVideoItem);
             }
         }
