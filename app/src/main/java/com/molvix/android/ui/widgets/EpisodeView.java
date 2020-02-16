@@ -39,7 +39,6 @@ import com.molvix.android.ui.activities.MainActivity;
 import com.molvix.android.utils.ConnectivityUtils;
 import com.molvix.android.utils.FileUtils;
 import com.molvix.android.utils.MolvixLogger;
-import com.molvix.android.utils.ThumbNailUtils;
 import com.molvix.android.utils.UiUtils;
 
 import org.apache.commons.lang3.StringUtils;
@@ -231,14 +230,11 @@ public class EpisodeView extends FrameLayout {
             File[] otherEpisodes = seasonDir.listFiles();
             if (otherEpisodes != null && otherEpisodes.length > 0) {
                 for (File episode : otherEpisodes) {
-                    String fileThumbNailPath = ThumbNailUtils.getThumbnailPath(episode);
-                    if (!episode.isHidden() && fileThumbNailPath != null) {
-                        if (FileUtils.isAtLeast10mB(new File(fileThumbNailPath))) {
-                            File immediateParentDir = episode.getParentFile();
-                            DownloadedVideoItem downloadedEpisodeItem = getDownloadedVideoItem(episode, immediateParentDir);
-                            if (!downloadedVideoItems.contains(downloadedEpisodeItem)) {
-                                downloadedVideoItems.add(downloadedEpisodeItem);
-                            }
+                    if (!episode.isHidden()) {
+                        File immediateParentDir = episode.getParentFile();
+                        DownloadedVideoItem downloadedEpisodeItem = getDownloadedVideoItem(episode, immediateParentDir);
+                        if (!downloadedVideoItems.contains(downloadedEpisodeItem)) {
+                            downloadedVideoItems.add(downloadedEpisodeItem);
                         }
                     }
                 }

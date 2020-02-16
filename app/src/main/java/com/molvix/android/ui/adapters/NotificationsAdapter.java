@@ -17,7 +17,6 @@ import com.molvix.android.utils.DateUtils;
 import com.molvix.android.utils.MolvixGenUtils;
 
 import java.util.Calendar;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -27,14 +26,11 @@ import butterknife.ButterKnife;
 
 public class NotificationsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> implements StickyRecyclerHeadersAdapter<RecyclerView.ViewHolder> {
 
-    private List<Notification> notifications = Collections.emptyList();
+    private List<Notification> notifications;
     private Context context;
 
-    public NotificationsAdapter(Context context) {
+    public NotificationsAdapter(Context context, List<Notification> notifications) {
         this.context = context;
-    }
-
-    public void setNotifications(List<Notification> notifications) {
         this.notifications = notifications;
     }
 

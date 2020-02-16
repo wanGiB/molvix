@@ -15,22 +15,23 @@ import com.molvix.android.ui.notifications.notification.MolvixNotification;
 import com.molvix.android.utils.FileUtils;
 import com.molvix.android.utils.MolvixLogger;
 import com.tonyodev.fetch2.Download;
-import com.tonyodev.fetch2.Fetch;
 import com.tonyodev.fetch2.Error;
+import com.tonyodev.fetch2.Fetch;
+import com.tonyodev.fetch2.FetchConfiguration;
+import com.tonyodev.fetch2.FetchListener;
 import com.tonyodev.fetch2.NetworkType;
 import com.tonyodev.fetch2.Priority;
-import com.tonyodev.fetch2.FetchListener;
-import com.tonyodev.fetch2.FetchConfiguration;
 import com.tonyodev.fetch2.Request;
 import com.tonyodev.fetch2core.DownloadBlock;
+import com.tonyodev.fetch2okhttp.OkHttpDownloader;
 
 import org.apache.commons.lang3.text.WordUtils;
 import org.greenrobot.eventbus.EventBus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class FileDownloadManager {
     private static Fetch fetch;
@@ -117,7 +118,7 @@ public class FileDownloadManager {
             Episode episode = MolvixDB.getEpisode(episodeId);
             MolvixNotification.with(ApplicationLoader.getInstance()).cancel(Math.abs(episode.getEpisodeId().hashCode()));
             MolvixLogger.d(ContentManager.class.getSimpleName(), "An error occurred while downloading " + episode.getEpisodeName() + "/" + episode.getSeason().getSeasonName() + "/" + episode.getSeason().getMovie().getMovieName() + " Error cause = " + error.getThrowable());
-            EventBus.getDefault().post(new EpisodeDownloadErrorException(episode, error));
+            EventBus.getDefault().post(new EpisodeDownloadErrorException(episode));
             resetEpisodeDownloadProgress(episode);
             AppPrefs.removeKey(AppConstants.DOWNLOAD_ID_KEY + download.getId());
         }
@@ -185,8 +186,10 @@ public class FileDownloadManager {
     }
 
     public static void downloadEpisode(Episode episode) {
-        try {
-            Pair<String, String> downloadUrlAndDirPathPair = getDownloadUrlAndDirPathFrom(episode);
+        Pair<String, String> downloadUrlAndDirPathPair = getDownloadUrlAndDirPathFrom(episode);
+        String downloadUrl = downloadUrlAndDirPathPair.first;
+        String filePath = downloadUrlAndDirPathPair.second;
+        if (downloadUrl != null && filePath != null) {
             boolean isPaused = AppPrefs.isPaused(episode.getEpisodeId());
             if (fetch == null) {
                 fetch = getFetch();
@@ -194,7 +197,7 @@ public class FileDownloadManager {
             if (isPaused) {
                 fetch.resume(getDownloadIdFromEpisode(episode));
             } else {
-                Request downloadRequest = new Request(downloadUrlAndDirPathPair.first, downloadUrlAndDirPathPair.second);
+                Request downloadRequest = new Request(downloadUrl, filePath);
                 downloadRequest.setPriority(Priority.HIGH);
                 downloadRequest.setNetworkType(NetworkType.ALL);
                 fetch.enqueue(downloadRequest, result -> {
@@ -207,11 +210,11 @@ public class FileDownloadManager {
                 });
             }
             attachFetchListener(fetch);
-        } catch (Exception e) {
-            String errorMessage = e.getMessage();
-            if (errorMessage != null) {
-                MolvixLogger.d(ContentManager.class.getSimpleName(), errorMessage);
-            }
+        } else {
+            MolvixLogger.d(ContentManager.class.getSimpleName(), "One of either download url or path is null");
+            AppPrefs.removeFromInProgressDownloads(episode);
+            EpisodesManager.popDownloadableEpisode(episode);
+            EventBus.getDefault().post(new EpisodeDownloadErrorException(episode));
         }
     }
 
@@ -221,6 +224,12 @@ public class FileDownloadManager {
 
     private static Fetch getFetch() {
         FetchConfiguration fetchConfiguration = new FetchConfiguration.Builder(ApplicationLoader.getInstance())
+                .enableAutoStart(true)
+                .enableRetryOnNetworkGain(true)
+                .preAllocateFileOnCreation(false)
+                .setGlobalNetworkType(NetworkType.ALL)
+                .setHasActiveDownloadsCheckInterval(TimeUnit.MINUTES.toMillis(1))
+                .setHttpDownloader(new OkHttpDownloader())
                 .setDownloadConcurrentLimit(20)
                 .build();
         return Fetch.Impl.getInstance(fetchConfiguration);
@@ -278,7 +287,7 @@ public class FileDownloadManager {
         }
         AppPrefs.removeFromInProgressDownloads(episode);
         resetEpisodeDownloadProgress(episode);
-     }
+    }
 
     private static int getDownloadIdFromEpisode(Episode episode) {
         return AppPrefs.getDownloadIdFromEpisodeId(episode.getEpisodeId());

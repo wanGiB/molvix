@@ -62,7 +62,7 @@
     <string name="your_favourite_tv_series_at_your_fingertips">Your favourite TV Series at Your fingertips</string>
     <string name="new_update_available_text">A new version of Molvix is Available for Download.\n This Update contains very important bug fixes.\n It\'s mandatory that you update.</string>
     <string name="update">UPDATE</string>
-    <string name="no_downloaded_videos">Successfully downloaded videos would show up here</string>
+    <string name="no_downloaded_videos">Downloaded videos would show up here</string>
     <string name="title_downloaded_videos">Downloads</string>
     <string name="theme_key">theme_pref_key</string>
     <string name="loading">Loading…</string>

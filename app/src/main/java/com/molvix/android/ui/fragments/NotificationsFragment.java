@@ -107,8 +107,7 @@ public class NotificationsFragment extends BaseFragment {
     }
 
     private void setupAdapter() {
-        notificationsAdapter = new NotificationsAdapter(getActivity());
-        notificationsAdapter.setNotifications(notifications);
+        notificationsAdapter = new NotificationsAdapter(getActivity(), notifications);
         notificationsRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         StickyRecyclerHeadersDecoration stickyRecyclerHeadersDecoration = new StickyRecyclerHeadersDecoration(notificationsAdapter);
         notificationsRecyclerView.addItemDecoration(stickyRecyclerHeadersDecoration);
@@ -128,11 +127,7 @@ public class NotificationsFragment extends BaseFragment {
         for (Notification notification : results) {
             if (!notifications.contains(notification)) {
                 notifications.add(notification);
-                if (notifications.size() == 1) {
-                    notificationsAdapter.notifyDataSetChanged();
-                } else {
-                    notificationsAdapter.notifyItemInserted(notifications.size() - 1);
-                }
+                notificationsAdapter.notifyItemInserted(notifications.size() - 1);
             } else {
                 int indexOfNotification = results.indexOf(notification);
                 if (indexOfNotification != -1) {

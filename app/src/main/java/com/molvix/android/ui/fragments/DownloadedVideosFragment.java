@@ -24,7 +24,6 @@ import com.molvix.android.ui.adapters.DownloadedVideosAdapter;
 import com.molvix.android.ui.decorators.MarginDecoration;
 import com.molvix.android.ui.widgets.AutoFitRecyclerView;
 import com.molvix.android.utils.FileUtils;
-import com.molvix.android.utils.ThumbNailUtils;
 import com.molvix.android.utils.UiUtils;
 
 import org.apache.commons.lang3.StringUtils;
@@ -36,9 +35,6 @@ import java.util.Objects;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-
-import static com.molvix.android.utils.FileUtils.isAtLeast10mB;
-import static com.molvix.android.utils.ThumbNailUtils.getThumbnailPath;
 
 public class DownloadedVideosFragment extends BaseFragment {
 
@@ -115,11 +111,7 @@ public class DownloadedVideosFragment extends BaseFragment {
                 downloadedVideoItems.clear();
                 downloadedVideosAdapter.notifyDataSetChanged();
                 for (File file : children) {
-                    String thumbnailPath = ThumbNailUtils.getThumbnailPath(file);
-                    if (!file.isHidden() && thumbnailPath != null) {
-                        if (!isAtLeast10mB(new File(thumbnailPath))) {
-                            return;
-                        }
+                    if (!file.isHidden()) {
                         DownloadedVideoItem downloadedVideoItem = new DownloadedVideoItem();
                         downloadedVideoItem.setDownloadedFile(file);
                         downloadedVideoItem.setParentFolderName(parentFolder);

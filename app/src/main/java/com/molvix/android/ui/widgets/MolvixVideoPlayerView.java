@@ -97,7 +97,7 @@ public class MolvixVideoPlayerView extends FrameLayout {
         });
         videoView.setOnErrorListener(e -> {
             AlertDialog.Builder errorBuilder = new AlertDialog.Builder(getContext());
-            errorBuilder.setMessage("Sorry, couldn't play video.It seems this video is corrupt or not fully downloaded.");
+            errorBuilder.setMessage(UiUtils.fromHtml("Sorry, couldn't play <b>"+downloadedVideoItem.getTitle()+"</b>.It seems this video is corrupt or not fully downloaded."));
             errorBuilder.setPositiveButton("OK", (dialog, which) -> {
                 dialog.dismiss();
                 removePlayer();

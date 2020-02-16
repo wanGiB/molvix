@@ -2,7 +2,6 @@ package com.molvix.android.ui.widgets;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.graphics.drawable.ColorDrawable;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.text.format.DateUtils;
@@ -16,7 +15,6 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
-import androidx.core.content.ContextCompat;
 
 import com.molvix.android.R;
 import com.molvix.android.beans.DownloadedVideoItem;
@@ -106,9 +104,14 @@ public class DownloadedVideoItemView extends FrameLayout {
         if (thumbnailPath != null) {
             UiUtils.loadVideoThumbNailIntoView(videoPreview, thumbnailPath);
         } else {
-            videoPreview.setImageDrawable(new ColorDrawable(ContextCompat.getColor(getContext(), R.color.ease_gray)));
+            videoPreview.setImageDrawable(videoPreview.getBackground());
         }
-        View.OnClickListener onClickListener = v -> {
+        attachClickEventListener(downloadedVideoItem, position, downloadedFile);
+        attachDeleteEventListener(downloadedVideoItem, downloadedFile);
+    }
+
+    private void attachClickEventListener(DownloadedVideoItem downloadedVideoItem, int position, File downloadedFile) {
+        OnClickListener onClickListener = v -> {
             UiUtils.blinkView(videoPreview);
             if (downloadedFile.isDirectory()) {
                 EventBus.getDefault().post(new LoadDownloadedVideosFromFile(downloadedFile.getName(), downloadedFile));
@@ -125,7 +128,10 @@ public class DownloadedVideoItemView extends FrameLayout {
         bottomTitleView.setOnClickListener(onClickListener);
         videoPreview.setOnClickListener(onClickListener);
         durationTextView.setOnClickListener(onClickListener);
-        View.OnLongClickListener onLongClickListener = v -> {
+    }
+
+    private void attachDeleteEventListener(DownloadedVideoItem downloadedVideoItem, File downloadedFile) {
+        OnLongClickListener onLongClickListener = v -> {
             AlertDialog.Builder deletePromptDialogBuilder = new AlertDialog.Builder(getContext());
             deletePromptDialogBuilder.setTitle("Attention!");
             deletePromptDialogBuilder.setMessage("Delete " + downloadedFile.getName() + "?");
