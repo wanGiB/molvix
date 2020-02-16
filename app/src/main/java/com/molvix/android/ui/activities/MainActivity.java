@@ -69,6 +69,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -91,6 +92,7 @@ public class MainActivity extends BaseActivity {
 
     private List<Fragment> fragments;
     private DataSubscription presetsSubscription;
+    private AtomicBoolean activeVideoPlayBackPaused = new AtomicBoolean(false);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -122,6 +124,29 @@ public class MainActivity extends BaseActivity {
     private void cleanUp() {
         AdsLoadManager.destroy();
         unSubscribeFromPresetsChanges();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        if (rootContainer.getChildAt(rootContainer.getChildCount() - 1) instanceof MolvixVideoPlayerView) {
+            MolvixVideoPlayerView molvixVideoPlayerView = (MolvixVideoPlayerView) rootContainer.getChildAt(rootContainer.getChildCount() - 1);
+            molvixVideoPlayerView.tryPauseVideo();
+            activeVideoPlayBackPaused.set(true);
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (rootContainer.getChildAt(rootContainer.getChildCount() - 1) instanceof MolvixVideoPlayerView) {
+            MolvixVideoPlayerView molvixVideoPlayerView = (MolvixVideoPlayerView) rootContainer.getChildAt(rootContainer.getChildCount() - 1);
+            if (activeVideoPlayBackPaused.get()) {
+                molvixVideoPlayerView.tryResumeVideo();
+                activeVideoPlayBackPaused.set(false);
+            }
+        }
+        fetchDownloadableEpisodes();
     }
 
     @Override
@@ -379,12 +404,6 @@ public class MainActivity extends BaseActivity {
         hackWebView.loadUrl(episode.getEpisodeCaptchaSolverLink());
     }
 
-    @Override
-    public void onResume() {
-        super.onResume();
-        fetchDownloadableEpisodes();
-    }
-
     private void observeNewIntent(Intent intent) {
         String invocationType = intent.getStringExtra(AppConstants.INVOCATION_TYPE);
         if (invocationType != null) {
@@ -563,7 +582,7 @@ public class MainActivity extends BaseActivity {
         finish();
     }
 
-    public void playVideo(List<DownloadedVideoItem>downloadedVideoItems,DownloadedVideoItem downloadedVideoItem) {
+    public void playVideo(List<DownloadedVideoItem> downloadedVideoItems, DownloadedVideoItem downloadedVideoItem) {
         if (rootContainer.getChildAt(rootContainer.getChildCount() - 1) instanceof MolvixVideoPlayerView) {
             rootContainer.removeViewAt(rootContainer.getChildCount() - 1);
         }

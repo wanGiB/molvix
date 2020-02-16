@@ -97,7 +97,7 @@ public class MolvixVideoPlayerView extends FrameLayout {
         });
         videoView.setOnErrorListener(e -> {
             AlertDialog.Builder errorBuilder = new AlertDialog.Builder(getContext());
-            errorBuilder.setMessage(UiUtils.fromHtml("Sorry, couldn't play <b>"+downloadedVideoItem.getTitle()+"</b>.It seems this video is corrupt or not fully downloaded."));
+            errorBuilder.setMessage(UiUtils.fromHtml("Sorry, couldn't play <b>" + downloadedVideoItem.getTitle() + "</b>.It seems this video is corrupt or not fully downloaded."));
             errorBuilder.setPositiveButton("OK", (dialog, which) -> {
                 dialog.dismiss();
                 removePlayer();
@@ -338,6 +338,18 @@ public class MolvixVideoPlayerView extends FrameLayout {
             } catch (Exception ignored) {
 
             }
+        }
+    }
+
+    public void tryPauseVideo() {
+        if (videoView.isPlaying()) {
+            videoView.pause();
+        }
+    }
+
+    public void tryResumeVideo() {
+        if (!videoView.isPlaying()) {
+            videoView.start();
         }
     }
 
