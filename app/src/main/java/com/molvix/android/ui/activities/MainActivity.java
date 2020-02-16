@@ -69,7 +69,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import butterknife.BindView;
@@ -469,6 +468,8 @@ public class MainActivity extends BaseActivity {
                 movieDetailsView.removeEpisodeListener();
                 rootContainer.removeView(movieDetailsView);
             }
+            rootContainer.invalidate();
+            rootContainer.requestLayout();
             return;
         }
         String searchString = searchView.getText();

@@ -2,6 +2,9 @@ package com.molvix.android.managers;
 
 import android.util.Pair;
 
+import com.huxq17.download.Pump;
+import com.huxq17.download.core.DownloadInfo;
+import com.huxq17.download.core.DownloadListener;
 import com.molvix.android.companions.AppConstants;
 import com.molvix.android.components.ApplicationLoader;
 import com.molvix.android.database.MolvixDB;
@@ -14,96 +17,85 @@ import com.molvix.android.preferences.AppPrefs;
 import com.molvix.android.ui.notifications.notification.MolvixNotification;
 import com.molvix.android.utils.FileUtils;
 import com.molvix.android.utils.MolvixLogger;
-import com.molvix.android.utils.NetworkClient;
-import com.tonyodev.fetch2.Download;
-import com.tonyodev.fetch2.Error;
-import com.tonyodev.fetch2.Fetch;
-import com.tonyodev.fetch2.FetchConfiguration;
-import com.tonyodev.fetch2.FetchListener;
-import com.tonyodev.fetch2.NetworkType;
-import com.tonyodev.fetch2.Priority;
-import com.tonyodev.fetch2.Request;
-import com.tonyodev.fetch2core.DownloadBlock;
-import com.tonyodev.fetch2okhttp.OkHttpDownloader;
 
 import org.apache.commons.lang3.text.WordUtils;
 import org.greenrobot.eventbus.EventBus;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class FileDownloadManager {
-    private static Fetch fetch;
-    private static FetchListener fetchListener = new FetchListener() {
+
+    private static AtomicBoolean hasBeingSubscribed = new AtomicBoolean(false);
+
+    private static DownloadListener downloadListener = new DownloadListener() {
 
         @Override
-        public void onAdded(@NotNull Download download) {
-
+        public void onProgress(int progress) {
+            DownloadInfo downloadInfo = getDownloadInfo();
+            handleDownloadProgress(downloadInfo);
         }
 
         @Override
-        public void onQueued(@NotNull Download download, boolean b) {
+        public void onFailed() {
+            DownloadInfo downloadInfo = getDownloadInfo();
+            handleDownloadError(downloadInfo);
         }
 
         @Override
-        public void onWaitingNetwork(@NotNull Download download) {
-
-        }
-
-        @Override
-        public void onCompleted(@NotNull Download download) {
-            handleCompletedDownload(download);
-        }
-
-        @Override
-        public void onError(@NotNull Download download, @NotNull Error error, @Nullable Throwable throwable) {
-            handleDownloadError(download, error);
-        }
-
-        @Override
-        public void onDownloadBlockUpdated(@NotNull Download download, @NotNull DownloadBlock downloadBlock, int i) {
-        }
-
-        @Override
-        public void onStarted(@NotNull Download download, @NotNull List<? extends DownloadBlock> list, int i) {
-
-        }
-
-        @Override
-        public void onProgress(@NotNull Download download, long etaInMilliSeconds, long downloadedBytesPerSecond) {
-            handleDownloadProgress(download);
-        }
-
-        @Override
-        public void onPaused(@NotNull Download download) {
-            handlePausedDownload(download);
-        }
-
-        @Override
-        public void onResumed(@NotNull Download download) {
-            handleResumedDownload(download);
-        }
-
-        @Override
-        public void onCancelled(@NotNull Download download) {
-            handleCancelledDownload(download);
-        }
-
-        @Override
-        public void onRemoved(@NotNull Download download) {
-
-        }
-
-        @Override
-        public void onDeleted(@NotNull Download download) {
-
+        public void onSuccess() {
+            DownloadInfo downloadInfo = getDownloadInfo();
+            handleCompletedDownload(downloadInfo);
+            tryShutdownPump();
         }
 
     };
 
-    private static void handleCompletedDownload(@NotNull Download download) {
-        String episodeId = AppPrefs.getEpisodeIdFromDownloadId(download.getId());
+    public static void downloadEpisode(Episode episode) {
+        Pair<String, String> downloadUrlAndDirPathPair = getDownloadUrlAndDirPathFrom(episode);
+        String downloadUrl = downloadUrlAndDirPathPair.first;
+        String filePath = downloadUrlAndDirPathPair.second;
+        if (downloadUrl != null && filePath != null) {
+            boolean isPaused = AppPrefs.isPaused(episode.getEpisodeId());
+            if (isPaused) {
+                Pump.resume(getDownloadIdFromEpisode(episode));
+            } else {
+                String downloadId = generateDownloadIdFromEpisode(episode);
+                Pump.newRequest(downloadUrl, filePath)
+                        .setId(downloadId)
+                        .setDownloadTaskExecutor(ApplicationLoader.getVideoDownloadDispatcher())
+                        .forceReDownload(false)
+                        .submit();
+                AppPrefs.mapEpisodeIdToDownloadId(episode.getEpisodeId(), episode.getEpisodeId().hashCode());
+            }
+            if (!hasBeingSubscribed.get()) {
+                Pump.subscribe(downloadListener);
+                hasBeingSubscribed.set(true);
+            }
+        } else {
+            if (downloadUrl == null) {
+                MolvixLogger.d(ContentManager.class.getSimpleName(), "Download url is null");
+            }
+            if (filePath == null) {
+                MolvixLogger.d(ContentManager.class.getSimpleName(), "FilePath is null");
+            }
+            AppPrefs.removeFromInProgressDownloads(episode);
+            EpisodesManager.popDownloadableEpisode(episode);
+            EventBus.getDefault().post(new EpisodeDownloadErrorException(episode));
+        }
+    }
+
+    private static void tryShutdownPump() {
+        Set<String> inProgressDownloads = AppPrefs.getInProgressDownloads();
+        if (inProgressDownloads.isEmpty()) {
+            Pump.shutdown();
+            hasBeingSubscribed.set(false);
+        }
+    }
+
+    private static void handleCompletedDownload(@NotNull DownloadInfo download) {
+        String episodeId = AppPrefs.getEpisodeIdFromDownloadId(Integer.parseInt(download.getId()));
         if (episodeId != null) {
             Episode episode = MolvixDB.getEpisode(episodeId);
             MolvixLogger.d(ContentManager.class.getSimpleName(), "Download is completed for " + episode.getEpisodeName() + "/" + episode.getSeason().getSeasonName() + "/" + episode.getSeason().getMovie().getMovieName());
@@ -112,56 +104,41 @@ public class FileDownloadManager {
         }
     }
 
-    private static void handleDownloadError(@NotNull Download download, @NotNull Error error) {
-        String episodeId = AppPrefs.getEpisodeIdFromDownloadId(download.getId());
+    private static void handleDownloadError(@NotNull DownloadInfo download) {
+        String episodeId = AppPrefs.getEpisodeIdFromDownloadId(Integer.parseInt(download.getId()));
         if (episodeId != null) {
             Episode episode = MolvixDB.getEpisode(episodeId);
             MolvixNotification.with(ApplicationLoader.getInstance()).cancel(Math.abs(episode.getEpisodeId().hashCode()));
-            MolvixLogger.d(ContentManager.class.getSimpleName(), "An error occurred while downloading " + episode.getEpisodeName() + "/" + episode.getSeason().getSeasonName() + "/" + episode.getSeason().getMovie().getMovieName() + " Error cause = " + error.getThrowable());
+            MolvixLogger.d(ContentManager.class.getSimpleName(), "An error occurred while downloading " + episode.getEpisodeName() + "/" + episode.getSeason().getSeasonName() + "/" + episode.getSeason().getMovie().getMovieName() + "");
             EventBus.getDefault().post(new EpisodeDownloadErrorException(episode));
             resetEpisodeDownloadProgress(episode);
             AppPrefs.removeKey(AppConstants.DOWNLOAD_ID_KEY + download.getId());
         }
     }
 
-    private static void handleDownloadProgress(@NotNull Download download) {
-        String episodeId = AppPrefs.getEpisodeIdFromDownloadId(download.getId());
+    private static void handleDownloadProgress(@NotNull DownloadInfo downloadInfo) {
+        String episodeId = AppPrefs.getEpisodeIdFromDownloadId(Integer.parseInt(downloadInfo.getId()));
         if (episodeId != null) {
             Episode episode = MolvixDB.getEpisode(episodeId);
-            updateDownloadProgress(episode, download.getDownloaded(), download.getTotal());
-            long savedFileLength = AppPrefs.getEstimatedFileLengthForEpisode(episodeId);
-            long totalLength = download.getTotal();
-            if (savedFileLength != totalLength) {
-                AppPrefs.saveEstimatedFileLengthForEpisode(episodeId, totalLength);
-            }
+            AppPrefs.setPaused(episode.getEpisodeId(), false);
+            long completedSize = downloadInfo.getCompletedSize();
+            long totalSize = downloadInfo.getContentLength();
+            updateDownloadProgress(episode, completedSize, totalSize);
         }
     }
 
-    private static void handlePausedDownload(@NotNull Download download) {
-        String episodeId = AppPrefs.getEpisodeIdFromDownloadId(download.getId());
-        if (episodeId != null) {
-            AppPrefs.setPaused(episodeId, true);
+    public static void cancelDownload(Episode episode) {
+        String downloadKeyFromEpisode = getDownloadIdFromEpisode(episode);
+        Pump.stop(downloadKeyFromEpisode);
+        MolvixNotification.with(ApplicationLoader.getInstance()).cancel(Math.abs(episode.getEpisodeId().hashCode()));
+        DownloadableEpisode downloadableEpisode = MolvixDB.getDownloadableEpisode(episode.getEpisodeId());
+        if (downloadableEpisode != null) {
+            MolvixDB.deleteDownloadableEpisode(downloadableEpisode);
         }
-    }
-
-    private static void handleResumedDownload(@NotNull Download download) {
-        String episodeId = AppPrefs.getEpisodeIdFromDownloadId(download.getId());
-        if (episodeId != null) {
-            AppPrefs.setPaused(episodeId, false);
-        }
-    }
-
-    private static void handleCancelledDownload(@NotNull Download download) {
-        String episodeId = AppPrefs.getEpisodeIdFromDownloadId(download.getId());
-        if (episodeId != null) {
-            Episode episode = MolvixDB.getEpisode(episodeId);
-            MolvixNotification.with(ApplicationLoader.getInstance()).cancel(Math.abs(episode.getEpisodeId().hashCode()));
-            MolvixLogger.d(ContentManager.class.getSimpleName(), "Download is cancelled for " + episode.getEpisodeName() + "/" + episode.getSeason().getSeasonName() + "/" + episode.getSeason().getMovie().getMovieName());
-            AppPrefs.setPaused(episodeId, false);
-            AppPrefs.removeKey(AppConstants.DOWNLOAD_ID_KEY + download.getId());
-            resetEpisodeDownloadProgress(episode);
-            AppPrefs.removeFromInProgressDownloads(episode);
-        }
+        AppPrefs.setPaused(episode.getEpisodeId(), false);
+        AppPrefs.removeKey(AppConstants.DOWNLOAD_ID_KEY + episode.getEpisodeId().hashCode());
+        AppPrefs.removeFromInProgressDownloads(episode);
+        resetEpisodeDownloadProgress(episode);
     }
 
     private static Pair<String, String> getDownloadUrlAndDirPathFrom(Episode episode) {
@@ -183,61 +160,6 @@ public class FileDownloadManager {
         String fileName = episode.getEpisodeName() + ".mp4";
         String dirPath = FileUtils.getFilePath(fileName, movieName, seasonName).getPath();
         return new Pair<>(downloadUrl, dirPath);
-    }
-
-    public static void downloadEpisode(Episode episode) {
-        Pair<String, String> downloadUrlAndDirPathPair = getDownloadUrlAndDirPathFrom(episode);
-        String downloadUrl = downloadUrlAndDirPathPair.first;
-        String filePath = downloadUrlAndDirPathPair.second;
-        if (downloadUrl != null && filePath != null) {
-            boolean isPaused = AppPrefs.isPaused(episode.getEpisodeId());
-            if (fetch == null) {
-                fetch = getFetch();
-            }
-            if (isPaused) {
-                fetch.resume(getDownloadIdFromEpisode(episode));
-            } else {
-                Request downloadRequest = new Request(downloadUrl, filePath);
-                downloadRequest.setPriority(Priority.HIGH);
-                downloadRequest.setNetworkType(NetworkType.ALL);
-                fetch.enqueue(downloadRequest, result -> {
-                    //Request was successfully enqueued for download.
-                    MolvixLogger.d(ContentManager.class.getSimpleName(), "Download has being enqueued for " + episode.getEpisodeName() + "/" + episode.getSeason().getSeasonName() + "/" + episode.getSeason().getMovie().getMovieName());
-                    AppPrefs.mapEpisodeIdToDownloadId(episode.getEpisodeId(), result.getId());
-                }, error -> {
-                    //An error occurred enqueuing the request.
-                    MolvixLogger.d(ContentManager.class.getSimpleName(), "An error occurred while queueing up file for download.Error is " + error.getThrowable());
-                });
-            }
-            attachFetchListener(fetch);
-        } else {
-            if (downloadUrl == null) {
-                MolvixLogger.d(ContentManager.class.getSimpleName(), "Download url is null");
-            }
-            if (filePath == null) {
-                MolvixLogger.d(ContentManager.class.getSimpleName(), "FilePath is null");
-            }
-            AppPrefs.removeFromInProgressDownloads(episode);
-            EpisodesManager.popDownloadableEpisode(episode);
-            EventBus.getDefault().post(new EpisodeDownloadErrorException(episode));
-        }
-    }
-
-    private static void attachFetchListener(Fetch fetch) {
-        fetch.addListener(fetchListener);
-    }
-
-    private static Fetch getFetch() {
-        FetchConfiguration fetchConfiguration = new FetchConfiguration.Builder(ApplicationLoader.getInstance())
-                .enableAutoStart(true)
-                .enableRetryOnNetworkGain(true)
-                .preAllocateFileOnCreation(false)
-                .setGlobalNetworkType(NetworkType.ALL)
-                .setHasActiveDownloadsCheckInterval(1000)
-                .setHttpDownloader(new OkHttpDownloader(NetworkClient.getOkHttpClient(true)))
-                .setDownloadConcurrentLimit(20)
-                .build();
-        return Fetch.Impl.getInstance(fetchConfiguration);
     }
 
     private static void resetEpisodeDownloadProgress(Episode episode) {
@@ -274,7 +196,7 @@ public class FileDownloadManager {
         String movieDescription = movie.getMovieDescription();
         String seasonId = season.getSeasonId();
         String seasonName = season.getSeasonName();
-        MolvixLogger.d(ContentManager.class.getSimpleName(), "Downloading in Progress");
+        MolvixLogger.d(ContentManager.class.getSimpleName(), "Download in Progress");
         long progressPercent = downloaded * 100 / totalBytes;
         String progressMessage = FileUtils.getProgressDisplayLine(downloaded, totalBytes);
         MolvixNotificationManager.showEpisodeDownloadProgressNotification(movieName, movieDescription, seasonId, episode.getEpisodeId(), episode.getEpisodeName() + "/" + seasonName + "/" + movieName, (int) progressPercent, progressMessage);
@@ -282,26 +204,18 @@ public class FileDownloadManager {
         AppPrefs.updateEpisodeDownloadProgressMsg(episode.getEpisodeId(), progressMessage);
     }
 
-    public static void cancelDownload(Episode episode) {
-        int downloadKeyFromEpisode = getDownloadIdFromEpisode(episode);
-        getFetch().cancel(downloadKeyFromEpisode);
-        MolvixNotification.with(ApplicationLoader.getInstance()).cancel(Math.abs(episode.getEpisodeId().hashCode()));
-        DownloadableEpisode downloadableEpisode = MolvixDB.getDownloadableEpisode(episode.getEpisodeId());
-        if (downloadableEpisode != null) {
-            MolvixDB.deleteDownloadableEpisode(downloadableEpisode);
-        }
-        AppPrefs.removeFromInProgressDownloads(episode);
-        resetEpisodeDownloadProgress(episode);
+    private static String getDownloadIdFromEpisode(Episode episode) {
+        return String.valueOf(AppPrefs.getDownloadIdFromEpisodeId(episode.getEpisodeId()));
     }
 
-    private static int getDownloadIdFromEpisode(Episode episode) {
-        return AppPrefs.getDownloadIdFromEpisodeId(episode.getEpisodeId());
+    private static String generateDownloadIdFromEpisode(Episode episode) {
+        return String.valueOf(episode.getEpisodeId().hashCode());
     }
 
     public static void pauseDownload(Episode episode) {
         MolvixNotification.with(ApplicationLoader.getInstance()).cancel(Math.abs(episode.getEpisodeId().hashCode()));
-        int downloadKeyFromEpisode = getDownloadIdFromEpisode(episode);
-        getFetch().pause(downloadKeyFromEpisode);
+        String downloadKeyFromEpisode = getDownloadIdFromEpisode(episode);
+        Pump.pause(downloadKeyFromEpisode);
         AppPrefs.setPaused(episode.getEpisodeId(), true);
     }
 

@@ -27,7 +27,6 @@ import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import io.objectbox.reactive.DataSubscription;
 
 public class NotificationsFragment extends BaseFragment {
 
@@ -54,7 +53,8 @@ public class NotificationsFragment extends BaseFragment {
 
     private List<Notification> notifications = new ArrayList<>();
     private NotificationsAdapter notificationsAdapter;
-    private DataSubscription notificationsSubscription;
+
+    private Handler mUIHandler = new Handler();
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -93,19 +93,6 @@ public class NotificationsFragment extends BaseFragment {
         fetchNotifications();
     }
 
-    private void removeNotificationsChangeListener() {
-        if (notificationsSubscription != null && !notificationsSubscription.isCanceled()) {
-            notificationsSubscription.cancel();
-            notificationsSubscription = null;
-        }
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        removeNotificationsChangeListener();
-    }
-
     private void setupAdapter() {
         notificationsAdapter = new NotificationsAdapter(getActivity(), notifications);
         notificationsRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
@@ -114,29 +101,37 @@ public class NotificationsFragment extends BaseFragment {
         notificationsRecyclerView.setAdapter(notificationsAdapter);
     }
 
-    private void fetchNotifications() {
-        try {
-            notificationsSubscription = MolvixDB.getNotificationBox().query().build().subscribe().observer(this::loadNotifications);
-            new Handler().postDelayed(this::invalidateUI, 5000);
-        } catch (Exception ignored) {
-
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (notificationsAdapter != null) {
+            fetchNotifications();
         }
     }
 
+    private void fetchNotifications() {
+        new Thread(() -> {
+            List<Notification> results = MolvixDB.getNotificationBox().query().build().find();
+            loadNotifications(results);
+        }).start();
+    }
+
     private void loadNotifications(List<Notification> results) {
-        for (Notification notification : results) {
-            if (!notifications.contains(notification)) {
-                notifications.add(notification);
-                notificationsAdapter.notifyItemInserted(notifications.size() - 1);
-            } else {
-                int indexOfNotification = results.indexOf(notification);
-                if (indexOfNotification != -1) {
-                    notifications.set(indexOfNotification, notification);
-                    notificationsAdapter.notifyItemChanged(indexOfNotification);
+        mUIHandler.post(() -> {
+            for (Notification notification : results) {
+                if (!notifications.contains(notification)) {
+                    notifications.add(notification);
+                    notificationsAdapter.notifyItemInserted(notifications.size() - 1);
+                } else {
+                    int indexOfNotification = results.indexOf(notification);
+                    if (indexOfNotification != -1) {
+                        notifications.set(indexOfNotification, notification);
+                        notificationsAdapter.notifyItemChanged(indexOfNotification);
+                    }
                 }
             }
-        }
-        invalidateUI();
+            invalidateUI();
+        });
     }
 
     private void invalidateUI() {
