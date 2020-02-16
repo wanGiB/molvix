@@ -232,7 +232,7 @@ public class FileDownloadManager {
                 .enableRetryOnNetworkGain(true)
                 .preAllocateFileOnCreation(false)
                 .setGlobalNetworkType(NetworkType.ALL)
-                .setHasActiveDownloadsCheckInterval(20000)
+                .setHasActiveDownloadsCheckInterval(1000)
                 .setHttpDownloader(new OkHttpDownloader())
                 .setDownloadConcurrentLimit(20)
                 .build();
