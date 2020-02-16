@@ -31,7 +31,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 public class FileDownloadManager {
     private static Fetch fetch;
@@ -233,7 +232,7 @@ public class FileDownloadManager {
                 .enableRetryOnNetworkGain(true)
                 .preAllocateFileOnCreation(false)
                 .setGlobalNetworkType(NetworkType.ALL)
-                .setHasActiveDownloadsCheckInterval(TimeUnit.MINUTES.toMillis(1))
+                .setHasActiveDownloadsCheckInterval(20000)
                 .setHttpDownloader(new OkHttpDownloader())
                 .setDownloadConcurrentLimit(20)
                 .build();
