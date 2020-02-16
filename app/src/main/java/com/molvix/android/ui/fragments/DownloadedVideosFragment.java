@@ -41,6 +41,9 @@ public class DownloadedVideosFragment extends BaseFragment {
     @BindView(R.id.content_loading_layout)
     View emptyContentsParentView;
 
+    @BindView(R.id.downloaded_videos_center_label)
+    TextView emptyContentMessageView;
+
     @BindView(R.id.loading_view)
     View loadingView;
 
@@ -56,15 +59,13 @@ public class DownloadedVideosFragment extends BaseFragment {
     @BindView(R.id.back_nav)
     FloatingActionButton backNav;
 
-    @BindView(R.id.back_nav_container)
-    View backNavContainer;
-
     @BindView(R.id.nav_path_view)
     TextView navPathView;
 
     public static List<DownloadedVideoItem> downloadedVideoItems = new ArrayList<>();
     private DownloadedVideosAdapter downloadedVideosAdapter;
     private Handler mUIHandler = new Handler();
+    private File lastParentFile;
 
     @Nullable
     @Override
@@ -93,8 +94,20 @@ public class DownloadedVideosFragment extends BaseFragment {
                 ContextCompat.getColor(getActivity(), R.color.gplus_color_3),
                 ContextCompat.getColor(getActivity(), R.color.gplus_color_4));
         swipeRefreshLayout.setOnRefreshListener(() -> {
-            File videosDir = FileUtils.getVideosDir();
-            loadDownloadedVideos(videosDir.exists() ? videosDir.getName() : "", videosDir);
+            if (downloadedVideoItems.isEmpty()) {
+                File videosDir = FileUtils.getVideosDir();
+                loadDownloadedVideos(videosDir.exists() ? videosDir.getName() : "", videosDir);
+            } else {
+                DownloadedVideoItem firstItemOnTheList = downloadedVideoItems.get(0);
+                File firstFile = firstItemOnTheList.getDownloadedFile();
+                if (firstFile != null) {
+                    File parentFile = firstFile.getParentFile();
+                    if (parentFile != null && parentFile.exists()) {
+                        loadDownloadedVideos(parentFile.getName(), parentFile);
+                    }
+                }
+                swipeRefreshLayout.setRefreshing(false);
+            }
         });
     }
 
@@ -107,9 +120,9 @@ public class DownloadedVideosFragment extends BaseFragment {
     private void loadDownloadedVideos(String parentFolder, File dir) {
         if (dir.exists()) {
             File[] children = dir.listFiles();
+            downloadedVideoItems.clear();
+            downloadedVideosAdapter.notifyDataSetChanged();
             if (children != null && children.length > 0) {
-                downloadedVideoItems.clear();
-                downloadedVideosAdapter.notifyDataSetChanged();
                 for (File file : children) {
                     if (!file.isHidden()) {
                         DownloadedVideoItem downloadedVideoItem = new DownloadedVideoItem();
@@ -132,7 +145,13 @@ public class DownloadedVideosFragment extends BaseFragment {
                     displayDownloadsAvailableView();
                 }
             } else {
-                displayNoDownloadedVideosView();
+                if (parentFolder.equals(FileUtils.videoFolder())) {
+                    displayNoDownloadedVideosView();
+                } else {
+                    displayNoDownloadedVideosView();
+                    lastParentFile = dir;
+                    emptyContentMessageView.setText(getString(R.string.directory_empty_msg));
+                }
             }
         } else {
             displayNoDownloadedVideosView();
@@ -175,12 +194,15 @@ public class DownloadedVideosFragment extends BaseFragment {
         UiUtils.toggleViewVisibility(emptyContentsParentView, false);
         UiUtils.toggleViewVisibility(loadingView, false);
         UiUtils.toggleViewVisibility(noMediaView, false);
+        lastParentFile = null;
     }
 
     private void displayNoDownloadedVideosView() {
         UiUtils.toggleViewVisibility(emptyContentsParentView, true);
         UiUtils.toggleViewVisibility(loadingView, false);
         UiUtils.toggleViewVisibility(noMediaView, true);
+        emptyContentMessageView.setText(getString(R.string.no_downloaded_videos));
+        lastParentFile = null;
     }
 
     @Override
@@ -192,32 +214,48 @@ public class DownloadedVideosFragment extends BaseFragment {
             } else if (event instanceof DownloadedFileDeletedEvent) {
                 DownloadedFileDeletedEvent downloadedFileDeletedEvent = (DownloadedFileDeletedEvent) event;
                 DownloadedVideoItem downloadedVideoItem = downloadedFileDeletedEvent.getDownloadedVideoItem();
+                File file = downloadedVideoItem.getDownloadedFile();
+                File parentFile = file.getParentFile();
                 downloadedVideoItems.remove(downloadedVideoItem);
                 downloadedVideosAdapter.notifyDataSetChanged();
                 if (downloadedVideoItems.isEmpty()) {
-                    displayNoDownloadedVideosView();
+                    checkAndLoadParentFileContents(parentFile);
                 }
             }
         });
     }
 
+    private void checkAndLoadParentFileContents(File parentFile) {
+        if (parentFile != null && parentFile.exists()) {
+            File superParentFile = parentFile.getParentFile();
+            if (superParentFile != null && superParentFile.exists()) {
+                String superParentFileName = superParentFile.getName();
+                loadDownloadedVideos(superParentFileName, superParentFile);
+            }
+        }
+    }
+
     public boolean needsToNavigateBack() {
         if (downloadedVideoItems.isEmpty()) {
-            return false;
+            return lastParentFile != null;
         }
         DownloadedVideoItem downloadedVideoItem = downloadedVideoItems.get(0);
         return !downloadedVideoItem.getParentFolderName().equals(FileUtils.videoFolder());
     }
 
     public void navigateBack() {
-        DownloadedVideoItem downloadedVideoItem = downloadedVideoItems.get(0);
-        File file = downloadedVideoItem.getDownloadedFile();
-        File parentFile = file.getParentFile();
-        if (parentFile != null && parentFile.exists()) {
-            File superParentFile = parentFile.getParentFile();
-            if (superParentFile != null && superParentFile.exists()) {
-                loadDownloadedVideos(superParentFile.getName(), superParentFile);
-                scrollToLastPosition();
+        if (lastParentFile != null && lastParentFile.exists()) {
+            checkAndLoadParentFileContents(lastParentFile);
+        } else {
+            DownloadedVideoItem downloadedVideoItem = downloadedVideoItems.get(0);
+            File file = downloadedVideoItem.getDownloadedFile();
+            File parentFile = file.getParentFile();
+            if (parentFile != null && parentFile.exists()) {
+                File superParentFile = parentFile.getParentFile();
+                if (superParentFile != null && superParentFile.exists()) {
+                    loadDownloadedVideos(superParentFile.getName(), superParentFile);
+                    scrollToLastPosition();
+                }
             }
         }
     }

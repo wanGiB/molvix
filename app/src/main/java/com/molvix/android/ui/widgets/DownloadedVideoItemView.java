@@ -2,6 +2,7 @@ package com.molvix.android.ui.widgets;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.graphics.drawable.ColorDrawable;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.text.format.DateUtils;
@@ -15,12 +16,14 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
+import androidx.core.content.ContextCompat;
 
 import com.molvix.android.R;
 import com.molvix.android.beans.DownloadedVideoItem;
 import com.molvix.android.eventbuses.DownloadedFileDeletedEvent;
 import com.molvix.android.eventbuses.LoadDownloadedVideosFromFile;
 import com.molvix.android.managers.DownloadedItemsPositionsManager;
+import com.molvix.android.managers.ThemeManager;
 import com.molvix.android.ui.activities.MainActivity;
 import com.molvix.android.ui.fragments.DownloadedVideosFragment;
 import com.molvix.android.utils.FileUtils;
@@ -88,8 +91,7 @@ public class DownloadedVideoItemView extends FrameLayout {
                 downloadedFilePath = StringUtils.remove(downloadedFilePath, File.separator + downloadedFile.getName());
                 String movieName = StringUtils.substringAfterLast(downloadedFilePath, File.separator);
                 String episodeName = downloadedFile.getName();
-                String episodeAbbrev = "E-" + StringUtils.substringAfterLast(episodeName, "-");
-                bottomTitleView.setText(episodeAbbrev);
+                bottomTitleView.setText(episodeName);
                 downloadedVideoItem.setTitle(movieName + ", " + parentFolderName + "-" + episodeName);
                 try {
                     int videoDuration = MediaPlayer.create(getContext(), Uri.fromFile(downloadedFile)).getDuration();
@@ -104,7 +106,8 @@ public class DownloadedVideoItemView extends FrameLayout {
         if (thumbnailPath != null) {
             UiUtils.loadVideoThumbNailIntoView(videoPreview, thumbnailPath);
         } else {
-            videoPreview.setImageDrawable(videoPreview.getBackground());
+            ThemeManager.ThemeSelection themeSelection = ThemeManager.getThemeSelection();
+            videoPreview.setImageDrawable(new ColorDrawable(ContextCompat.getColor(getContext(), themeSelection == ThemeManager.ThemeSelection.DARK ? R.color.dracula_surface_color : R.color.ease_gray)));
         }
         attachClickEventListener(downloadedVideoItem, position, downloadedFile);
         attachDeleteEventListener(downloadedVideoItem, downloadedFile);

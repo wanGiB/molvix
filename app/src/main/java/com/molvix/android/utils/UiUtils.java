@@ -2,6 +2,7 @@ package com.molvix.android.utils;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Handler;
@@ -21,6 +22,7 @@ import android.widget.ViewFlipper;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.DataSource;
@@ -30,9 +32,11 @@ import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.RequestOptions;
 import com.bumptech.glide.request.target.Target;
 import com.google.android.material.snackbar.Snackbar;
+import com.molvix.android.R;
 import com.molvix.android.components.ApplicationLoader;
 import com.molvix.android.contracts.DoneCallback;
 import com.molvix.android.contracts.SnackBarActionClickedListener;
+import com.molvix.android.managers.ThemeManager;
 import com.molvix.android.ui.widgets.LoadingImageView;
 
 import static org.apache.commons.lang3.StringUtils.containsIgnoreCase;
@@ -102,6 +106,8 @@ public class UiUtils {
                             LoadingImageView loadingImageView = (LoadingImageView) imageView;
                             loadingImageView.stopLoading();
                         }
+                        ThemeManager.ThemeSelection themeSelection = ThemeManager.getThemeSelection();
+                        imageView.setImageDrawable(new ColorDrawable(ContextCompat.getColor(ApplicationLoader.getInstance(), themeSelection == ThemeManager.ThemeSelection.DARK ? R.color.dracula_surface_color : R.color.ease_gray)));
                         return false;
                     }
 

@@ -7,7 +7,7 @@
     <color name="movie_seasons_color">#CEFFFFFF</color>
     <color name="dracula_text_description">#8899A6</color>
     <color name="dracula_album_dropdown_count_text">#89FFFFFF</color>
-    <color name="surface_color">#455A64</color>
+    <color name="dracula_surface_color">#455A64</color>
     <color name="dracula_album_empty_view">#4DFFFFFF</color>
     <color name="dracula_window_background">@color/dracula_primary</color>
 

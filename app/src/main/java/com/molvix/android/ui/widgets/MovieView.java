@@ -140,7 +140,7 @@ public class MovieView extends FrameLayout {
         if (StringUtils.isNotEmpty(movieArtUrl)) {
             UiUtils.loadImageIntoView(movieArtView, movieArtUrl);
         } else {
-            movieArtView.setImageDrawable(new ColorDrawable(ContextCompat.getColor(getContext(), themeSelection == ThemeManager.ThemeSelection.DARK ? R.color.surface_color : R.color.icons_unselected_color)));
+            movieArtView.setImageDrawable(new ColorDrawable(ContextCompat.getColor(getContext(), themeSelection == ThemeManager.ThemeSelection.DARK ? R.color.dracula_surface_color : R.color.icons_unselected_color)));
         }
     }
 

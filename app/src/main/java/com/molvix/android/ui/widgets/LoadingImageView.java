@@ -36,7 +36,7 @@ public class LoadingImageView extends RoundedImageView {
         ThemeManager.ThemeSelection themeSelection = ThemeManager.getThemeSelection();
         loadingPaint.setColor(ContextCompat.getColor(context, themeSelection == ThemeManager.ThemeSelection.DARK ? R.color.dracula_primary : R.color.gray5));
         ripplePaint = new Paint();
-        ripplePaint.setColor(ContextCompat.getColor(context, themeSelection == ThemeManager.ThemeSelection.DARK ? R.color.surface_color : R.color.icons_unselected_color));
+        ripplePaint.setColor(ContextCompat.getColor(context, themeSelection == ThemeManager.ThemeSelection.DARK ? R.color.dracula_surface_color : R.color.icons_unselected_color));
     }
 
     @Override

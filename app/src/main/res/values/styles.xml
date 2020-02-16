@@ -47,7 +47,7 @@
         <item name="movie_name_color">@color/white</item>
         <item name="movie_card_background_color">@color/dracula_album_popup_bg</item>
         <item name="movie_art_background_color">
-            @color/surface_color
+            @color/dracula_surface_color
         </item>
         <item name="movie_description_color">@color/text_white_87</item>
         <item name="movie_seasons_color">@color/movie_seasons_color</item>
@@ -56,7 +56,7 @@
         <item name="bottom_navigation_background_color">@color/dracula_primary_dark</item>
         <item name="app_card_background_color">@color/dracula_album_popup_bg</item>
         <item name="search_box_background_color">
-            @color/surface_color
+            @color/dracula_surface_color
         </item>
         <item name="search_text_color">@color/white</item>
         <item name="search_hint_color">@color/movie_seasons_color</item>
@@ -67,15 +67,15 @@
             @color/movie_seasons_color
         </item>
         <item name="anti_root_view_background_color">@color/colorPrimary</item>
-        <item name="light_background_color">@color/surface_color
+        <item name="light_background_color">@color/dracula_surface_color
         </item>
         <item name="app_background_color">@color/dracula_primary</item>
         <item name="header_text_color">@color/colorPrimary</item>
         <item name="notification_time_color">@color/movie_seasons_color</item>
         <item name="notification_body_color">@color/white</item>
         <item name="app_vibrant_background_color">@color/dracula_primary</item>
-        <item name="anti_app_vibrant_background_color">@color/surface_color</item>
-        <item name="surface_color">@color/surface_color</item>
+        <item name="anti_app_vibrant_background_color">@color/dracula_surface_color</item>
+        <item name="surface_color">@color/dracula_surface_color</item>
         <item name="season_view_underline_color">@color/dracula_primary</item>
         <item name="movie_details_back_icon_color">@color/white</item>
     </style>
