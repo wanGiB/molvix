@@ -341,10 +341,12 @@ public class MolvixVideoPlayerView extends FrameLayout {
         }
     }
 
-    public void tryPauseVideo() {
-        if (videoView.isPlaying()) {
-            videoView.pause();
-        }
+    public boolean isVideoPlaying() {
+        return videoView.isPlaying();
+    }
+
+    public void pauseVideo() {
+        videoView.pause();
     }
 
     public void tryResumeVideo() {

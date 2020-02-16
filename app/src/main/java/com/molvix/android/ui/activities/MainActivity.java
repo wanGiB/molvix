@@ -129,16 +129,27 @@ public class MainActivity extends BaseActivity {
     @Override
     public void onPause() {
         super.onPause();
+        checkAndPauseAnyActivePlayBack();
+    }
+
+    private void checkAndPauseAnyActivePlayBack() {
         if (rootContainer.getChildAt(rootContainer.getChildCount() - 1) instanceof MolvixVideoPlayerView) {
             MolvixVideoPlayerView molvixVideoPlayerView = (MolvixVideoPlayerView) rootContainer.getChildAt(rootContainer.getChildCount() - 1);
-            molvixVideoPlayerView.tryPauseVideo();
-            activeVideoPlayBackPaused.set(true);
+            if (molvixVideoPlayerView.isVideoPlaying()) {
+                molvixVideoPlayerView.pauseVideo();
+                activeVideoPlayBackPaused.set(true);
+            }
         }
     }
 
     @Override
     public void onResume() {
         super.onResume();
+        checkAndResumeAnyInActivePlayBack();
+        fetchDownloadableEpisodes();
+    }
+
+    private void checkAndResumeAnyInActivePlayBack() {
         if (rootContainer.getChildAt(rootContainer.getChildCount() - 1) instanceof MolvixVideoPlayerView) {
             MolvixVideoPlayerView molvixVideoPlayerView = (MolvixVideoPlayerView) rootContainer.getChildAt(rootContainer.getChildCount() - 1);
             if (activeVideoPlayBackPaused.get()) {
@@ -146,7 +157,6 @@ public class MainActivity extends BaseActivity {
                 activeVideoPlayBackPaused.set(false);
             }
         }
-        fetchDownloadableEpisodes();
     }
 
     @Override
