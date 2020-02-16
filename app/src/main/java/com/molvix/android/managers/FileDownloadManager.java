@@ -14,6 +14,7 @@ import com.molvix.android.preferences.AppPrefs;
 import com.molvix.android.ui.notifications.notification.MolvixNotification;
 import com.molvix.android.utils.FileUtils;
 import com.molvix.android.utils.MolvixLogger;
+import com.molvix.android.utils.NetworkClient;
 import com.tonyodev.fetch2.Download;
 import com.tonyodev.fetch2.Error;
 import com.tonyodev.fetch2.Fetch;
@@ -233,7 +234,7 @@ public class FileDownloadManager {
                 .preAllocateFileOnCreation(false)
                 .setGlobalNetworkType(NetworkType.ALL)
                 .setHasActiveDownloadsCheckInterval(1000)
-                .setHttpDownloader(new OkHttpDownloader())
+                .setHttpDownloader(new OkHttpDownloader(NetworkClient.getOkHttpClient(true)))
                 .setAutoRetryMaxAttempts(10)
                 .setDownloadConcurrentLimit(20)
                 .build();

@@ -50,7 +50,7 @@ public class ContentManager {
                 Request.Builder presetsRequestBuilder = new Request.Builder();
                 presetsRequestBuilder.url(presetsUrlBuilder.build());
                 presetsRequestBuilder.get();
-                NetworkClient.getOkHttpClient().newCall(presetsRequestBuilder.build()).enqueue(new Callback() {
+                NetworkClient.getOkHttpClient(false).newCall(presetsRequestBuilder.build()).enqueue(new Callback() {
                     @Override
                     public void onFailure(@NotNull Call call, @NotNull IOException e) {
 
