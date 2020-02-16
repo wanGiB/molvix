@@ -190,18 +190,30 @@ public class FileDownloadManager {
     }
 
     private static void updateDownloadProgress(Episode episode, long downloaded, long totalBytes) {
-        Season season = episode.getSeason();
-        Movie movie = season.getMovie();
-        String movieName = WordUtils.capitalize(movie.getMovieName());
-        String movieDescription = movie.getMovieDescription();
-        String seasonId = season.getSeasonId();
-        String seasonName = season.getSeasonName();
-        MolvixLogger.d(ContentManager.class.getSimpleName(), "Download in Progress");
-        long progressPercent = downloaded * 100 / totalBytes;
-        String progressMessage = FileUtils.getProgressDisplayLine(downloaded, totalBytes);
-        MolvixNotificationManager.showEpisodeDownloadProgressNotification(movieName, movieDescription, seasonId, episode.getEpisodeId(), episode.getEpisodeName() + "/" + seasonName + "/" + movieName, (int) progressPercent, progressMessage);
-        AppPrefs.updateEpisodeDownloadProgress(episode.getEpisodeId(), (int) progressPercent);
-        AppPrefs.updateEpisodeDownloadProgressMsg(episode.getEpisodeId(), progressMessage);
+        try {
+            Season season = episode.getSeason();
+            Movie movie = season.getMovie();
+            String movieName = WordUtils.capitalize(movie.getMovieName());
+            String movieDescription = movie.getMovieDescription();
+            String seasonId = season.getSeasonId();
+            String seasonName = season.getSeasonName();
+            MolvixLogger.d(ContentManager.class.getSimpleName(), "Download in Progress");
+            long progressPercent = downloaded * 100 / totalBytes;
+            String progressMessage = FileUtils.getProgressDisplayLine(downloaded, totalBytes);
+            MolvixNotificationManager.showEpisodeDownloadProgressNotification(movieName, movieDescription, seasonId, episode.getEpisodeId(), episode.getEpisodeName() + "/" + seasonName + "/" + movieName, (int) progressPercent, progressMessage);
+            AppPrefs.updateEpisodeDownloadProgress(episode.getEpisodeId(), (int) progressPercent);
+            AppPrefs.updateEpisodeDownloadProgressMsg(episode.getEpisodeId(), progressMessage);
+        } catch (Exception e) {
+            backwardCompatibilityCleanUp(episode);
+        }
+    }
+
+    private static void backwardCompatibilityCleanUp(Episode episode) {
+        AppPrefs.removeFromInProgressDownloads(episode);
+        AppPrefs.updateEpisodeDownloadProgress(episode.getEpisodeId(), -1);
+        AppPrefs.updateEpisodeDownloadProgressMsg(episode.getEpisodeId(), "");
+        EpisodesManager.popDownloadableEpisode(episode);
+        AppPrefs.setPaused(episode.getEpisodeId(), false);
     }
 
     private static String getDownloadIdFromEpisode(Episode episode) {
