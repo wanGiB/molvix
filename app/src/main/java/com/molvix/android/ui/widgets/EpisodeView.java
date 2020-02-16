@@ -28,6 +28,7 @@ import com.molvix.android.R;
 import com.molvix.android.beans.DownloadedVideoItem;
 import com.molvix.android.companions.AppConstants;
 import com.molvix.android.database.MolvixDB;
+import com.molvix.android.managers.ContentManager;
 import com.molvix.android.managers.EpisodesManager;
 import com.molvix.android.managers.FileDownloadManager;
 import com.molvix.android.managers.ThemeManager;
@@ -461,6 +462,7 @@ public class EpisodeView extends FrameLayout {
                         }
                     }
                     if (!downloadOptions.isEmpty()) {
+                        MolvixLogger.d(ContentManager.class.getSimpleName(), "Found Captcha Links \n" + downloadOptions);
                         String episodeCaptchaSolverLink = null;
                         if (downloadOptions.size() == 1) {
                             episodeCaptchaSolverLink = downloadOptions.get(0);
@@ -489,6 +491,20 @@ public class EpisodeView extends FrameLayout {
                             } catch (Exception e) {
                                 e.printStackTrace();
                             }
+                        } else {
+                            try {
+                                String standard = downloadOptions.get(0);
+                                String highest = downloadOptions.get(1);
+                                if (episode.getEpisodeQuality() == AppConstants.HIGH_QUALITY) {
+                                    episodeCaptchaSolverLink = highest;
+                                } else if (episode.getEpisodeQuality() == AppConstants.STANDARD_QUALITY) {
+                                    episodeCaptchaSolverLink = standard;
+                                } else {
+                                    episodeCaptchaSolverLink = standard;
+                                }
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
                         }
                         String finalEpisodeCaptchaSolverLink = episodeCaptchaSolverLink;
                         if (finalEpisodeCaptchaSolverLink != null) {
@@ -496,6 +512,7 @@ public class EpisodeView extends FrameLayout {
                             MolvixDB.updateEpisode(episode);
                             EpisodesManager.enqueDownloadableEpisode(episode);
                         } else {
+                            MolvixLogger.d(ContentManager.class.getSimpleName(), "Damn! We couldn't get a captcha link");
                             UiUtils.showSafeToast("Sorry, failed to download " + episode.getEpisodeName() + ".Please try again.");
                             AppPrefs.updateEpisodeDownloadProgress(episode.getEpisodeId(), -1);
                             MolvixDB.updateEpisode(episode);

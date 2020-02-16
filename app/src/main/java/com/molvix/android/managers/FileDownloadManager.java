@@ -211,7 +211,12 @@ public class FileDownloadManager {
             }
             attachFetchListener(fetch);
         } else {
-            MolvixLogger.d(ContentManager.class.getSimpleName(), "One of either download url or path is null");
+            if (downloadUrl == null) {
+                MolvixLogger.d(ContentManager.class.getSimpleName(), "Download url is null");
+            }
+            if (filePath == null) {
+                MolvixLogger.d(ContentManager.class.getSimpleName(), "FilePath is null");
+            }
             AppPrefs.removeFromInProgressDownloads(episode);
             EpisodesManager.popDownloadableEpisode(episode);
             EventBus.getDefault().post(new EpisodeDownloadErrorException(episode));
