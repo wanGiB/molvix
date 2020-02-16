@@ -234,6 +234,7 @@ public class FileDownloadManager {
                 .setGlobalNetworkType(NetworkType.ALL)
                 .setHasActiveDownloadsCheckInterval(1000)
                 .setHttpDownloader(new OkHttpDownloader())
+                .setAutoRetryMaxAttempts(10)
                 .setDownloadConcurrentLimit(20)
                 .build();
         return Fetch.Impl.getInstance(fetchConfiguration);
