@@ -132,6 +132,13 @@ public class MainActivity extends BaseActivity {
         checkAndPauseAnyActivePlayBack();
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        checkAndResumeAnyInActivePlayBack();
+        fetchDownloadableEpisodes();
+    }
+
     private void checkAndPauseAnyActivePlayBack() {
         if (rootContainer.getChildAt(rootContainer.getChildCount() - 1) instanceof MolvixVideoPlayerView) {
             MolvixVideoPlayerView molvixVideoPlayerView = (MolvixVideoPlayerView) rootContainer.getChildAt(rootContainer.getChildCount() - 1);
@@ -140,13 +147,6 @@ public class MainActivity extends BaseActivity {
                 activeVideoPlayBackPaused.set(true);
             }
         }
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        checkAndResumeAnyInActivePlayBack();
-        fetchDownloadableEpisodes();
     }
 
     private void checkAndResumeAnyInActivePlayBack() {
