@@ -135,10 +135,9 @@ public class AppPrefs {
         inProgressDownloads.remove(episode.getEpisodeId());
         getAppPreferences().edit().putStringSet(AppConstants.IN_PROGRESS_DOWNLOADS, inProgressDownloads).apply();
 
-        AppPrefs.updateEpisodeDownloadProgressMsg(episode.getEpisodeId(), "");
-        AppPrefs.updateEpisodeDownloadProgress(episode.getEpisodeId(), -1);
+        updateEpisodeDownloadProgressMsg(episode.getEpisodeId(), "");
+        updateEpisodeDownloadProgress(episode.getEpisodeId(), -1);
     }
-
 
     public static Set<String> getInProgressDownloads() {
         return getAppPreferences().getStringSet(AppConstants.IN_PROGRESS_DOWNLOADS, new HashSet<>());

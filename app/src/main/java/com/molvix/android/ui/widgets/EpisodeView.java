@@ -502,7 +502,6 @@ public class EpisodeView extends FrameLayout {
                         }
                     }
                 }
-
             } catch (IOException e) {
                 e.printStackTrace();
                 UiUtils.showSafeToast("Sorry, failed to download " + episode.getEpisodeName() + ".Please try again.");
