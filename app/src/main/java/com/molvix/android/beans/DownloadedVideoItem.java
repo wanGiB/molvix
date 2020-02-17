@@ -2,7 +2,7 @@ package com.molvix.android.beans;
 
 import java.io.File;
 
-public class DownloadedVideoItem {
+public class DownloadedVideoItem implements Comparable<DownloadedVideoItem> {
     private File downloadedFile;
     private String parentFolderName;
     private String title;
@@ -54,6 +54,11 @@ public class DownloadedVideoItem {
         }
         DownloadedVideoItem another = (DownloadedVideoItem) obj;
         return this.getDownloadedFile().equals(another.getDownloadedFile());
+    }
+
+    @Override
+    public int compareTo(DownloadedVideoItem o) {
+        return this.getDownloadedFile().getName().compareTo(o.getDownloadedFile().getName());
     }
 
 }

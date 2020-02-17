@@ -78,26 +78,26 @@ public class MolvixVideoPlayerView extends FrameLayout {
         addView(playerView, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
     }
 
-    public void loadVideo(List<DownloadedVideoItem> videoItemList, int startIndex) {
-        DownloadedVideoItem downloadedVideoItem = videoItemList.get(startIndex);
-        configureVideoControls(videoItemList, startIndex);
-        videoTitleView.setText(downloadedVideoItem.getTitle());
-        videoView.setVideoPath(downloadedVideoItem.getDownloadedFile().getPath());
+    public void playVideos(List<DownloadedVideoItem> playList, int startIndex) {
+        DownloadedVideoItem activeItemOnPlayList = playList.get(startIndex);
+        setupVideoControls(playList, startIndex);
+        videoTitleView.setText(activeItemOnPlayList.getTitle());
+        videoView.setVideoPath(activeItemOnPlayList.getDownloadedFile().getPath());
         videoView.setOnPreparedListener(() -> {
             try {
-                long lastPlayBackPosition = AppPrefs.getLastMediaPlayBackPositionFor(downloadedVideoItem.getDownloadedFile());
+                long lastPlayBackPosition = AppPrefs.getLastMediaPlayBackPositionFor(activeItemOnPlayList.getDownloadedFile());
                 if (lastPlayBackPosition > 0) {
                     videoView.seekTo(lastPlayBackPosition);
                 }
                 videoView.start();
-                activeFileReference.set(downloadedVideoItem.getDownloadedFile());
+                activeFileReference.set(activeItemOnPlayList.getDownloadedFile());
             } catch (Exception ignored) {
 
             }
         });
         videoView.setOnErrorListener(e -> {
             AlertDialog.Builder errorBuilder = new AlertDialog.Builder(getContext());
-            errorBuilder.setMessage(UiUtils.fromHtml("Sorry, couldn't play <b>" + downloadedVideoItem.getTitle() + "</b>.It seems this video is corrupt or not fully downloaded."));
+            errorBuilder.setMessage(UiUtils.fromHtml("Sorry, couldn't play <b>" + activeItemOnPlayList.getTitle() + "</b>.It seems this video is corrupt or not fully downloaded."));
             errorBuilder.setPositiveButton("OK", (dialog, which) -> {
                 dialog.dismiss();
                 removePlayer();
@@ -120,8 +120,8 @@ public class MolvixVideoPlayerView extends FrameLayout {
     }
 
     @SuppressWarnings("deprecation")
-    private void configureVideoControls(List<DownloadedVideoItem> downloadedVideoItems,
-                                        int startIndex) {
+    private void setupVideoControls(List<DownloadedVideoItem> downloadedVideoItems,
+                                    int startIndex) {
         VideoControls videoControls = videoView.getVideoControls();
         if (videoControls != null) {
             tryShowNextButton(downloadedVideoItems, startIndex, videoControls);
@@ -134,7 +134,7 @@ public class MolvixVideoPlayerView extends FrameLayout {
                 try {
                     DownloadedVideoItem nextOnList = downloadedVideoItems.get(nextIndex);
                     if (nextOnList != null) {
-                        loadVideo(downloadedVideoItems, downloadedVideoItems.indexOf(nextOnList));
+                        playVideos(downloadedVideoItems, downloadedVideoItems.indexOf(nextOnList));
                     } else {
                         removePlayer();
                     }
@@ -285,7 +285,7 @@ public class MolvixVideoPlayerView extends FrameLayout {
         try {
             DownloadedVideoItem previous = downloadedVideoItems.get(startIndex - 1);
             if (previous != null) {
-                loadVideo(downloadedVideoItems, downloadedVideoItems.indexOf(previous));
+                playVideos(downloadedVideoItems, downloadedVideoItems.indexOf(previous));
             }
         } catch (Exception e) {
             UiUtils.showSafeToast("Error in playback.Please try again later");
@@ -297,7 +297,7 @@ public class MolvixVideoPlayerView extends FrameLayout {
         try {
             DownloadedVideoItem next = downloadedVideoItems.get(startIndex + 1);
             if (next != null) {
-                loadVideo(downloadedVideoItems, downloadedVideoItems.indexOf(next));
+                playVideos(downloadedVideoItems, downloadedVideoItems.indexOf(next));
             }
         } catch (Exception e) {
             UiUtils.showSafeToast("Error in playback.Please try again later");

@@ -21,7 +21,7 @@ import androidx.core.content.ContextCompat;
 import com.molvix.android.R;
 import com.molvix.android.beans.DownloadedVideoItem;
 import com.molvix.android.eventbuses.DownloadedFileDeletedEvent;
-import com.molvix.android.eventbuses.LoadDownloadedVideosFromFile;
+import com.molvix.android.eventbuses.LoadDownloadedVideosFromDir;
 import com.molvix.android.managers.DownloadedItemsPositionsManager;
 import com.molvix.android.managers.ThemeManager;
 import com.molvix.android.ui.activities.MainActivity;
@@ -117,7 +117,7 @@ public class DownloadedVideoItemView extends FrameLayout {
         OnClickListener onClickListener = v -> {
             UiUtils.blinkView(videoPreview);
             if (downloadedFile.isDirectory()) {
-                EventBus.getDefault().post(new LoadDownloadedVideosFromFile(downloadedFile.getName(), downloadedFile));
+                EventBus.getDefault().post(new LoadDownloadedVideosFromDir(downloadedFile));
                 DownloadedItemsPositionsManager.enquePosition(position);
             } else {
                 //Play Video Here

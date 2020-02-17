@@ -23,56 +23,39 @@ import org.greenrobot.eventbus.EventBus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class FileDownloadManager {
-
-    private static AtomicBoolean hasBeingSubscribed = new AtomicBoolean(false);
-
-    private static DownloadListener downloadListener = new DownloadListener() {
-
-        @Override
-        public void onProgress(int progress) {
-            DownloadInfo downloadInfo = getDownloadInfo();
-            handleDownloadProgress(downloadInfo);
-        }
-
-        @Override
-        public void onFailed() {
-            DownloadInfo downloadInfo = getDownloadInfo();
-            handleDownloadError(downloadInfo);
-        }
-
-        @Override
-        public void onSuccess() {
-            DownloadInfo downloadInfo = getDownloadInfo();
-            handleCompletedDownload(downloadInfo);
-            tryShutdownPump();
-        }
-
-    };
 
     public static void downloadEpisode(Episode episode) {
         Pair<String, String> downloadUrlAndDirPathPair = getDownloadUrlAndDirPathFrom(episode);
         String downloadUrl = downloadUrlAndDirPathPair.first;
         String filePath = downloadUrlAndDirPathPair.second;
         if (downloadUrl != null && filePath != null) {
-            boolean isPaused = AppPrefs.isPaused(episode.getEpisodeId());
-            if (isPaused) {
-                Pump.resume(getDownloadIdFromEpisode(episode));
-            } else {
-                String downloadId = generateDownloadIdFromEpisode(episode);
-                Pump.newRequest(downloadUrl, filePath)
-                        .setId(downloadId)
-                        .setDownloadTaskExecutor(ApplicationLoader.getVideoDownloadDispatcher())
-                        .forceReDownload(false)
-                        .submit();
-                AppPrefs.mapEpisodeIdToDownloadId(episode.getEpisodeId(), episode.getEpisodeId().hashCode());
-            }
-            if (!hasBeingSubscribed.get()) {
-                Pump.subscribe(downloadListener);
-                hasBeingSubscribed.set(true);
-            }
+            String downloadId = generateDownloadIdFromEpisode(episode);
+            Pump.newRequest(downloadUrl, filePath)
+                    .setId(downloadId)
+                    .setDownloadTaskExecutor(ApplicationLoader.getVideoDownloadDispatcher())
+                    .forceReDownload(false)
+                    .listener(new DownloadListener() {
+
+                        @Override
+                        public void onProgress(int progress) {
+                            handleDownloadProgress(getDownloadInfo());
+                        }
+
+                        @Override
+                        public void onFailed() {
+                            handleDownloadError(getDownloadInfo());
+                        }
+
+                        @Override
+                        public void onSuccess() {
+                            handleCompletedDownload(getDownloadInfo());
+                        }
+
+                    })
+                    .submit();
+            AppPrefs.mapEpisodeIdToDownloadId(episode.getEpisodeId(), episode.getEpisodeId().hashCode());
         } else {
             if (downloadUrl == null) {
                 MolvixLogger.d(ContentManager.class.getSimpleName(), "Download url is null");
@@ -90,7 +73,6 @@ public class FileDownloadManager {
         Set<String> inProgressDownloads = AppPrefs.getInProgressDownloads();
         if (inProgressDownloads.isEmpty()) {
             Pump.shutdown();
-            hasBeingSubscribed.set(false);
         }
     }
 
@@ -120,7 +102,6 @@ public class FileDownloadManager {
         String episodeId = AppPrefs.getEpisodeIdFromDownloadId(Integer.parseInt(downloadInfo.getId()));
         if (episodeId != null) {
             Episode episode = MolvixDB.getEpisode(episodeId);
-            AppPrefs.setPaused(episode.getEpisodeId(), false);
             long completedSize = downloadInfo.getCompletedSize();
             long totalSize = downloadInfo.getContentLength();
             updateDownloadProgress(episode, completedSize, totalSize);
@@ -135,10 +116,10 @@ public class FileDownloadManager {
         if (downloadableEpisode != null) {
             MolvixDB.deleteDownloadableEpisode(downloadableEpisode);
         }
-        AppPrefs.setPaused(episode.getEpisodeId(), false);
         AppPrefs.removeKey(AppConstants.DOWNLOAD_ID_KEY + episode.getEpisodeId().hashCode());
         AppPrefs.removeFromInProgressDownloads(episode);
         resetEpisodeDownloadProgress(episode);
+        MolvixLogger.d(ContentManager.class.getSimpleName(), "Episode " + episode.getEpisodeName() + " cancelled");
     }
 
     private static Pair<String, String> getDownloadUrlAndDirPathFrom(Episode episode) {
@@ -185,8 +166,8 @@ public class FileDownloadManager {
         }
         MovieTracker.recordEpisodeAsDownloaded(episode);
         AppPrefs.removeFromInProgressDownloads(episode);
-        AppPrefs.setPaused(episodeId, false);
         MolvixNotificationManager.showEpisodeDownloadProgressNotification(movieName, movieDescription, seasonId, episodeId, movieName + "/" + seasonName + "/" + episode.getEpisodeName(), 100, "");
+        MolvixLogger.d(ContentManager.class.getSimpleName(), "Episode " + episode.getEpisodeName() + " completed");
     }
 
     private static void updateDownloadProgress(Episode episode, long downloaded, long totalBytes) {
@@ -197,10 +178,10 @@ public class FileDownloadManager {
             String movieDescription = movie.getMovieDescription();
             String seasonId = season.getSeasonId();
             String seasonName = season.getSeasonName();
-            MolvixLogger.d(ContentManager.class.getSimpleName(), "Download in Progress");
             long progressPercent = downloaded * 100 / totalBytes;
             String progressMessage = FileUtils.getProgressDisplayLine(downloaded, totalBytes);
             MolvixNotificationManager.showEpisodeDownloadProgressNotification(movieName, movieDescription, seasonId, episode.getEpisodeId(), episode.getEpisodeName() + "/" + seasonName + "/" + movieName, (int) progressPercent, progressMessage);
+            MolvixLogger.d(ContentManager.class.getSimpleName(), "Download in Progress for " + episode.getEpisodeName() + " Progress=" + progressMessage);
             AppPrefs.updateEpisodeDownloadProgress(episode.getEpisodeId(), (int) progressPercent);
             AppPrefs.updateEpisodeDownloadProgressMsg(episode.getEpisodeId(), progressMessage);
         } catch (Exception e) {
@@ -213,7 +194,10 @@ public class FileDownloadManager {
         AppPrefs.updateEpisodeDownloadProgress(episode.getEpisodeId(), -1);
         AppPrefs.updateEpisodeDownloadProgressMsg(episode.getEpisodeId(), "");
         EpisodesManager.popDownloadableEpisode(episode);
-        AppPrefs.setPaused(episode.getEpisodeId(), false);
+        MolvixNotification.with(ApplicationLoader.getInstance()).cancel(Math.abs(episode.getEpisodeId().hashCode()));
+        Pump.stop(episode.getEpisodeId());
+        tryShutdownPump();
+        MolvixLogger.d(ContentManager.class.getSimpleName(), "Episode " + episode.getEpisodeName() + " backward scrapped");
     }
 
     private static String getDownloadIdFromEpisode(Episode episode) {
@@ -222,13 +206,6 @@ public class FileDownloadManager {
 
     private static String generateDownloadIdFromEpisode(Episode episode) {
         return String.valueOf(episode.getEpisodeId().hashCode());
-    }
-
-    public static void pauseDownload(Episode episode) {
-        MolvixNotification.with(ApplicationLoader.getInstance()).cancel(Math.abs(episode.getEpisodeId().hashCode()));
-        String downloadKeyFromEpisode = getDownloadIdFromEpisode(episode);
-        Pump.pause(downloadKeyFromEpisode);
-        AppPrefs.setPaused(episode.getEpisodeId(), true);
     }
 
 }

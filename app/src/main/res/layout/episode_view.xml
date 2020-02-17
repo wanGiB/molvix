@@ -96,29 +96,14 @@
                 android:textColor="?attr/anti_root_view_background_color"
                 app:textStyle="medium" />
 
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_margin="4dp"
-                android:orientation="horizontal">
-
-                <ImageView
-                    android:id="@+id/pause_or_resume_download_btn"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    app:srcCompat="@drawable/ic_pause_dark"
-                    tools:ignore="ContentDescription" />
-
-                <ImageView
-                    android:id="@+id/cancel_download"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:layout_marginStart="16dp"
-                    android:layout_marginEnd="16dp"
-                    app:srcCompat="@drawable/ic_cancel_download_dark"
-                    tools:ignore="ContentDescription" />
-
-            </LinearLayout>
+            <ImageView
+                android:id="@+id/cancel_download"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                app:srcCompat="@drawable/ic_cancel_download_dark"
+                tools:ignore="ContentDescription" />
 
         </LinearLayout>
 

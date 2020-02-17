@@ -18,6 +18,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.molvix.android.R;
 import com.molvix.android.database.MolvixDB;
 import com.molvix.android.models.Notification;
+import com.molvix.android.models.Notification_;
 import com.molvix.android.ui.adapters.NotificationsAdapter;
 import com.molvix.android.ui.rendering.StickyRecyclerHeadersDecoration;
 import com.molvix.android.utils.UiUtils;
@@ -111,7 +112,7 @@ public class NotificationsFragment extends BaseFragment {
 
     private void fetchNotifications() {
         new Thread(() -> {
-            List<Notification> results = MolvixDB.getNotificationBox().query().build().find();
+            List<Notification> results = MolvixDB.getNotificationBox().query().orderDesc(Notification_.timeStamp).build().find();
             loadNotifications(results);
         }).start();
     }

@@ -189,23 +189,6 @@ public class AppPrefs {
         getAppPreferences().edit().remove(key).apply();
     }
 
-    public static boolean isPaused(String episodeId) {
-        return getAppPreferences().getBoolean(AppConstants.DOWNLOAD_PAUSED + episodeId, false);
-    }
-
-    @SuppressLint("ApplySharedPref")
-    public static void setPaused(String episodeId, boolean value) {
-        getAppPreferences().edit().putBoolean(AppConstants.DOWNLOAD_PAUSED + episodeId, value).apply();
-    }
-
-    public static long getEstimatedFileLengthForEpisode(String episodeId) {
-        return getAppPreferences().getLong(AppConstants.ESTIMATED_FILE_LENGTH + episodeId, 0);
-    }
-
-    public static void saveEstimatedFileLengthForEpisode(String episodeId, long fileLength) {
-        getAppPreferences().edit().putLong(AppConstants.ESTIMATED_FILE_LENGTH + episodeId, fileLength).apply();
-    }
-
     public static void persistLastAdLoadTime(long lastAdLoadTime) {
         getAppPreferences().edit().putLong(AppConstants.LAST_AD_LOAD_TIME, lastAdLoadTime).apply();
     }

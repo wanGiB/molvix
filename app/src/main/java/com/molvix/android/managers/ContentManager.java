@@ -59,14 +59,9 @@ public class ContentManager {
                     @Override
                     public void onResponse(@NotNull Call call, @NotNull Response response) {
                         ResponseBody responseBody = response.body();
-                        int responseCode = response.code();
-                        MolvixLogger.d(ContentManager.class.getSimpleName(), "ResponseCode After Fetching Presets=" + responseCode);
-                        String responseMessage = response.message();
-                        MolvixLogger.d(ContentManager.class.getSimpleName(), "ResponseMessage After Fetching Presets\n" + responseMessage);
                         if (responseBody != null) {
                             try {
                                 String responseBodyString = responseBody.string();
-                                MolvixLogger.d(ContentManager.class.getSimpleName(), "FetchedPresets\n" + responseBodyString);
                                 ContentManager.offloadPresets(responseBodyString);
                             } catch (IOException e) {
                                 e.printStackTrace();

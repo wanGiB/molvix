@@ -96,13 +96,13 @@ public class NotificationView extends FrameLayout {
             UiUtils.blinkView(notificationRootView);
             if (notificationDestination == AppConstants.DESTINATION_DOWNLOADED_EPISODE) {
                 Episode episode = MolvixDB.getEpisode(notification.getDestinationKey());
-                Movie movie = episode.getSeason().getMovie();
                 Season season = episode.getSeason();
+                Movie movie = season.getMovie();
                 if (episode != null) {
                     String episodeName = episode.getEpisodeName();
                     String fileName = episodeName + ".mp4";
                     File downloadedFile = FileUtils.getFilePath(fileName, WordUtils.capitalize(movie.getMovieName()), WordUtils.capitalize(season.getSeasonName()));
-                    if (downloadedFile.exists()) {
+                    if (downloadedFile != null && downloadedFile.exists()) {
                         notification.setSeen(true);
                         EventBus.getDefault().post(new UpdateNotification(notification));
                         initPlayScope(downloadedFile);

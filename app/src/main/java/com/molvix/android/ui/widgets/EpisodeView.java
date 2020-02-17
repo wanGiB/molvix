@@ -83,9 +83,6 @@ public class EpisodeView extends FrameLayout {
     @BindView(R.id.cancel_download)
     ImageView cancelDownloadBtn;
 
-    @BindView(R.id.pause_or_resume_download_btn)
-    ImageView pauseOrResumeBtn;
-
     @BindView(R.id.clickable_dummy_view)
     View clickableDummyView;
 
@@ -154,46 +151,6 @@ public class EpisodeView extends FrameLayout {
             UiUtils.blinkView(v);
             cancelActiveDownload();
         });
-        pauseOrResumeBtn.setOnClickListener(v -> {
-            UiUtils.blinkView(v);
-            boolean isPaused = AppPrefs.isPaused(episode.getEpisodeId());
-            if (isPaused) {
-                resumeDownload();
-                showPauseButton();
-            } else {
-                pauseDownload();
-                showResumeButton();
-            }
-        });
-    }
-
-    private void pauseDownload() {
-        FileDownloadManager.pauseDownload(episode);
-    }
-
-    private void resumeDownload() {
-        FileDownloadManager.downloadEpisode(episode);
-        AppPrefs.setPaused(episode.getEpisodeId(), false);
-    }
-
-    private void showPauseButton() {
-        ThemeManager.ThemeSelection themeSelection = ThemeManager.getThemeSelection();
-        VectorDrawableCompat pauseBtn = VectorDrawableCompat.create(getResources(),
-                themeSelection == ThemeManager.ThemeSelection.DARK
-                        ? R.drawable.ic_pause_light :
-                        R.drawable.ic_pause_dark, null);
-        pauseOrResumeBtn.setImageDrawable(pauseBtn);
-        downloadOrPlayButton.setText(getContext().getString(R.string.downloading));
-    }
-
-    private void showResumeButton() {
-        ThemeManager.ThemeSelection themeSelection = ThemeManager.getThemeSelection();
-        VectorDrawableCompat resumeBtn = VectorDrawableCompat.create(getResources(),
-                themeSelection == ThemeManager.ThemeSelection.DARK ?
-                        R.drawable.ic_resume_light :
-                        R.drawable.ic_resume_dark, null);
-        pauseOrResumeBtn.setImageDrawable(resumeBtn);
-        downloadOrPlayButton.setText(getContext().getString(R.string.paused));
     }
 
     private void cancelActiveDownload() {
@@ -290,12 +247,6 @@ public class EpisodeView extends FrameLayout {
                     if (AppPrefs.getEpisodeDownloadProgress(episode.getEpisodeId()) > -1) {
                         String progressMessage = AppPrefs.getEpisodeDownloadProgressText(episode.getEpisodeId());
                         if (StringUtils.isNotEmpty(progressMessage)) {
-                            if (AppPrefs.isPaused(episode.getEpisodeId())) {
-                                pauseOrResumeBtn.performClick();
-                            } else {
-                                return;
-                            }
-                        } else {
                             UiUtils.showSafeToast("Download already in progress");
                         }
                         return;
@@ -367,12 +318,6 @@ public class EpisodeView extends FrameLayout {
 
     private void setToDownloadInProgress(Episode episode) {
         setToDownloadable();
-        boolean paused = AppPrefs.isPaused(episode.getEpisodeId());
-        if (paused) {
-            showResumeButton();
-        } else {
-            showPauseButton();
-        }
         //Download has started
         UiUtils.toggleViewVisibility(downloadProgressContainer, true);
         downloadProgressBar.setProgress(AppPrefs.getEpisodeDownloadProgress(episode.getEpisodeId()));

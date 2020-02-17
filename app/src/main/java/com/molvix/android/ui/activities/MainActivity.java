@@ -66,6 +66,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -223,10 +224,7 @@ public class MainActivity extends BaseActivity {
             for (String episodeId : pausedDownloads) {
                 Episode episode = MolvixDB.getEpisode(episodeId);
                 if (episode != null && AppPrefs.getEpisodeDownloadProgress(episodeId) == -1) {
-                    boolean paused = AppPrefs.isPaused(episodeId);
-                    if (!paused) {
-                        FileDownloadManager.downloadEpisode(episode);
-                    }
+                    FileDownloadManager.downloadEpisode(episode);
                 }
             }
         }
@@ -594,13 +592,14 @@ public class MainActivity extends BaseActivity {
         finish();
     }
 
-    public void playVideo(List<DownloadedVideoItem> downloadedVideoItems, DownloadedVideoItem downloadedVideoItem) {
+    public void playVideo(List<DownloadedVideoItem> downloadedVideoItems, DownloadedVideoItem startItem) {
         if (rootContainer.getChildAt(rootContainer.getChildCount() - 1) instanceof MolvixVideoPlayerView) {
             rootContainer.removeViewAt(rootContainer.getChildCount() - 1);
         }
         MolvixVideoPlayerView molvixVideoPlayerView = new MolvixVideoPlayerView(this);
         rootContainer.addView(molvixVideoPlayerView, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-        molvixVideoPlayerView.loadVideo(downloadedVideoItems, downloadedVideoItems.indexOf(downloadedVideoItem));
+        Collections.sort(downloadedVideoItems);
+        molvixVideoPlayerView.playVideos(downloadedVideoItems, downloadedVideoItems.indexOf(startItem));
     }
 
 }
