@@ -10,7 +10,7 @@ import com.molvix.android.ui.activities.MainActivity;
 public class Gamification {
     public static void displayCoinEssence(Context context, String title){
         AlertDialog.Builder coinEssenceDialogBuilder = new AlertDialog.Builder(context);
-        coinEssenceDialogBuilder.setTitle(title);
+        coinEssenceDialogBuilder.setTitle(UiUtils.fromHtml(title));
         int availableCoins = AppPrefs.getDownloadCoins();
         String contentMsg= "Downloads on Molvix happen using <b>Download coins</b>.\n\n\nYou currently have <b>"+availableCoins+" coins </b>.\n\n\nTo get more coins, all you have to do is to tap on the "+(" <b>WATCH VIDEO AD</b> button below to ")+"watch a few seconds video ad.";
         coinEssenceDialogBuilder.setMessage(UiUtils.fromHtml(contentMsg));
