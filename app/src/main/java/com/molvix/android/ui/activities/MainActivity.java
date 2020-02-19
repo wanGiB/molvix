@@ -23,7 +23,13 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.viewpager.widget.ViewPager;
 
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.MobileAds;
+import com.google.android.gms.ads.reward.RewardItem;
+import com.google.android.gms.ads.reward.RewardedVideoAd;
+import com.google.android.gms.ads.reward.RewardedVideoAdListener;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.molvix.android.BuildConfig;
 import com.molvix.android.R;
 import com.molvix.android.beans.DownloadedVideoItem;
 import com.molvix.android.companions.AppConstants;
@@ -77,7 +83,7 @@ import butterknife.ButterKnife;
 import im.delight.android.webview.AdvancedWebView;
 import io.objectbox.reactive.DataSubscription;
 
-public class MainActivity extends BaseActivity {
+public class MainActivity extends BaseActivity implements RewardedVideoAdListener {
 
     @BindView(R.id.search_view)
     MolvixSearchView searchView;
@@ -95,6 +101,8 @@ public class MainActivity extends BaseActivity {
     private DataSubscription presetsSubscription;
     private AtomicBoolean activeVideoPlayBackPaused = new AtomicBoolean(false);
 
+    private RewardedVideoAd mRewardedVideoAd;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -108,8 +116,14 @@ public class MainActivity extends BaseActivity {
         fetchDownloadableEpisodes();
         checkAndResumePausedDownloads();
         cleanUpUnLinkedDownloadKeys();
+        setupRewardedVideoAd();
         resetAdsLoader();
         AdsLoadManager.spin();
+    }
+
+    private void setupRewardedVideoAd() {
+        mRewardedVideoAd = MobileAds.getRewardedVideoAdInstance(this);
+        mRewardedVideoAd.setRewardedVideoAdListener(this);
     }
 
     private void resetAdsLoader() {
@@ -118,8 +132,9 @@ public class MainActivity extends BaseActivity {
 
     @Override
     protected void onDestroy() {
-        super.onDestroy();
+        mRewardedVideoAd.destroy(this);
         cleanUp();
+        super.onDestroy();
     }
 
     private void cleanUp() {
@@ -129,15 +144,17 @@ public class MainActivity extends BaseActivity {
 
     @Override
     public void onPause() {
-        super.onPause();
+        mRewardedVideoAd.pause(this);
         checkAndPauseAnyActivePlayBack();
+        super.onPause();
     }
 
     @Override
     public void onResume() {
-        super.onResume();
+        mRewardedVideoAd.resume(this);
         checkAndResumeAnyInActivePlayBack();
         fetchDownloadableEpisodes();
+        super.onResume();
     }
 
     private void checkAndPauseAnyActivePlayBack() {
@@ -600,6 +617,56 @@ public class MainActivity extends BaseActivity {
         rootContainer.addView(molvixVideoPlayerView, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         Collections.sort(downloadedVideoItems);
         molvixVideoPlayerView.playVideos(downloadedVideoItems, downloadedVideoItems.indexOf(startItem));
+    }
+
+    public void loadRewardedVideoAd() {
+        AdRequest.Builder adBuilder = new AdRequest.Builder();
+        if (BuildConfig.DEBUG) {
+            adBuilder.addTestDevice(AppConstants.TEST_DEVICE_ID);
+        }
+        mRewardedVideoAd.loadAd(getString(R.string.rewarded_video_release_ad_unit_id),
+                adBuilder.build());
+    }
+
+    @Override
+    public void onRewardedVideoAdLoaded() {
+        MolvixLogger.d(ContentManager.class.getSimpleName(), "Rewarded Video ad loaded");
+        mRewardedVideoAd.show();
+    }
+
+    @Override
+    public void onRewardedVideoAdOpened() {
+        MolvixLogger.d(ContentManager.class.getSimpleName(), "Rewarded Video ad opened");
+    }
+
+    @Override
+    public void onRewardedVideoStarted() {
+        MolvixLogger.d(ContentManager.class.getSimpleName(), "Rewarded Video Load started");
+    }
+
+    @Override
+    public void onRewardedVideoAdClosed() {
+        MolvixLogger.d(ContentManager.class.getSimpleName(), "Rewarded Video Ad closed");
+    }
+
+    @Override
+    public void onRewarded(RewardItem rewardItem) {
+        MolvixLogger.d(ContentManager.class.getSimpleName(), "Rewarded Video reward with " + rewardItem.getType() + ",amount=" + rewardItem.getAmount());
+    }
+
+    @Override
+    public void onRewardedVideoAdLeftApplication() {
+        MolvixLogger.d(ContentManager.class.getSimpleName(), "Rewarded Video has left the application");
+    }
+
+    @Override
+    public void onRewardedVideoAdFailedToLoad(int i) {
+        MolvixLogger.d(ContentManager.class.getSimpleName(), "Rewarded Video Failed to load due to error code " + i);
+    }
+
+    @Override
+    public void onRewardedVideoCompleted() {
+        MolvixLogger.d(ContentManager.class.getSimpleName(), "Rewarded Video Completed");
     }
 
 }

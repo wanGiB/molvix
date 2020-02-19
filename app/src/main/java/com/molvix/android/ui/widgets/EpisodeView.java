@@ -39,6 +39,7 @@ import com.molvix.android.preferences.AppPrefs;
 import com.molvix.android.ui.activities.MainActivity;
 import com.molvix.android.utils.ConnectivityUtils;
 import com.molvix.android.utils.FileUtils;
+import com.molvix.android.utils.Gamification;
 import com.molvix.android.utils.MolvixLogger;
 import com.molvix.android.utils.UiUtils;
 
@@ -249,6 +250,11 @@ public class EpisodeView extends FrameLayout {
                         if (StringUtils.isNotEmpty(progressMessage)) {
                             UiUtils.showSafeToast("Download already in progress");
                         }
+                        return;
+                    }
+                    int downloadCoins = AppPrefs.getDownloadCoins();
+                    if (downloadCoins == 0) {
+                        Gamification.displayCoinEssence(getContext(), "Insufficient download coins");
                         return;
                     }
                     int episodeQualitySelection = episodeDownloadOptionsSpinner.getSelectedItemPosition();

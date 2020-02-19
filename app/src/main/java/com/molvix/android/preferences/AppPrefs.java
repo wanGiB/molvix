@@ -223,4 +223,20 @@ public class AppPrefs {
         return getAppPreferences().getInt(AppConstants.PREFERRED_APP_THEME, 0);
     }
 
+    public static int getDownloadCoins() {
+        return getAppPreferences().getInt(AppConstants.DOWNLOAD_COINS, 0);
+    }
+
+    public static void incrementDownloadCoins(int increment) {
+        int existing = getDownloadCoins();
+        int newCoins = existing + increment;
+        getAppPreferences().edit().putInt(AppConstants.DOWNLOAD_COINS, newCoins).apply();
+    }
+
+    public static void decrementDownloadCoins() {
+        int existingDownloadCoins = getDownloadCoins();
+        int decrement = existingDownloadCoins - 1;
+        getAppPreferences().edit().putInt(AppConstants.DOWNLOAD_COINS, decrement).apply();
+    }
+
 }

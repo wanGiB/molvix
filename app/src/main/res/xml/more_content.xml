@@ -2,6 +2,15 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
     android:title="General Settings">
 
+    <PreferenceCategory android:title="Reward System">
+        <Preference
+            android:defaultValue="Your download coins"
+            android:key="@string/download_coins"
+            android:summary="Available coins"
+            android:title="Download Coins" />
+
+    </PreferenceCategory>
+
     <PreferenceCategory android:title="Theme &amp; Appearance">
         <SwitchPreferenceCompat
             android:defaultValue="false"

@@ -16,6 +16,7 @@ import com.molvix.android.components.ApplicationLoader;
 import com.molvix.android.managers.ThemeManager;
 import com.molvix.android.preferences.AppPrefs;
 import com.molvix.android.ui.activities.SplashActivity;
+import com.molvix.android.utils.Gamification;
 import com.molvix.android.utils.UiUtils;
 import com.morsebyte.shailesh.twostagerating.TwoStageRate;
 
@@ -23,6 +24,7 @@ public class MoreContentsFragment extends PreferenceFragmentCompat implements Pr
 
     private SwitchPreferenceCompat dailyMovieRecommendationSwitch;
     private SwitchPreferenceCompat downloadedMoviesUpdateSwitch;
+    private Preference downloadCoinsPref;
 
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
@@ -64,6 +66,14 @@ public class MoreContentsFragment extends PreferenceFragmentCompat implements Pr
             themePref.setDefaultValue(AppCompatDelegate.getDefaultNightMode() != AppCompatDelegate.MODE_NIGHT_NO);
             themePref.setOnPreferenceChangeListener(this);
         }
+        downloadCoinsPref = findPreference(getString(R.string.download_coins));
+        if (downloadCoinsPref != null) {
+            downloadCoinsPref.setSummary(UiUtils.fromHtml("You currently have <b>" + AppPrefs.getDownloadCoins() + "</b> download coins"));
+            downloadCoinsPref.setOnPreferenceClickListener(preference -> {
+                Gamification.displayCoinEssence(getContext(), "Download Coins");
+                return true;
+            });
+        }
     }
 
     private void initAppRater() {
@@ -88,7 +98,7 @@ public class MoreContentsFragment extends PreferenceFragmentCompat implements Pr
             } else {
                 ThemeManager.setThemeSelection(ThemeManager.ThemeSelection.LIGHT);
             }
-            UiUtils.snackMessage(getString(R.string.please_wait),getView(),false,null,null);
+            UiUtils.snackMessage(getString(R.string.please_wait), getView(), false, null, null);
             restartApp();
         }
         return true;

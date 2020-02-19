@@ -1,12 +1,12 @@
 package com.molvix.android.utils;
 
+import android.annotation.SuppressLint;
+
 import java.security.cert.CertificateException;
 import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
-import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
@@ -24,6 +24,8 @@ public class NetworkClient {
 
     private static OkHttpClient OK_HTTP_CLIENT;
 
+    @SuppressWarnings("RedundantThrows")
+    @SuppressLint("TrustAllX509TrustManager")
     public static OkHttpClient getIgnoreCertificateOkHttpClient() {
         if (OK_HTTP_CLIENT == null) {
             OkHttpClient.Builder builder = new OkHttpClient().newBuilder()

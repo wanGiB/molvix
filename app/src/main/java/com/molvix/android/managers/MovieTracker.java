@@ -57,6 +57,7 @@ public class MovieTracker {
         newNotification.setDestinationKey(episode.getEpisodeId());
         newNotification.setTimeStamp(System.currentTimeMillis());
         MolvixDB.createNewNotification(newNotification);
+        AppPrefs.decrementDownloadCoins();
     }
 
     public static void recommendUnWatchedMoviesToUser() {
