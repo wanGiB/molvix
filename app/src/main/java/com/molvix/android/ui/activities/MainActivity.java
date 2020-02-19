@@ -11,6 +11,7 @@ import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
@@ -96,6 +97,9 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
 
     @BindView(R.id.container)
     FrameLayout rootContainer;
+
+    @BindView(R.id.gamification_host)
+    View gamificationHost;
 
     private List<Fragment> fragments;
     private DataSubscription presetsSubscription;
@@ -468,6 +472,11 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
 
     @Override
     public void onBackPressed() {
+        if (gamificationHost.getVisibility() != View.GONE) {
+            mRewardedVideoAd.destroy(this);
+            gamificationHost.setVisibility(View.GONE);
+            return;
+        }
         if (rootContainer.getChildAt(rootContainer.getChildCount() - 1) instanceof MolvixVideoPlayerView) {
             MolvixVideoPlayerView molvixVideoPlayerView = (MolvixVideoPlayerView) rootContainer.getChildAt(rootContainer.getChildCount() - 1);
             molvixVideoPlayerView.trySaveCurrentPlayerPosition();
@@ -630,6 +639,7 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
 
     @Override
     public void onRewardedVideoAdLoaded() {
+        gamificationHost.setVisibility(View.GONE);
         MolvixLogger.d(ContentManager.class.getSimpleName(), "Rewarded Video ad loaded");
         mRewardedVideoAd.show();
     }
@@ -661,6 +671,8 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
 
     @Override
     public void onRewardedVideoAdFailedToLoad(int i) {
+        gamificationHost.setVisibility(View.GONE);
+        UiUtils.showSafeToast("Failed to load video ad.Please review your data connection and try again.");
         MolvixLogger.d(ContentManager.class.getSimpleName(), "Rewarded Video Failed to load due to error code " + i);
     }
 
