@@ -47,6 +47,8 @@ public class ManagedSpaceActivity extends BaseActivity {
                             boolean molvixDirDelete = FileUtils.deleteDirectory(molvixFolder);
                             if (molvixDirDelete) {
                                 UiUtils.showSafeToast("Downloaded Videos and application specific settings deleted successfully");
+                            }else{
+                                UiUtils.showSafeToast("Sorry, we couldn't delete downloaded videos. Please try again.");
                             }
                         } catch (IOException e) {
                             e.printStackTrace();
