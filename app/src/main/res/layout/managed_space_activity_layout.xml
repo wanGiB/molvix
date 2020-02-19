@@ -33,7 +33,7 @@
             android:layout_gravity="center_horizontal"
             android:gravity="center_horizontal"
             android:lineSpacingExtra="2dp"
-            android:text="Clearing all data would delete all downloaded videos. This is a dangerous operation, when you tap on Clear Data, only application specific data would be cleared. Your downloaded videos would not be deleted."
+            android:text="This is a dangerous operation. When you tap on Clear Data, only application specific data would be cleared. If you however also wish to force-delete all your downloaded videos, check the box below as well."
             android:textColor="?attr/movie_description_color"
             android:textSize="14sp"
             android:layout_margin="5dp"
@@ -50,6 +50,13 @@
             android:text="CLEAR DATA"
             android:textColor="@color/white"
             android:theme="@style/Widget.Button.Normal" />
+
+        <CheckBox
+            android:id="@+id/delete_videos_too"
+            android:textColor="@color/colorGoogle"
+            android:text="Also delete all my downloaded videos"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
 
     </LinearLayout>
 
