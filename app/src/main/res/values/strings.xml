@@ -8,7 +8,7 @@
     <string name="admob_app_id">ca-app-pub-6135856587983989~3935873179</string>
     <string name="banner_release_ad_unit_id">ca-app-pub-6135856587983989/1197835674</string>
     <string name="native_release_ad_unit_id">ca-app-pub-6135856587983989/4094342197</string>
-    <string name="rewarded_video_release_ad_unit_id"> </string>
+    <string name="rewarded_video_release_ad_unit_id">ca-app-pub-6135856587983989/1627130374</string>
     <string name="sorry_no_result_found">Sorry, no result found</string>
     <string name="cancel" tools:ignore="ButtonCase">CANCEL</string>
     <string name="play">PLAY</string>

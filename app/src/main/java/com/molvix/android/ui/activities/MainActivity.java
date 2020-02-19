@@ -473,7 +473,6 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
     @Override
     public void onBackPressed() {
         if (gamificationHost.getVisibility() != View.GONE) {
-            mRewardedVideoAd.destroy(this);
             gamificationHost.setVisibility(View.GONE);
             return;
         }
@@ -629,6 +628,7 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
     }
 
     public void loadRewardedVideoAd() {
+        UiUtils.toggleViewVisibility(gamificationHost,true);
         AdRequest.Builder adBuilder = new AdRequest.Builder();
         if (BuildConfig.DEBUG) {
             adBuilder.addTestDevice(AppConstants.TEST_DEVICE_ID);
@@ -662,6 +662,7 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
     @Override
     public void onRewarded(RewardItem rewardItem) {
         MolvixLogger.d(ContentManager.class.getSimpleName(), "Rewarded Video reward with " + rewardItem.getType() + ",amount=" + rewardItem.getAmount());
+        AppPrefs.incrementDownloadCoins(12);
     }
 
     @Override

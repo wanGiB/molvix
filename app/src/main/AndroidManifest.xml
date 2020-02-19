@@ -25,6 +25,7 @@
         android:theme="@style/LightTheme"
         tools:ignore="AllowBackup,GoogleAppIndexingWarning"
         tools:replace="android:icon"
+        android:manageSpaceActivity="com.molvix.android.ui.activities.ManagedSpaceActivity"
         tools:targetApi="n">
 
         <provider
@@ -56,6 +57,7 @@
         </activity>
 
         <activity android:name=".ui.activities.CancelDownloadActivity" />
+        <activity android:name=".ui.activities.ManagedSpaceActivity" />
 
         <receiver
             android:name=".receivers.ConnectivityChangeReceiver"

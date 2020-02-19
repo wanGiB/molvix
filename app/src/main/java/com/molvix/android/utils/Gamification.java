@@ -11,8 +11,8 @@ public class Gamification {
     public static void displayCoinEssence(Context context, String title){
         AlertDialog.Builder coinEssenceDialogBuilder = new AlertDialog.Builder(context);
         coinEssenceDialogBuilder.setTitle(UiUtils.fromHtml(title));
-        int availableCoins = AppPrefs.getDownloadCoins();
-        String contentMsg= "To download contents, you use <b>Download Coins</b>.\n\n\nYou currently have <b>"+availableCoins+" Download Coins </b>.\n\n\nTo get more coins, all you have to do is to tap on the "+(" <b>WATCH VIDEO AD</b> button below to ")+"watch a few seconds video ad.";
+        int availableCoins = AppPrefs.getAvailableDownloadCoins();
+        String contentMsg= "To download contents, you need <b>Download Coins</b>.<br/><br/>You currently have <b>"+availableCoins+" Download Coins </b>.<br/><br/>To get coins, simply tap on the "+(" <b>WATCH VIDEO AD</b> button below to ")+"watch a few seconds video ad";
         coinEssenceDialogBuilder.setMessage(UiUtils.fromHtml(contentMsg));
         coinEssenceDialogBuilder.setPositiveButton("WATCH VIDEO AD", (dialog, which) -> {
             dialog.dismiss();
@@ -22,7 +22,7 @@ public class Gamification {
             }
         });
         coinEssenceDialogBuilder.setNegativeButton("CLOSE", (dialog, which) -> dialog.dismiss());
-        coinEssenceDialogBuilder.create();
+        coinEssenceDialogBuilder.create().show();
     }
 
 }

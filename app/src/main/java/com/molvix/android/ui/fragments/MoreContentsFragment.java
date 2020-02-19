@@ -68,7 +68,7 @@ public class MoreContentsFragment extends PreferenceFragmentCompat implements Pr
         }
         downloadCoinsPref = findPreference(getString(R.string.download_coins));
         if (downloadCoinsPref != null) {
-            downloadCoinsPref.setSummary(UiUtils.fromHtml("You currently have <b>" + AppPrefs.getDownloadCoins() + "</b> download coins"));
+            downloadCoinsPref.setSummary(UiUtils.fromHtml("You currently have <b>" + AppPrefs.getAvailableDownloadCoins() + "</b> download coins"));
             downloadCoinsPref.setOnPreferenceClickListener(preference -> {
                 Gamification.displayCoinEssence(getContext(), "Download Coins");
                 return true;
