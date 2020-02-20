@@ -142,10 +142,10 @@ public class ContentManager {
     }
 
     public static void grabMovies() throws Exception {
-        loadMoviesTitlesAndLinks();
+        loadMoviesFromO2TVSeries();
     }
 
-    private static void loadMoviesTitlesAndLinks() throws Exception {
+    private static void loadMoviesFromO2TVSeries() throws Exception {
         String TV_SERIES_URL = "https://o2tvseries.com/search/list_all_tv_series";
         Document document = Jsoup.connect(TV_SERIES_URL).get();
         Element moviesTitlesAndLinks = document.selectFirst("div.data_list");

@@ -6,9 +6,12 @@ import android.content.SharedPreferences;
 
 import com.molvix.android.companions.AppConstants;
 import com.molvix.android.components.ApplicationLoader;
+import com.molvix.android.eventbuses.DownloadCoinsUpdatedEvent;
 import com.molvix.android.managers.ThemeManager;
 import com.molvix.android.models.Episode;
 import com.molvix.android.utils.CryptoUtils;
+
+import org.greenrobot.eventbus.EventBus;
 
 import java.io.File;
 import java.util.HashSet;
@@ -230,6 +233,7 @@ public class AppPrefs {
     public static void incrementDownloadCoins(int increment) {
         int existing = getAvailableDownloadCoins();
         int newCoins = existing + increment;
+        EventBus.getDefault().post(new DownloadCoinsUpdatedEvent(newCoins));
         getAppPreferences().edit().putInt(AppConstants.DOWNLOAD_COINS, newCoins).apply();
     }
 

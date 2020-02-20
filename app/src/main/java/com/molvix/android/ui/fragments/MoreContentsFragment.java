@@ -11,8 +11,8 @@ import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.SwitchPreferenceCompat;
 
 import com.molvix.android.R;
-import com.molvix.android.companions.AppConstants;
 import com.molvix.android.components.ApplicationLoader;
+import com.molvix.android.eventbuses.DownloadCoinsUpdatedEvent;
 import com.molvix.android.managers.ThemeManager;
 import com.molvix.android.preferences.AppPrefs;
 import com.molvix.android.ui.activities.SplashActivity;
@@ -20,15 +20,21 @@ import com.molvix.android.utils.Gamification;
 import com.molvix.android.utils.UiUtils;
 import com.morsebyte.shailesh.twostagerating.TwoStageRate;
 
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
+
 public class MoreContentsFragment extends PreferenceFragmentCompat implements Preference.OnPreferenceChangeListener {
 
     private SwitchPreferenceCompat dailyMovieRecommendationSwitch;
     private SwitchPreferenceCompat downloadedMoviesUpdateSwitch;
     private Preference downloadCoinsPref;
+    private Handler mUIHandler = new Handler();
 
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
         setPreferencesFromResource(R.xml.more_content, rootKey);
+        checkAndRegisterEventBus();
         dailyMovieRecommendationSwitch = findPreference(getString(R.string.daily_movie_recommendation_key));
         downloadedMoviesUpdateSwitch = findPreference(getString(R.string.downloaded_movies_update_key));
         if (downloadedMoviesUpdateSwitch != null) {
@@ -63,23 +69,36 @@ public class MoreContentsFragment extends PreferenceFragmentCompat implements Pr
         }
         SwitchPreferenceCompat themePref = findPreference(getString(R.string.theme_key));
         if (themePref != null) {
-            themePref.setDefaultValue(ThemeManager.getThemeSelection()== ThemeManager.ThemeSelection.DARK);
+            themePref.setDefaultValue(ThemeManager.getThemeSelection() == ThemeManager.ThemeSelection.DARK);
             themePref.setOnPreferenceChangeListener(this);
         }
         downloadCoinsPref = findPreference(getString(R.string.download_coins));
         if (downloadCoinsPref != null) {
             downloadCoinsPref.setSummary(UiUtils.fromHtml("You currently have <b>" + AppPrefs.getAvailableDownloadCoins() + "</b> download coins"));
             downloadCoinsPref.setOnPreferenceChangeListener(this);
-            AppPrefs.getAppPreferences().registerOnSharedPreferenceChangeListener((sharedPreferences, key) -> {
-                if (key.equals(AppConstants.DOWNLOAD_COINS)){
-                    downloadCoinsPref.setSummary(UiUtils.fromHtml("You currently have <b>" + AppPrefs.getAvailableDownloadCoins() + "</b> download coins"));
-                }
-            });
             downloadCoinsPref.setOnPreferenceClickListener(preference -> {
                 Gamification.displayCoinEssence(getContext(), "Download Coins");
                 return true;
             });
         }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        checkAndRegisterEventBus();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        checkAndUnRegisterEventBus();
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        checkAndRegisterEventBus();
     }
 
     private void initAppRater() {
@@ -118,6 +137,30 @@ public class MoreContentsFragment extends PreferenceFragmentCompat implements Pr
                 getActivity().finish();
             }
         }, 1000);
+    }
+
+    private void checkAndRegisterEventBus() {
+        if (!EventBus.getDefault().isRegistered(this)) {
+            EventBus.getDefault().register(this);
+        }
+    }
+
+    private void checkAndUnRegisterEventBus() {
+        if (EventBus.getDefault().isRegistered(this)) {
+            EventBus.getDefault().unregister(this);
+        }
+    }
+
+    @Subscribe(threadMode = ThreadMode.ASYNC)
+    public void onEvent(Object event) {
+        mUIHandler.post(() -> {
+            if (event instanceof DownloadCoinsUpdatedEvent) {
+                DownloadCoinsUpdatedEvent downloadCoinsUpdatedEvent = (DownloadCoinsUpdatedEvent) event;
+                if (downloadCoinsPref != null) {
+                    downloadCoinsPref.setSummary(UiUtils.fromHtml("You currently have <b>" + downloadCoinsUpdatedEvent.getCoins() + "</b> download coins"));
+                }
+            }
+        });
     }
 
 }

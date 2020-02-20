@@ -8,13 +8,13 @@ import android.widget.ImageView;
 import androidx.annotation.Nullable;
 
 import com.molvix.android.R;
+import com.molvix.android.managers.ThemeManager;
 import com.molvix.android.preferences.AppPrefs;
 import com.molvix.android.utils.FileUtils;
 import com.molvix.android.utils.UiUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Map;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -42,6 +42,7 @@ public class ManagedSpaceActivity extends BaseActivity {
         clearDataButton.setOnClickListener(v -> {
             AppPrefs.getAppPreferences().edit().clear().apply();
             AppPrefs.setDownloadCoinsToZero();
+            ThemeManager.setThemeSelection(ThemeManager.ThemeSelection.LIGHT);
             if (deleteVideosCheck.isChecked()) {
                 File appExternalFiles = getExternalFilesDir(null);
                 if (appExternalFiles != null && appExternalFiles.exists()) {

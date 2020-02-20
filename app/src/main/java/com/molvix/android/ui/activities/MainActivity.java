@@ -659,6 +659,7 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
     public void onRewarded(RewardItem rewardItem) {
         MolvixLogger.d(ContentManager.class.getSimpleName(), "Rewarded Video reward with " + rewardItem.getType() + ",amount=" + rewardItem.getAmount());
         AppPrefs.incrementDownloadCoins(12);
+        UiUtils.showSafeToast("You have received 12 download coins!!!");
     }
 
     @Override
