@@ -12,9 +12,9 @@ public class Gamification {
         AlertDialog.Builder coinEssenceDialogBuilder = new AlertDialog.Builder(context);
         coinEssenceDialogBuilder.setTitle(UiUtils.fromHtml(title));
         int availableCoins = AppPrefs.getAvailableDownloadCoins();
-        String contentMsg= "To download contents, you need <b>Download Coins</b>.<br/><br/>You currently have <b>"+availableCoins+" Download Coins </b>.<br/><br/>To get coins, simply tap on the "+(" <b>WATCH VIDEO AD</b> button below to ")+"watch a few seconds video ad";
+        String contentMsg= "To download contents through Molvix, you need <b>Download Coins</b>.<br/><br/>You are currently left with <b>"+availableCoins+" Download Coins </b>.<br/><br/>To get more coins, simply tap on the "+(" <b>GET COINS</b> button below to ")+"watch a few seconds video ad";
         coinEssenceDialogBuilder.setMessage(UiUtils.fromHtml(contentMsg));
-        coinEssenceDialogBuilder.setPositiveButton("WATCH VIDEO AD", (dialog, which) -> {
+        coinEssenceDialogBuilder.setPositiveButton("GET COINS", (dialog, which) -> {
             dialog.dismiss();
             if (context instanceof MainActivity){
                 MainActivity scope = (MainActivity) context;

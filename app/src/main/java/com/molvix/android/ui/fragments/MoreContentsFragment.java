@@ -6,12 +6,12 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
 
-import androidx.appcompat.app.AppCompatDelegate;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.SwitchPreferenceCompat;
 
 import com.molvix.android.R;
+import com.molvix.android.companions.AppConstants;
 import com.molvix.android.components.ApplicationLoader;
 import com.molvix.android.managers.ThemeManager;
 import com.molvix.android.preferences.AppPrefs;
@@ -63,12 +63,18 @@ public class MoreContentsFragment extends PreferenceFragmentCompat implements Pr
         }
         SwitchPreferenceCompat themePref = findPreference(getString(R.string.theme_key));
         if (themePref != null) {
-            themePref.setDefaultValue(AppCompatDelegate.getDefaultNightMode() != AppCompatDelegate.MODE_NIGHT_NO);
+            themePref.setDefaultValue(ThemeManager.getThemeSelection()== ThemeManager.ThemeSelection.DARK);
             themePref.setOnPreferenceChangeListener(this);
         }
         downloadCoinsPref = findPreference(getString(R.string.download_coins));
         if (downloadCoinsPref != null) {
             downloadCoinsPref.setSummary(UiUtils.fromHtml("You currently have <b>" + AppPrefs.getAvailableDownloadCoins() + "</b> download coins"));
+            downloadCoinsPref.setOnPreferenceChangeListener(this);
+            AppPrefs.getAppPreferences().registerOnSharedPreferenceChangeListener((sharedPreferences, key) -> {
+                if (key.equals(AppConstants.DOWNLOAD_COINS)){
+                    downloadCoinsPref.setSummary(UiUtils.fromHtml("You currently have <b>" + AppPrefs.getAvailableDownloadCoins() + "</b> download coins"));
+                }
+            });
             downloadCoinsPref.setOnPreferenceClickListener(preference -> {
                 Gamification.displayCoinEssence(getContext(), "Download Coins");
                 return true;

@@ -108,6 +108,10 @@
         <item name="colorButtonNormal">@color/linked_in</item>
     </style>
 
+    <style name="Widget.Button.Delete" parent="Widget.AppCompat.Button">
+        <item name="colorButtonNormal">@color/colorGoogle</item>
+    </style>
+
     <string name="ad_attribution">Ad</string>
 
     <style name="Theme.Rating" parent="Theme.AppCompat.Light">

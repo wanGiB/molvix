@@ -69,6 +69,9 @@
     <string name="loading">Loading…</string>
     <string name="directory_empty_msg">Sorry, no content was found in this directory</string>
     <string name="download_coins">download_coins</string>
+    <string name="clear_data">CLEAR DATA</string>
+    <string name="clear_data_consent">When you tap on Clear Data, only application specific data would be cleared. If you however also wish to force-delete all of your downloaded videos, check the box below as well.</string>
+    <string name="also_delete_video_check_msg">Also delete all my downloaded videos</string>
     <string-array name="reply_choices">
         <item>Yes</item>
         <item>No</item>

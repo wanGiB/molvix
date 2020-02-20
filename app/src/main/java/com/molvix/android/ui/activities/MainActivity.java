@@ -1,6 +1,7 @@
 package com.molvix.android.ui.activities;
 
 import android.annotation.SuppressLint;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
@@ -11,7 +12,6 @@ import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
@@ -98,8 +98,7 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
     @BindView(R.id.container)
     FrameLayout rootContainer;
 
-    @BindView(R.id.gamification_host)
-    View gamificationHost;
+    private ProgressDialog gamificationHostDialog;
 
     private List<Fragment> fragments;
     private DataSubscription presetsSubscription;
@@ -472,10 +471,6 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
 
     @Override
     public void onBackPressed() {
-        if (gamificationHost.getVisibility() != View.GONE) {
-            gamificationHost.setVisibility(View.GONE);
-            return;
-        }
         if (rootContainer.getChildAt(rootContainer.getChildCount() - 1) instanceof MolvixVideoPlayerView) {
             MolvixVideoPlayerView molvixVideoPlayerView = (MolvixVideoPlayerView) rootContainer.getChildAt(rootContainer.getChildCount() - 1);
             molvixVideoPlayerView.trySaveCurrentPlayerPosition();
@@ -628,7 +623,8 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
     }
 
     public void loadRewardedVideoAd() {
-        UiUtils.toggleViewVisibility(gamificationHost,true);
+        gamificationHostDialog = ProgressDialog.show(this, "Loading ad", "Please wait...");
+        gamificationHostDialog.setCancelable(true);
         AdRequest.Builder adBuilder = new AdRequest.Builder();
         if (BuildConfig.DEBUG) {
             adBuilder.addTestDevice(AppConstants.TEST_DEVICE_ID);
@@ -639,7 +635,7 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
 
     @Override
     public void onRewardedVideoAdLoaded() {
-        gamificationHost.setVisibility(View.GONE);
+        closeGamificationProgressDialog();
         MolvixLogger.d(ContentManager.class.getSimpleName(), "Rewarded Video ad loaded");
         mRewardedVideoAd.show();
     }
@@ -672,9 +668,21 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
 
     @Override
     public void onRewardedVideoAdFailedToLoad(int i) {
-        gamificationHost.setVisibility(View.GONE);
+        closeGamificationProgressDialog();
         UiUtils.showSafeToast("Failed to load video ad.Please review your data connection and try again.");
         MolvixLogger.d(ContentManager.class.getSimpleName(), "Rewarded Video Failed to load due to error code " + i);
+    }
+
+    private void closeGamificationProgressDialog() {
+        try {
+            if (gamificationHostDialog != null && gamificationHostDialog.isShowing()) {
+                gamificationHostDialog.dismiss();
+                gamificationHostDialog.cancel();
+                gamificationHostDialog = null;
+            }
+        } catch (Exception ignored) {
+
+        }
     }
 
     @Override

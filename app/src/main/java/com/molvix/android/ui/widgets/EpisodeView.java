@@ -253,7 +253,7 @@ public class EpisodeView extends FrameLayout {
                         return;
                     }
                     int downloadCoins = AppPrefs.getAvailableDownloadCoins();
-                    if (downloadCoins == 0) {
+                    if (downloadCoins <= 0) {
                         Gamification.displayCoinEssence(getContext(), "Insufficient Download Coins");
                         return;
                     }

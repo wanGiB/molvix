@@ -3,6 +3,7 @@ package com.molvix.android.ui.activities;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.ImageView;
 
 import androidx.annotation.Nullable;
 
@@ -26,22 +27,25 @@ public class ManagedSpaceActivity extends BaseActivity {
     @BindView(R.id.delete_videos_too)
     CheckBox deleteVideosCheck;
 
+    @BindView(R.id.back_button)
+    ImageView backButton;
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.managed_space_activity_layout);
         ButterKnife.bind(this);
+        backButton.setOnClickListener(v -> {
+            UiUtils.blinkView(v);
+            finish();
+        });
         clearDataButton.setOnClickListener(v -> {
-            Map<String, ?> entries = AppPrefs.getAppPreferences().getAll();
-            if (!entries.isEmpty()) {
-                for (String key : entries.keySet()) {
-                    AppPrefs.removeKey(key);
-                }
-            }
+            AppPrefs.getAppPreferences().edit().clear().apply();
+            AppPrefs.setDownloadCoinsToZero();
             if (deleteVideosCheck.isChecked()) {
                 File appExternalFiles = getExternalFilesDir(null);
                 if (appExternalFiles != null && appExternalFiles.exists()) {
-                    File molvixFolder = new File(appExternalFiles, "Molvix");
+                    File molvixFolder = new File(appExternalFiles, FileUtils.getRootFolder());
                     if (molvixFolder.exists()) {
                         try {
                             boolean molvixDirDelete = FileUtils.deleteDirectory(molvixFolder);

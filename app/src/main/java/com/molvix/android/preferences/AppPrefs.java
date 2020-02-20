@@ -4,7 +4,6 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
 
-import com.molvix.android.BuildConfig;
 import com.molvix.android.companions.AppConstants;
 import com.molvix.android.components.ApplicationLoader;
 import com.molvix.android.managers.ThemeManager;
@@ -225,13 +224,17 @@ public class AppPrefs {
     }
 
     public static int getAvailableDownloadCoins() {
-        return getAppPreferences().getInt(AppConstants.DOWNLOAD_COINS, BuildConfig.DEBUG ? 0 : 6);
+        return getAppPreferences().getInt(AppConstants.DOWNLOAD_COINS,  6);
     }
 
     public static void incrementDownloadCoins(int increment) {
         int existing = getAvailableDownloadCoins();
         int newCoins = existing + increment;
         getAppPreferences().edit().putInt(AppConstants.DOWNLOAD_COINS, newCoins).apply();
+    }
+
+    public static void setDownloadCoinsToZero(){
+        getAppPreferences().edit().putInt(AppConstants.DOWNLOAD_COINS, 0).apply();
     }
 
     public static void decrementDownloadCoins() {
