@@ -23,6 +23,8 @@ import com.molvix.android.R;
 import com.molvix.android.companions.AppConstants;
 import com.molvix.android.database.MolvixDB;
 import com.molvix.android.eventbuses.ConnectivityChangedEvent;
+import com.molvix.android.eventbuses.DisplayNewMoviesEvent;
+import com.molvix.android.eventbuses.FilterByGenresEvent;
 import com.molvix.android.eventbuses.SearchEvent;
 import com.molvix.android.managers.ContentManager;
 import com.molvix.android.managers.MovieManager;
@@ -30,6 +32,7 @@ import com.molvix.android.models.Movie;
 import com.molvix.android.models.Movie_;
 import com.molvix.android.ui.adapters.MoviesAdapter;
 import com.molvix.android.utils.ConnectivityUtils;
+import com.molvix.android.utils.MolvixGenUtils;
 import com.molvix.android.utils.UiUtils;
 
 import org.apache.commons.lang3.StringUtils;
@@ -137,8 +140,46 @@ public class HomeFragment extends BaseFragment {
                     contentLoadingProgressMessageView.setText(getString(R.string.loading_msg));
                     spinMoviesDownloadJob();
                 }
+            }else if (event instanceof DisplayNewMoviesEvent){
+                displayNewMovies();
+            }else if (event instanceof FilterByGenresEvent){
+                FilterByGenresEvent filterByGenresEvent= (FilterByGenresEvent) event;
+                displayMoviesByGenre(filterByGenresEvent.getSelectedGenres());
             }
         });
+    }
+
+    private void displayMoviesByGenre(List<String> selectedGenres) {
+        clearCurrentData();
+        nullifySearch();
+        new Thread(() -> {
+            List<Movie> results = MolvixDB.getMovieBox()
+                    .query()
+                    .filter(entity -> {
+                        if (entity.getMovieGenre()==null){
+                            return false;
+                        }
+                        return StringUtils.containsAny(entity.getMovieGenre(), MolvixGenUtils.getCharSequencesFromList(selectedGenres));
+                    })
+                    .build()
+                    .find();
+            clearCurrentData();
+            loadMovies(results);
+        }).start();
+    }
+
+    private void displayNewMovies() {
+        clearCurrentData();
+        nullifySearch();
+        new Thread(() -> {
+            List<Movie> results = MolvixDB.getMovieBox()
+                    .query()
+                    .equal(Movie_.newMovie, true)
+                    .build()
+                    .find();
+            clearCurrentData();
+            loadMovies(results);
+        }).start();
     }
 
     @Override

@@ -73,6 +73,8 @@
     <string name="clear_data_consent">When you tap on Clear Data, only application specific data would be cleared. If you however also wish to force-delete all of your downloaded videos, check the box below as well.</string>
     <string name="also_delete_video_check_msg">Also delete all my downloaded videos</string>
     <string name="new_">New</string>
+    <string name="show_new_series">Show New Series</string>
+    <string name="filter_by_genre">Filter by Genre</string>
     <string-array name="reply_choices">
         <item>Yes</item>
         <item>No</item>

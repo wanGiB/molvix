@@ -21,6 +21,8 @@ import android.webkit.WebViewClient;
 import android.widget.FrameLayout;
 
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.widget.PopupMenu;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.viewpager.widget.ViewPager;
@@ -38,7 +40,9 @@ import com.molvix.android.companions.AppConstants;
 import com.molvix.android.components.ApplicationLoader;
 import com.molvix.android.database.MolvixDB;
 import com.molvix.android.eventbuses.CheckForDownloadableEpisodes;
+import com.molvix.android.eventbuses.DisplayNewMoviesEvent;
 import com.molvix.android.eventbuses.EpisodeDownloadErrorException;
+import com.molvix.android.eventbuses.FilterByGenresEvent;
 import com.molvix.android.eventbuses.LoadEpisodesForSeason;
 import com.molvix.android.eventbuses.SearchEvent;
 import com.molvix.android.eventbuses.UpdateNotification;
@@ -46,6 +50,7 @@ import com.molvix.android.managers.AdsLoadManager;
 import com.molvix.android.managers.ContentManager;
 import com.molvix.android.managers.EpisodesManager;
 import com.molvix.android.managers.FileDownloadManager;
+import com.molvix.android.managers.GenreManager;
 import com.molvix.android.managers.ThemeManager;
 import com.molvix.android.models.DownloadableEpisode;
 import com.molvix.android.models.Episode;
@@ -62,6 +67,7 @@ import com.molvix.android.ui.widgets.MolvixVideoPlayerView;
 import com.molvix.android.ui.widgets.MovieDetailsView;
 import com.molvix.android.ui.widgets.NewUpdateAvailableView;
 import com.molvix.android.utils.FileUtils;
+import com.molvix.android.utils.MolvixGenUtils;
 import com.molvix.android.utils.MolvixLogger;
 import com.molvix.android.utils.UiUtils;
 import com.morsebyte.shailesh.twostagerating.dialog.UriHelper;
@@ -137,7 +143,45 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
     }
 
     private void displayFilterablePolicies() {
+        PopupMenu filterMenu = new PopupMenu(this,contentFilterer);
+        filterMenu.inflate(R.menu.filter_menu);
+        filterMenu.setOnMenuItemClickListener(item -> {
+            if (item.getItemId()==R.id.display_new_movies){
+                EventBus.getDefault().post(new DisplayNewMoviesEvent());
+            }else if (item.getItemId()==R.id.filter_by_genre){
+                loadAvailableGenres();
+            }
+            return true;
+        });
+        filterMenu.show();
+    }
 
+    private void loadAvailableGenres() {
+        List<String>availableGenres = GenreManager.getAvailableGenres();
+        if (!availableGenres.isEmpty()){
+            CharSequence[] options = MolvixGenUtils.getCharSequencesFromList(availableGenres);
+            AlertDialog.Builder genresDialogBuilder=new AlertDialog.Builder(this);
+            genresDialogBuilder.setTitle("Select Genres");
+            List<String>selectedGenres = new ArrayList<>();
+            genresDialogBuilder.setMultiChoiceItems(options, null, (dialog, which, isChecked) -> {
+                if (isChecked){
+                    CharSequence selection=options[which];
+                    if (!selectedGenres.contains(selection.toString().toLowerCase())){
+                        selectedGenres.add(selection.toString().toLowerCase());
+                    }
+                }
+            });
+            genresDialogBuilder.setPositiveButton("ACTIVATE", (dialog, which) -> {
+                dialog.dismiss();
+                if (!selectedGenres.isEmpty()){
+                    EventBus.getDefault().post(new FilterByGenresEvent(selectedGenres));
+                }
+            });
+            genresDialogBuilder.setNegativeButton("CLOSE", (dialog, which) -> dialog.dismiss());
+            genresDialogBuilder.create().show();
+        }else{
+            UiUtils.showSafeToast("Sorry, failed to load genres.Please try again.");
+        }
     }
 
     private void setupRewardedVideoAd() {

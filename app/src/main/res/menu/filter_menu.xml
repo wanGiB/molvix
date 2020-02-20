@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item android:id="@+id/display_new_movies"
+        android:title="@string/show_new_series"
+        android:icon="@drawable/ic_new_releases"/>
+
+    <item android:id="@+id/filter_by_genre"
+        android:title="@string/filter_by_genre"
+        android:icon="@drawable/ic_genre_24dp"/>
+
+</menu>
