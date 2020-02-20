@@ -13,18 +13,37 @@
         android:background="?attr/root_view_background_color"
         tools:ignore="UselessParent">
 
-        <com.molvix.android.ui.widgets.MolvixSearchView
-            android:id="@+id/search_view"
+        <LinearLayout
+            android:id="@+id/search_and_filter_container"
+            android:orientation="horizontal"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="8dp" />
+            android:animateLayoutChanges="true"
+            android:layout_height="wrap_content">
+
+            <com.molvix.android.ui.widgets.MolvixSearchView
+                android:id="@+id/search_view"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_margin="8dp" />
+
+            <ImageView
+                android:id="@+id/content_filterer"
+                android:layout_width="30dp"
+                android:layout_margin="5dp"
+                android:layout_gravity="center_vertical"
+                app:srcCompat="@drawable/ic_filter_list_24dp"
+                android:layout_height="30dp"
+                tools:ignore="ContentDescription" />
+
+        </LinearLayout>
 
         <androidx.viewpager.widget.ViewPager
             android:id="@+id/fragment_pager"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_above="@+id/bottom_navigation_view"
-            android:layout_below="@id/search_view" />
+            android:layout_below="@id/search_and_filter_container" />
 
         <com.google.android.material.bottomnavigation.BottomNavigationView
             android:id="@+id/bottom_navigation_view"

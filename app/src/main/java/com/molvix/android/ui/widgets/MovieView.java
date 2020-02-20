@@ -41,6 +41,9 @@ public class MovieView extends FrameLayout {
     @BindView(R.id.movie_name_view)
     TextView movieNameView;
 
+    @BindView(R.id.new_movie_indicator)
+    TextView newMovieIndicatorView;
+
     @BindView(R.id.movie_art_view)
     ImageView movieArtView;
 
@@ -49,6 +52,9 @@ public class MovieView extends FrameLayout {
 
     @BindView(R.id.movie_seasons_count_view)
     TextView movieSeasonsCountView;
+
+    @BindView(R.id.movie_genre_view)
+    TextView movieGenreView;
 
     private Movie movie;
 
@@ -111,9 +117,21 @@ public class MovieView extends FrameLayout {
 
     @SuppressLint("SetTextI18n")
     private void setupMovieCoreData(Movie movie) {
+        UiUtils.toggleViewVisibility(newMovieIndicatorView,movie.isNewMovie());
         String movieName = movie.getMovieName();
         String movieDescription = movie.getMovieDescription();
         String movieArtUrl = movie.getMovieArtUrl();
+        String movieGenre = movie.getMovieGenre();
+        if (StringUtils.isNotEmpty(movieGenre)){
+            UiUtils.toggleViewVisibility(movieGenreView,true);
+            if (StringUtils.isNotEmpty(getSearchString())) {
+                movieGenreView.setText(UiUtils.highlightTextIfNecessary(getSearchString(), WordUtils.capitalize(movieGenre), ContextCompat.getColor(getContext(), R.color.colorAccentDark)));
+            } else {
+                movieGenreView.setText(WordUtils.capitalize(movieGenre));
+            }
+        }else{
+            UiUtils.toggleViewVisibility(movieGenreView,false);
+        }
         List<Season> movieSeasonsCount = movie.getSeasons();
         if (StringUtils.isNotEmpty(getSearchString())) {
             movieNameView.setText(UiUtils.highlightTextIfNecessary(getSearchString(), WordUtils.capitalize(movieName), ContextCompat.getColor(getContext(), R.color.colorAccentDark)));

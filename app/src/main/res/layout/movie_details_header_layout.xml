@@ -10,13 +10,34 @@
     android:background="?attr/app_vibrant_background_color"
     android:orientation="vertical">
 
-    <com.molvix.android.ui.widgets.LoadingImageView
-        android:id="@+id/movie_art_view"
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="200dp"
-        android:background="?attr/movie_art_background_color"
-        android:scaleType="centerCrop"
-        tools:ignore="ContentDescription" />
+        android:layout_height="wrap_content">
+
+        <com.molvix.android.ui.widgets.LoadingImageView
+            android:id="@+id/movie_art_view"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:background="?attr/movie_art_background_color"
+            android:scaleType="centerCrop"
+            tools:ignore="ContentDescription" />
+
+        <com.molvix.android.ui.widgets.MolvixTextView
+            android:layout_width="wrap_content"
+            android:layout_gravity="top|end"
+            android:id="@+id/new_movie_indicator"
+            android:text="@string/new_"
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp"
+            android:paddingEnd="8dp"
+            android:visibility="gone"
+            android:paddingStart="8dp"
+            app:textStyle="medium"
+            android:textColor="@color/white"
+            android:background="@color/colorAccentDark"
+            android:layout_height="wrap_content"/>
+
+    </FrameLayout>
 
     <com.molvix.android.ui.widgets.MolvixTextView
         android:id="@+id/movie_name_view"
@@ -39,19 +60,34 @@
         android:textSize="14sp"
         app:textStyle="regular" />
 
-    <com.molvix.android.ui.widgets.MolvixTextView
-        android:id="@+id/movie_seasons_count_view"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_vertical|end"
-        android:gravity="center_vertical"
-        android:paddingStart="8dp"
-        android:paddingTop="5dp"
-        android:paddingEnd="8dp"
-        android:paddingBottom="2dp"
-        android:textColor="?attr/movie_seasons_color"
-        android:textSize="14sp"
-        app:textStyle="medium" />
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <com.molvix.android.ui.widgets.MolvixTextView
+            android:id="@+id/movie_seasons_count_view"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:gravity="center_vertical"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:paddingBottom="8dp"
+            android:layout_weight="1"
+            android:textColor="?attr/movie_seasons_color"
+            android:textSize="14sp"
+            app:textStyle="medium" />
+
+        <com.molvix.android.ui.widgets.MolvixTextView
+            android:layout_width="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="@color/blue_grey_inactive"
+            android:id="@+id/movie_genre_view"
+            android:layout_height="wrap_content"/>
+
+    </LinearLayout>
 
     <View
         android:layout_width="match_parent"

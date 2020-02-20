@@ -9,6 +9,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -40,6 +41,12 @@ public class MovieDetailsHeaderView extends FrameLayout {
     @BindView(R.id.movie_seasons_count_view)
     MolvixTextView seasonsCountView;
 
+    @BindView(R.id.new_movie_indicator)
+    TextView newMovieIndicatorView;
+
+    @BindView(R.id.movie_genre_view)
+    TextView movieGenreView;
+
     public MovieDetailsHeaderView(@NonNull Context context) {
         super(context);
         init(context);
@@ -64,6 +71,14 @@ public class MovieDetailsHeaderView extends FrameLayout {
     }
 
     public void bindMovieHeader(Movie movie) {
+        UiUtils.toggleViewVisibility(newMovieIndicatorView,movie.isNewMovie());
+        String movieGenre = movie.getMovieGenre();
+        if (StringUtils.isNotEmpty(movieGenre)){
+            UiUtils.toggleViewVisibility(movieGenreView,true);
+            movieGenreView.setText(WordUtils.capitalize(movieGenre));
+        }else{
+            UiUtils.toggleViewVisibility(movieGenreView,false);
+        }
         movieNameView.setText(WordUtils.capitalize(movie.getMovieName()));
         String movieDescription = movie.getMovieDescription();
         if (StringUtils.isNotEmpty(movieDescription)) {

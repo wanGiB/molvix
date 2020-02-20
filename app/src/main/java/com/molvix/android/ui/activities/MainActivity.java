@@ -12,6 +12,7 @@ import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
@@ -98,6 +99,9 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
     @BindView(R.id.container)
     FrameLayout rootContainer;
 
+    @BindView(R.id.content_filterer)
+    View contentFilterer;
+
     private ProgressDialog gamificationHostDialog;
 
     private List<Fragment> fragments;
@@ -111,6 +115,7 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
+        initContentFilterClickListener();
         initSearchBox();
         initNavBarTints();
         unLockAppCaptchaSolver();
@@ -122,6 +127,17 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
         setupRewardedVideoAd();
         resetAdsLoader();
         AdsLoadManager.spin();
+    }
+
+    private void initContentFilterClickListener() {
+        contentFilterer.setOnClickListener(v -> {
+            UiUtils.blinkView(v);
+            displayFilterablePolicies();
+        });
+    }
+
+    private void displayFilterablePolicies() {
+
     }
 
     private void setupRewardedVideoAd() {
@@ -295,6 +311,7 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
 
             @Override
             public void onPageSelected(int position) {
+                UiUtils.toggleViewVisibility(contentFilterer,position==0);
                 if (position == 0) {
                     bottomNavView.setSelectedItemId(R.id.navigation_home);
                 } else if (position == 1) {

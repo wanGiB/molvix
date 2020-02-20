@@ -136,7 +136,8 @@ public class MolvixDB {
         @Override
         protected final Void doInBackground(MoviesToSave... moviesToSaves) {
             List<Pair<String, String>> movies = moviesToSaves[0].getMovies();
-            List<Movie> moviesList = new ArrayList<>();
+            List<Movie> newMovieList = new ArrayList<>();
+            List<Movie> existingMoviesList = getMovieBox().query().build().find();
             for (Pair<String, String> movieItem : movies) {
                 String movieName = movieItem.first;
                 String movieLink = movieItem.second;
@@ -147,18 +148,45 @@ public class MolvixDB {
                 newMovie.setMovieLink(movieLink);
                 newMovie.setRecommendedToUser(false);
                 newMovie.setSeenByUser(false);
-                moviesList.add(newMovie);
+                newMovieList.add(newMovie);
             }
             long lastMoviesSize = AppPrefs.getLastMoviesSize();
-            if (lastMoviesSize < moviesList.size()) {
+            if (lastMoviesSize < newMovieList.size()) {
+                noteNewMovies(newMovieList, existingMoviesList);
                 getMovieBox().removeAll();
-                getMovieBox().put(moviesList);
-                AppPrefs.setLastMoviesSize(moviesList.size());
+                getMovieBox().put(newMovieList);
+                AppPrefs.setLastMoviesSize(newMovieList.size());
             }
             //This is a hack to update all downloaded episodes of movies
             //That the movies might have changed positions
             updateNotifications();
             return null;
+        }
+
+        private void noteNewMovies(List<Movie> newMovieList, List<Movie> existingMoviesList) {
+            List<Movie> newlyAddedMovies = intersectionOf(newMovieList, existingMoviesList);
+            if (!newlyAddedMovies.isEmpty()) {
+                for (Movie newMovie : newlyAddedMovies) {
+                    newMovie.setNewMovie(true);
+                    if (newMovieList.contains(newMovie)) {
+                        int indexOfNewMovie = newMovieList.indexOf(newMovie);
+                        newMovieList.set(indexOfNewMovie,newMovie);
+                    }
+                }
+            }
+        }
+
+        private List<Movie> intersectionOf(List<Movie> updatedMovieList, List<Movie> existingMoviesList) {
+            List<Movie> intersection = new ArrayList<>();
+            if (existingMoviesList.isEmpty()) {
+                return intersection;
+            }
+            for (Movie updatedMovie : updatedMovieList) {
+                if (!existingMoviesList.contains(updatedMovie)) {
+                    intersection.add(updatedMovie);
+                }
+            }
+            return intersection;
         }
 
         private void updateNotifications() {

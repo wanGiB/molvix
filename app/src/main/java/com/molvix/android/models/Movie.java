@@ -19,12 +19,15 @@ public class Movie {
     public String movieName;
     public String movieLink;
     public String movieDescription;
+    public String movieGenre;
     public String movieArtUrl;
     @Backlink(to = "movie")
     public ToMany<Season> seasons;
     public boolean ad;
     public boolean recommendedToUser;
     public boolean seenByUser;
+    public boolean newMovie;
+    public long viewCount;
 
     public long getId() {
         return id;
@@ -104,6 +107,30 @@ public class Movie {
 
     public void setSeenByUser(boolean seenByUser) {
         this.seenByUser = seenByUser;
+    }
+
+    public void setNewMovie(boolean newMovie) {
+        this.newMovie = newMovie;
+    }
+
+    public void setMovieGenre(String movieGenre) {
+        this.movieGenre = movieGenre;
+    }
+
+    public String getMovieGenre() {
+        return movieGenre;
+    }
+
+    public boolean isNewMovie() {
+        return newMovie;
+    }
+
+    public void setViewCount(long viewCount) {
+        this.viewCount = viewCount;
+    }
+
+    public long getViewCount() {
+        return viewCount;
     }
 
     @Override

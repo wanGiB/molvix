@@ -95,7 +95,7 @@
     },
     {
       "id": "3:2054597738161452834",
-      "lastPropertyId": "9:7144334086883533221",
+      "lastPropertyId": "12:1183811576772704519",
       "name": "Movie",
       "properties": [
         {
@@ -145,6 +145,23 @@
           "id": "9:7144334086883533221",
           "name": "seenByUser",
           "type": 1,
+          "flags": 4
+        },
+        {
+          "id": "10:5505464221051802295",
+          "name": "movieGenre",
+          "type": 9
+        },
+        {
+          "id": "11:5948425008484625170",
+          "name": "newMovie",
+          "type": 1,
+          "flags": 4
+        },
+        {
+          "id": "12:1183811576772704519",
+          "name": "viewCount",
+          "type": 6,
           "flags": 4
         }
       ],

@@ -158,7 +158,10 @@ public class HomeFragment extends BaseFragment {
                     .query().contains(Movie_.movieName, searchString)
                     .or()
                     .contains(Movie_.movieDescription, searchString)
-                    .build().find();
+                    .or()
+                    .contains(Movie_.movieGenre, searchString)
+                    .build()
+                    .find();
             clearCurrentData();
             loadMovies(results);
         }).start();
