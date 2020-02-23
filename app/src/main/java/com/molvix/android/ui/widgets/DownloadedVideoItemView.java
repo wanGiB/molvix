@@ -34,7 +34,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.greenrobot.eventbus.EventBus;
 
 import java.io.File;
-import java.io.IOException;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -148,18 +147,10 @@ public class DownloadedVideoItemView extends FrameLayout {
                         UiUtils.showSafeToast("Sorry, we couldn't delete the episode at this point in time. Please try again later.");
                     }
                 } else {
-                    try {
-                        boolean deleted = FileUtils.deleteDirectory(downloadedFile);
-                        if (deleted) {
-                            EventBus.getDefault().post(new DownloadedFileDeletedEvent(downloadedVideoItem));
-                        } else {
-                            UiUtils.showSafeToast("Sorry, failed to delete directory.Please try again");
-                        }
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                        UiUtils.showSafeToast("Sorry, failed to delete directory.Please try again");
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
+                    boolean deleted = FileUtils.deleteDirectory(downloadedFile);
+                    if (deleted) {
+                        EventBus.getDefault().post(new DownloadedFileDeletedEvent(downloadedVideoItem));
+                    } else {
                         UiUtils.showSafeToast("Sorry, failed to delete directory.Please try again");
                     }
                 }

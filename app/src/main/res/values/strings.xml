@@ -24,11 +24,6 @@
     <string name="feedback_key">feedback_key</string>
     <string name="wallet_reception_disclaimer">This wallet address accepts only Bitcoins and not Bitcoin-Cash.\nThanks for your support</string>
     <string name="donation_view">donations_view_key</string>
-    <array name="episode_download_options">
-        <item>Highest Quality</item>
-        <item>Standard Quality</item>
-        <item>Lowest Quality</item>
-    </array>
     <!-- DateUtils -->
     <string name="DateUtils_just_now">Just now</string>
     <string name="DateUtils_minutes_ago">%d min</string>
@@ -73,7 +68,7 @@
     <string name="clear_data_consent">When you tap on Clear Data, only application specific data would be cleared. If you however also wish to force-delete all of your downloaded videos, check the box below as well.</string>
     <string name="also_delete_video_check_msg">Also delete all my downloaded videos</string>
     <string name="new_">New</string>
-    <string name="show_new_series">Show New Series</string>
+    <string name="show_newest_series">Show Newest Series</string>
     <string name="filter_by_genre">Filter by Genre</string>
     <string-array name="reply_choices">
         <item>Yes</item>

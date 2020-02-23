@@ -1,5 +1,6 @@
 package com.molvix.android.managers;
 
+import android.os.AsyncTask;
 import android.util.Pair;
 
 import com.molvix.android.companions.AppConstants;
@@ -141,6 +142,37 @@ public class ContentManager {
         }
     }
 
+    public static void fetchMovieGenres() {
+        new MoviesGenres().execute();
+    }
+
+    static class MoviesGenres extends AsyncTask<Void, Void, Void> {
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            String genreUrl = "https://o2tvseries.com/search/genre";
+            try {
+                Document document = Jsoup.connect(genreUrl).get();
+                Element genreData = document.selectFirst("div.data_list");
+                if (genreData != null) {
+                    Elements genres = genreData.children();
+                    if (genres != null && !genres.isEmpty()) {
+                        List<String> genresList = new ArrayList<>();
+                        for (Element dataElement : genres) {
+                            String genre = dataElement.text();
+                            genresList.add(genre);
+                        }
+                        GenreManager.persistGenres(genresList);
+                    }
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            return null;
+        }
+    }
+
     public static void grabMovies() throws Exception {
         loadMoviesFromO2TVSeries();
     }
@@ -253,6 +285,7 @@ public class ContentManager {
             Document movieDoc = Jsoup.connect(movie.getMovieLink()).get();
             Element movieInfoElement = movieDoc.select("div.tv_series_info").first();
             String movieArtUrl = movieInfoElement.select("div.img>img").attr("src");
+            extractGenresFromMovie(movie, movieDoc.selectFirst("div.other_info"));
             updateMovieArtUrlAndDescription(movie, movieInfoElement, movieArtUrl);
             extractOtherMovieMetaDataParts(movie, movieDoc);
         } catch (Exception e) {
@@ -266,12 +299,32 @@ public class ContentManager {
             Document movieDoc = Jsoup.connect(movie.getMovieLink()).get();
             Element movieInfoElement = movieDoc.select("div.tv_series_info").first();
             String movieArtUrl = movieInfoElement.select("div.img>img").attr("src");
+            extractGenresFromMovie(movie, movieDoc.selectFirst("div.other_info"));
             updateMovieArtUrlAndDescription(movie, movieInfoElement, movieArtUrl);
             extractOtherMovieMetaDataParts(movie, movieDoc, movieExtractionDoneCallback);
         } catch (Exception e) {
             e.printStackTrace();
             spitException(e);
             movieExtractionDoneCallback.done(null, e);
+        }
+    }
+
+    private static void extractGenresFromMovie(Movie movie, Element element) {
+        Elements genres = element.select("a");
+        if (genres != null) {
+            StringBuilder genresBuilder = new StringBuilder();
+            for (Element genreElement : genres) {
+                String genre = genreElement.text();
+                MolvixLogger.d(ContentManager.class.getSimpleName(), "Genre=" + genre);
+                if (genre != null) {
+                    genresBuilder.append(genre).append(",");
+                }
+            }
+            String genreString = genresBuilder.toString();
+            genreString = StringUtils.removeEnd(genreString, ",");
+            if (movie.getMovieGenre() == null) {
+                movie.setMovieGenre(genreString.toLowerCase());
+            }
         }
     }
 

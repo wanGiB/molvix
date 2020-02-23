@@ -143,43 +143,48 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
     }
 
     private void displayFilterablePolicies() {
-        PopupMenu filterMenu = new PopupMenu(this,contentFilterer);
+        PopupMenu filterMenu = new PopupMenu(this, contentFilterer);
         filterMenu.inflate(R.menu.filter_menu);
         filterMenu.setOnMenuItemClickListener(item -> {
-            if (item.getItemId()==R.id.display_new_movies){
+            filterMenu.dismiss();
+            if (item.getItemId() == R.id.display_new_movies) {
                 EventBus.getDefault().post(new DisplayNewMoviesEvent());
-            }else if (item.getItemId()==R.id.filter_by_genre){
-                loadAvailableGenres();
+            } else if (item.getItemId() == R.id.filter_by_genre) {
+                fetchAvailableGenres();
             }
             return true;
         });
         filterMenu.show();
     }
 
-    private void loadAvailableGenres() {
-        List<String>availableGenres = GenreManager.getAvailableGenres();
-        if (!availableGenres.isEmpty()){
+    private void fetchAvailableGenres() {
+        List<String> availableGenres = GenreManager.fetchAvailableGenres();
+        if (!availableGenres.isEmpty()) {
+            Collections.sort(availableGenres);
             CharSequence[] options = MolvixGenUtils.getCharSequencesFromList(availableGenres);
-            AlertDialog.Builder genresDialogBuilder=new AlertDialog.Builder(this);
+            AlertDialog.Builder genresDialogBuilder = new AlertDialog.Builder(this);
             genresDialogBuilder.setTitle("Select Genres");
-            List<String>selectedGenres = new ArrayList<>();
+            List<String> selectedGenres = new ArrayList<>();
             genresDialogBuilder.setMultiChoiceItems(options, null, (dialog, which, isChecked) -> {
-                if (isChecked){
-                    CharSequence selection=options[which];
-                    if (!selectedGenres.contains(selection.toString().toLowerCase())){
-                        selectedGenres.add(selection.toString().toLowerCase());
+                if (isChecked) {
+                    CharSequence selection = options[which];
+                    String selectionToLowerCase = selection.toString().toLowerCase();
+                    if (!selectedGenres.contains(selectionToLowerCase)) {
+                        selectedGenres.add(selectionToLowerCase);
                     }
                 }
             });
             genresDialogBuilder.setPositiveButton("ACTIVATE", (dialog, which) -> {
                 dialog.dismiss();
-                if (!selectedGenres.isEmpty()){
+                if (!selectedGenres.isEmpty()) {
                     EventBus.getDefault().post(new FilterByGenresEvent(selectedGenres));
+                }else{
+                    UiUtils.showSafeToast("Nothing selected");
                 }
             });
             genresDialogBuilder.setNegativeButton("CLOSE", (dialog, which) -> dialog.dismiss());
             genresDialogBuilder.create().show();
-        }else{
+        } else {
             UiUtils.showSafeToast("Sorry, failed to load genres.Please try again.");
         }
     }
@@ -355,7 +360,7 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
 
             @Override
             public void onPageSelected(int position) {
-                UiUtils.toggleViewVisibility(contentFilterer,position==0);
+                UiUtils.toggleViewVisibility(contentFilterer, position == 0);
                 if (position == 0) {
                     bottomNavView.setSelectedItemId(R.id.navigation_home);
                 } else if (position == 1) {
@@ -603,6 +608,7 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
         super.onPostCreate(savedInstanceState);
         subscribeToPresetsChanges();
         ContentManager.fetchPresets();
+        ContentManager.fetchMovieGenres();
     }
 
     private void subscribeToPresetsChanges() {

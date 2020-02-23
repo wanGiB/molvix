@@ -67,10 +67,10 @@
 
         <com.molvix.android.ui.widgets.MolvixTextView
             android:id="@+id/movie_seasons_count_view"
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
-            android:gravity="center_vertical"
+            android:gravity="center_vertical|start"
             android:paddingStart="8dp"
             android:paddingEnd="8dp"
             android:paddingBottom="8dp"
@@ -80,9 +80,13 @@
             app:textStyle="medium" />
 
         <com.molvix.android.ui.widgets.MolvixTextView
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:ellipsize="end"
             android:maxLines="1"
+            android:layout_weight="1"
+            android:paddingEnd="8dp"
+            android:paddingStart="8dp"
+            android:gravity="center_vertical|end"
             android:textColor="@color/blue_grey_inactive"
             android:id="@+id/movie_genre_view"
             android:layout_height="wrap_content"/>

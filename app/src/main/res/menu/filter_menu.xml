@@ -2,7 +2,7 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item android:id="@+id/display_new_movies"
-        android:title="@string/show_new_series"
+        android:title="@string/show_newest_series"
         android:icon="@drawable/ic_new_releases"/>
 
     <item android:id="@+id/filter_by_genre"

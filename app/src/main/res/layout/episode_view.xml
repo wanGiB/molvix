@@ -40,8 +40,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
-            android:layout_weight="1"
-            android:entries="@array/episode_download_options" />
+            android:layout_weight="1"/>
 
         <com.molvix.android.ui.widgets.MolvixTextView
             android:id="@+id/episode_download_button_view"
@@ -116,7 +115,7 @@
         android:layout_gravity="center"
         android:gravity="center"
         android:padding="10dp"
-        android:textColor="?attr/anti_root_view_background_color"
+        android:textColor="?attr/movie_seasons_color"
         android:visibility="gone"
         app:textStyle="medium" />
 

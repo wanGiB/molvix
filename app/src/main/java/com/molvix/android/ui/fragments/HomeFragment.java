@@ -72,20 +72,21 @@ public class HomeFragment extends BaseFragment {
     private Handler mUiHandler;
     private ContentPullOverTask contentPullOverTask;
     private TextView headerTextView;
-    private String searchString;
     private DataSubscription moviesSubscription;
 
+    private enum LoadMode{
+        MODE_DEFAULT,
+        MODE_SEARCH,
+        MODE_GENRES,
+        MODE_LATEST_MOVIES
+    }
+
     private void setSearchString(String searchString) {
-        this.searchString = searchString;
         if (moviesAdapter != null) {
             moviesAdapter.setSearchString(searchString);
         }
     }
-
-    private String getSearchString() {
-        return searchString;
-    }
-
+    
     @Override
     public void onResume() {
         super.onResume();
@@ -141,7 +142,7 @@ public class HomeFragment extends BaseFragment {
                     spinMoviesDownloadJob();
                 }
             }else if (event instanceof DisplayNewMoviesEvent){
-                displayNewMovies();
+                displayNewestMovies();
             }else if (event instanceof FilterByGenresEvent){
                 FilterByGenresEvent filterByGenresEvent= (FilterByGenresEvent) event;
                 displayMoviesByGenre(filterByGenresEvent.getSelectedGenres());
@@ -150,8 +151,8 @@ public class HomeFragment extends BaseFragment {
     }
 
     private void displayMoviesByGenre(List<String> selectedGenres) {
-        clearCurrentData();
-        nullifySearch();
+        nullifyActiveSearch();
+        removeAllMoviesSubscription();
         new Thread(() -> {
             List<Movie> results = MolvixDB.getMovieBox()
                     .query()
@@ -159,18 +160,18 @@ public class HomeFragment extends BaseFragment {
                         if (entity.getMovieGenre()==null){
                             return false;
                         }
-                        return StringUtils.containsAny(entity.getMovieGenre(), MolvixGenUtils.getCharSequencesFromList(selectedGenres));
+                        return StringUtils.containsAny(entity.getMovieGenre().toLowerCase(), MolvixGenUtils.charSequencesToLowerCase(MolvixGenUtils.getCharSequencesFromList(selectedGenres)));
                     })
                     .build()
                     .find();
             clearCurrentData();
-            loadMovies(results);
+            loadMovies(results,LoadMode.MODE_GENRES);
         }).start();
     }
 
-    private void displayNewMovies() {
-        clearCurrentData();
-        nullifySearch();
+    private void displayNewestMovies() {
+        nullifyActiveSearch();
+        removeAllMoviesSubscription();
         new Thread(() -> {
             List<Movie> results = MolvixDB.getMovieBox()
                     .query()
@@ -178,7 +179,7 @@ public class HomeFragment extends BaseFragment {
                     .build()
                     .find();
             clearCurrentData();
-            loadMovies(results);
+            loadMovies(results, LoadMode.MODE_LATEST_MOVIES);
         }).start();
     }
 
@@ -204,14 +205,14 @@ public class HomeFragment extends BaseFragment {
                     .build()
                     .find();
             clearCurrentData();
-            loadMovies(results);
+            loadMovies(results, LoadMode.MODE_SEARCH);
         }).start();
     }
 
     private void fetchMovies() {
         try {
             clearCurrentData();
-            nullifySearch();
+            nullifyActiveSearch();
             DataObserver<List<Movie>> moviesObserver = data -> {
                 if (AppConstants.canShuffleExistingMovieCollection.get()) {
                     Collections.shuffle(data);
@@ -229,7 +230,7 @@ public class HomeFragment extends BaseFragment {
 
     private void loadChangedData(List<Movie> changedData) {
         if (!changedData.isEmpty()) {
-            loadMovies(changedData);
+            loadMovies(changedData, LoadMode.MODE_DEFAULT);
         }
     }
 
@@ -296,7 +297,7 @@ public class HomeFragment extends BaseFragment {
         }
     }
 
-    private void loadMovies(List<Movie> result) {
+    private void loadMovies(List<Movie> result, LoadMode loadMode) {
         mUiHandler.post(() -> {
             for (Movie movie : result) {
                 if (!movies.contains(movie)) {
@@ -310,10 +311,10 @@ public class HomeFragment extends BaseFragment {
                 }
             }
             postCreateUI();
-            if (getSearchString() == null) {
+            if (loadMode==LoadMode.MODE_DEFAULT) {
                 displayTotalNumberOfMoviesLoadedInHeader();
             } else {
-                displayFoundResults(result);
+                displayTotalNumberOfFoundResultsInHeader(result);
             }
             swipeRefreshLayout.setRefreshing(false);
 //            if (!movies.isEmpty() && BuildConfig.DEBUG) {
@@ -322,7 +323,7 @@ public class HomeFragment extends BaseFragment {
 //            }
         });
     }
-
+    
 //    private void createPresetsFromMovies(List<Movie> movies) {
 //        try {
 //            PackageManager packageManager = ApplicationLoader.getInstance().getPackageManager();
@@ -445,7 +446,7 @@ public class HomeFragment extends BaseFragment {
     }
 
     @SuppressLint("SetTextI18n")
-    private void displayFoundResults(List<Movie> queriedMovies) {
+    private void displayTotalNumberOfFoundResultsInHeader(List<Movie> queriedMovies) {
         mUiHandler.post(() -> {
             int totalNumberOfMovies = queriedMovies.size();
             DecimalFormat moviesNoFormatter = new DecimalFormat("#,###");
@@ -453,9 +454,8 @@ public class HomeFragment extends BaseFragment {
             headerTextView.setText(moviesNoFormatter.format(totalNumberOfMovies) + " " + resultMsg + " found");
         });
     }
-
-
-    private void nullifySearch() {
+    
+    private void nullifyActiveSearch() {
         if (moviesAdapter != null) {
             moviesAdapter.setSearchString(null);
             setSearchString(null);

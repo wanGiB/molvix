@@ -1,5 +1,6 @@
 package com.molvix.android.ui.activities;
 
+import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -8,13 +9,11 @@ import android.widget.ImageView;
 import androidx.annotation.Nullable;
 
 import com.molvix.android.R;
-import com.molvix.android.managers.ThemeManager;
 import com.molvix.android.preferences.AppPrefs;
 import com.molvix.android.utils.FileUtils;
 import com.molvix.android.utils.UiUtils;
 
 import java.io.File;
-import java.io.IOException;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -30,6 +29,7 @@ public class ManagedSpaceActivity extends BaseActivity {
     @BindView(R.id.back_button)
     ImageView backButton;
 
+    @SuppressLint("ApplySharedPref")
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -40,25 +40,18 @@ public class ManagedSpaceActivity extends BaseActivity {
             finish();
         });
         clearDataButton.setOnClickListener(v -> {
-            AppPrefs.getAppPreferences().edit().clear().apply();
+            AppPrefs.getAppPreferences().edit().clear().commit();
             AppPrefs.setDownloadCoinsToZero();
-            ThemeManager.setThemeSelection(ThemeManager.ThemeSelection.LIGHT);
             if (deleteVideosCheck.isChecked()) {
                 File appExternalFiles = getExternalFilesDir(null);
                 if (appExternalFiles != null && appExternalFiles.exists()) {
                     File molvixFolder = new File(appExternalFiles, FileUtils.getRootFolder());
                     if (molvixFolder.exists()) {
-                        try {
-                            boolean molvixDirDelete = FileUtils.deleteDirectory(molvixFolder);
-                            if (molvixDirDelete) {
-                                UiUtils.showSafeToast("Downloaded Videos and application specific settings deleted successfully");
-                            }else{
-                                UiUtils.showSafeToast("Sorry, we couldn't delete downloaded videos. Please try again.");
-                            }
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
+                        boolean molvixDirDelete = FileUtils.deleteDirectory(molvixFolder);
+                        if (molvixDirDelete) {
+                            UiUtils.showSafeToast("Downloaded Videos and application specific settings deleted successfully");
+                        }else{
+                            UiUtils.showSafeToast("Sorry, we couldn't delete downloaded videos. Please try again.");
                         }
                     }
                 }

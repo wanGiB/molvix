@@ -227,7 +227,7 @@ public class AppPrefs {
     }
 
     public static int getAvailableDownloadCoins() {
-        return getAppPreferences().getInt(AppConstants.DOWNLOAD_COINS,  6);
+        return getAppPreferences().getInt(AppConstants.DOWNLOAD_COINS, 6);
     }
 
     public static void incrementDownloadCoins(int increment) {
@@ -237,14 +237,25 @@ public class AppPrefs {
         getAppPreferences().edit().putInt(AppConstants.DOWNLOAD_COINS, newCoins).apply();
     }
 
-    public static void setDownloadCoinsToZero(){
+    public static void setDownloadCoinsToZero() {
         getAppPreferences().edit().putInt(AppConstants.DOWNLOAD_COINS, 0).apply();
     }
 
     public static void decrementDownloadCoins() {
         int existingDownloadCoins = getAvailableDownloadCoins();
         int decrement = existingDownloadCoins - 1;
+        if (decrement < 0) {
+            decrement = 0;
+        }
         getAppPreferences().edit().putInt(AppConstants.DOWNLOAD_COINS, decrement).apply();
+    }
+
+    public static void persistGenresString(String genresString) {
+        getAppPreferences().edit().putString(AppConstants.GENRES,genresString).apply();
+    }
+
+    public static String getGenresString(){
+        return getAppPreferences().getString(AppConstants.GENRES,null);
     }
 
 }

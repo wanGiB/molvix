@@ -10,7 +10,6 @@ import com.molvix.android.components.ApplicationLoader;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.Locale;
 
@@ -135,15 +134,24 @@ public class FileUtils {
         return existingFileLength >= 10;
     }
 
-    public static boolean deleteDirectory(File file) throws IOException, InterruptedException {
-        if (file.exists()) {
-            String deleteCommand = "rm -rf " + file.getAbsolutePath();
-            Runtime runtime = Runtime.getRuntime();
-            Process process = runtime.exec(deleteCommand);
-            process.waitFor();
-            return true;
+    public static boolean deleteDirectory(File fileOrDirectory) {
+        if(fileOrDirectory.exists()) {
+            File[] files = fileOrDirectory.listFiles();
+            if (files == null) {
+                return false;
+            }
+            for (File file : files) {
+                if (file.isDirectory()) {
+                    deleteDirectory(file);
+                } else {
+                    boolean wasSuccessful = file.delete();
+                    if (wasSuccessful) {
+                        MolvixLogger.d("Deleted ", "successfully");
+                    }
+                }
+            }
         }
-        return false;
+        return(fileOrDirectory.delete());
     }
 
     public static String getDataSize(long size) {

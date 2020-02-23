@@ -13,10 +13,12 @@ import androidx.preference.SwitchPreferenceCompat;
 import com.molvix.android.R;
 import com.molvix.android.components.ApplicationLoader;
 import com.molvix.android.eventbuses.DownloadCoinsUpdatedEvent;
+import com.molvix.android.managers.ContentManager;
 import com.molvix.android.managers.ThemeManager;
 import com.molvix.android.preferences.AppPrefs;
 import com.molvix.android.ui.activities.SplashActivity;
 import com.molvix.android.utils.Gamification;
+import com.molvix.android.utils.MolvixLogger;
 import com.molvix.android.utils.UiUtils;
 import com.morsebyte.shailesh.twostagerating.TwoStageRate;
 
@@ -69,7 +71,9 @@ public class MoreContentsFragment extends PreferenceFragmentCompat implements Pr
         }
         SwitchPreferenceCompat themePref = findPreference(getString(R.string.theme_key));
         if (themePref != null) {
-            themePref.setDefaultValue(ThemeManager.getThemeSelection() == ThemeManager.ThemeSelection.DARK);
+            boolean darkMode = ThemeManager.getThemeSelection() == ThemeManager.ThemeSelection.DARK;
+            MolvixLogger.d(ContentManager.class.getSimpleName(), "Theme Selection=" + ThemeManager.getThemeSelection());
+            themePref.setDefaultValue(darkMode);
             themePref.setOnPreferenceChangeListener(this);
         }
         downloadCoinsPref = findPreference(getString(R.string.download_coins));

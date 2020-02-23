@@ -70,12 +70,21 @@ public class MovieDetailsHeaderView extends FrameLayout {
         requestLayout();
     }
 
+    private String capitalizeGenre(String genreString) {
+        StringBuilder genresBuilder = new StringBuilder();
+        String[] parts = genreString.split(",");
+        for (String p : parts) {
+            genresBuilder.append(WordUtils.capitalize(p)).append(",");
+        }
+        return StringUtils.removeEnd(genresBuilder.toString(),",");
+    }
+
     public void bindMovieHeader(Movie movie) {
         UiUtils.toggleViewVisibility(newMovieIndicatorView,movie.isNewMovie());
         String movieGenre = movie.getMovieGenre();
         if (StringUtils.isNotEmpty(movieGenre)){
             UiUtils.toggleViewVisibility(movieGenreView,true);
-            movieGenreView.setText(WordUtils.capitalize(movieGenre));
+            movieGenreView.setText(capitalizeGenre(movieGenre));
         }else{
             UiUtils.toggleViewVisibility(movieGenreView,false);
         }

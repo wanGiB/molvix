@@ -115,22 +115,31 @@ public class MovieView extends FrameLayout {
         movieSeasonsCountView.setOnClickListener(onClickListener);
     }
 
+    private String capitalizeGenre(String genreString) {
+        StringBuilder genresBuilder = new StringBuilder();
+        String[] parts = genreString.split(",");
+        for (String p : parts) {
+            genresBuilder.append(WordUtils.capitalize(p)).append(",");
+        }
+        return StringUtils.removeEnd(genresBuilder.toString(),",");
+    }
+
     @SuppressLint("SetTextI18n")
     private void setupMovieCoreData(Movie movie) {
-        UiUtils.toggleViewVisibility(newMovieIndicatorView,movie.isNewMovie());
+        UiUtils.toggleViewVisibility(newMovieIndicatorView, movie.isNewMovie());
         String movieName = movie.getMovieName();
         String movieDescription = movie.getMovieDescription();
         String movieArtUrl = movie.getMovieArtUrl();
         String movieGenre = movie.getMovieGenre();
-        if (StringUtils.isNotEmpty(movieGenre)){
-            UiUtils.toggleViewVisibility(movieGenreView,true);
+        if (StringUtils.isNotEmpty(movieGenre)) {
+            UiUtils.toggleViewVisibility(movieGenreView, true);
             if (StringUtils.isNotEmpty(getSearchString())) {
-                movieGenreView.setText(UiUtils.highlightTextIfNecessary(getSearchString(), WordUtils.capitalize(movieGenre), ContextCompat.getColor(getContext(), R.color.colorAccentDark)));
+                movieGenreView.setText(UiUtils.highlightTextIfNecessary(getSearchString(), capitalizeGenre(movieGenre), ContextCompat.getColor(getContext(), R.color.colorAccentDark)));
             } else {
-                movieGenreView.setText(WordUtils.capitalize(movieGenre));
+                movieGenreView.setText(capitalizeGenre(movieGenre));
             }
-        }else{
-            UiUtils.toggleViewVisibility(movieGenreView,false);
+        } else {
+            UiUtils.toggleViewVisibility(movieGenreView, false);
         }
         List<Season> movieSeasonsCount = movie.getSeasons();
         if (StringUtils.isNotEmpty(getSearchString())) {

@@ -10,6 +10,7 @@ import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
@@ -341,6 +342,12 @@ public class EpisodeView extends FrameLayout {
     }
 
     private void initSpinner(Episode episode) {
+        ArrayList<String>downloadOptions = new ArrayList<>();
+        downloadOptions.add("Highest Quality");
+        downloadOptions.add("Standard Quality");
+        downloadOptions.add("Lowest Quality");
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(), R.layout.spinner_item, downloadOptions);
+        episodeDownloadOptionsSpinner.setAdapter(adapter);
         checkAndSelectEpisodeQuality(episode);
     }
 
