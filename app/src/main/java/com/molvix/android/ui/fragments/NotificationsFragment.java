@@ -56,6 +56,7 @@ public class NotificationsFragment extends BaseFragment {
     private NotificationsAdapter notificationsAdapter;
 
     private Handler mUIHandler = new Handler();
+    private StickyRecyclerHeadersDecoration stickyRecyclerHeadersDecoration;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -97,7 +98,7 @@ public class NotificationsFragment extends BaseFragment {
     private void setupAdapter() {
         notificationsAdapter = new NotificationsAdapter(getActivity(), notifications);
         notificationsRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
-        StickyRecyclerHeadersDecoration stickyRecyclerHeadersDecoration = new StickyRecyclerHeadersDecoration(notificationsAdapter);
+        stickyRecyclerHeadersDecoration = new StickyRecyclerHeadersDecoration(notificationsAdapter);
         notificationsRecyclerView.addItemDecoration(stickyRecyclerHeadersDecoration);
         notificationsRecyclerView.setAdapter(notificationsAdapter);
     }
@@ -134,6 +135,7 @@ public class NotificationsFragment extends BaseFragment {
                         notificationsAdapter.notifyItemChanged(indexOfNotification);
                     }
                 }
+                stickyRecyclerHeadersDecoration.invalidateHeaders();
             }
             invalidateUI();
         });
