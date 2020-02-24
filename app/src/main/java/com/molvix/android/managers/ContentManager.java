@@ -487,7 +487,14 @@ public class ContentManager {
                 episodeName = generateEpisodeValue(i + 1) + getSeasonFinaleSuffix();
             }
             Episode newEpisode = generateEpisode(season, episodeLink, episodeName);
-            if (!season.episodes.contains(newEpisode)) {
+            if (!season.episodes.isEmpty()) {
+                Episode lastEpisode = season.episodes.get(season.episodes.size() - 1);
+                if (!lastEpisode.getEpisodeName().toLowerCase().contains("finale")){
+                    if (!season.episodes.contains(newEpisode)) {
+                        season.episodes.add(newEpisode);
+                    }
+                }
+            } else {
                 season.episodes.add(newEpisode);
             }
         }

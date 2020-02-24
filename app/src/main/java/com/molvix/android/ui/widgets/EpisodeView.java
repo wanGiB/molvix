@@ -346,7 +346,26 @@ public class EpisodeView extends FrameLayout {
         downloadOptions.add("Highest Quality");
         downloadOptions.add("Standard Quality");
         downloadOptions.add("Lowest Quality");
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(), R.layout.spinner_item, downloadOptions);
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(getContext(), android.R.layout.simple_spinner_dropdown_item, downloadOptions){
+
+            @Override
+            public View getDropDownView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
+                View view =  super.getDropDownView(position, convertView, parent);
+                TextView text = view.findViewById(android.R.id.text1);
+                text.setTextColor(UiUtils.getColorFromAttr(R.attr.movie_seasons_color));
+                return view;
+            }
+
+            @NonNull
+            @Override
+            public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
+                View view= super.getView(position, convertView, parent);
+                TextView text = view.findViewById(android.R.id.text1);
+                text.setTextColor(UiUtils.getColorFromAttr(R.attr.movie_seasons_color));
+                return view;
+            }
+
+        };
         episodeDownloadOptionsSpinner.setAdapter(adapter);
         checkAndSelectEpisodeQuality(episode);
     }

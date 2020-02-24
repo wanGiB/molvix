@@ -166,12 +166,14 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
             genresDialogBuilder.setTitle("Select Genres");
             List<String> selectedGenres = new ArrayList<>();
             genresDialogBuilder.setMultiChoiceItems(options, null, (dialog, which, isChecked) -> {
+                CharSequence selection = options[which];
+                String selectionToLowerCase = selection.toString().toLowerCase();
                 if (isChecked) {
-                    CharSequence selection = options[which];
-                    String selectionToLowerCase = selection.toString().toLowerCase();
                     if (!selectedGenres.contains(selectionToLowerCase)) {
                         selectedGenres.add(selectionToLowerCase);
                     }
+                }else{
+                    selectedGenres.remove(selectionToLowerCase);
                 }
             });
             genresDialogBuilder.setPositiveButton("ACTIVATE", (dialog, which) -> {

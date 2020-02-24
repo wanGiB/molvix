@@ -119,6 +119,10 @@ public class NotificationsFragment extends BaseFragment {
 
     private void loadNotifications(List<Notification> results) {
         mUIHandler.post(() -> {
+            if (!notifications.isEmpty()) {
+                notifications.clear();
+                notificationsAdapter.notifyDataSetChanged();
+            }
             for (Notification notification : results) {
                 if (!notifications.contains(notification)) {
                     notifications.add(notification);
