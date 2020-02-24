@@ -38,7 +38,7 @@ public class MolvixDB {
         return ObjectBox.get().boxFor(Presets.class);
     }
 
-    private static Box<Episode> getEpisodeBox() {
+    public static Box<Episode> getEpisodeBox() {
         return ObjectBox.get().boxFor(Episode.class);
     }
 

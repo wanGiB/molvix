@@ -9,6 +9,7 @@ import android.widget.ImageView;
 import androidx.annotation.Nullable;
 
 import com.molvix.android.R;
+import com.molvix.android.database.MolvixDB;
 import com.molvix.android.preferences.AppPrefs;
 import com.molvix.android.utils.FileUtils;
 import com.molvix.android.utils.UiUtils;
@@ -42,6 +43,12 @@ public class ManagedSpaceActivity extends BaseActivity {
         clearDataButton.setOnClickListener(v -> {
             AppPrefs.getAppPreferences().edit().clear().commit();
             AppPrefs.setDownloadCoinsToZero();
+            MolvixDB.getMovieBox().removeAll();
+            MolvixDB.getNotificationBox().removeAll();
+            MolvixDB.getPresetsBox().removeAll();
+            MolvixDB.getSeasonBox().removeAll();
+            MolvixDB.getEpisodeBox().removeAll();
+            MolvixDB.getDownloadableEpisodeBox().removeAll();
             if (deleteVideosCheck.isChecked()) {
                 File appExternalFiles = getExternalFilesDir(null);
                 if (appExternalFiles != null && appExternalFiles.exists()) {

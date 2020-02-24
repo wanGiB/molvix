@@ -75,4 +75,10 @@
         <item>No</item>
         <item>Maybe</item>
     </string-array>
+    <string-array name="download_options">
+        <item>Highest Quality</item>
+        <item>Standard Quality</item>
+        <item>Lowest Quality</item>
+    </string-array>
+
 </resources>

@@ -38,6 +38,8 @@
         <Spinner
             android:id="@+id/episode_download_options_spinner_view"
             android:layout_width="0dp"
+            android:entries="@array/download_options"
+            android:theme="@style/SpinnerItem"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
             android:layout_weight="1"/>
