@@ -25,7 +25,7 @@ public class ApplicationLoader extends MultiDexApplication {
 
         @Override
         public int getMaxDownloadNumber() {
-            return 1;
+            return 20;
         }
 
         @Override
@@ -52,7 +52,7 @@ public class ApplicationLoader extends MultiDexApplication {
 
     private void initDownloadManager() {
         DownloadConfig.newBuilder()
-                .setMaxRunningTaskNum(10)
+                .setMaxRunningTaskNum(20)
                 .setMinUsableStorageSpace(10 * 1024L * 1024)
                 .setDownloadConnectionFactory(new AuthorizationHeaderConnection
                         .Factory(NetworkClient.getIgnoreCertificateOkHttpClient()))
