@@ -43,12 +43,7 @@ public class ManagedSpaceActivity extends BaseActivity {
         clearDataButton.setOnClickListener(v -> {
             AppPrefs.getAppPreferences().edit().clear().commit();
             AppPrefs.setDownloadCoinsToZero();
-            MolvixDB.getMovieBox().removeAll();
-            MolvixDB.getNotificationBox().removeAll();
-            MolvixDB.getPresetsBox().removeAll();
-            MolvixDB.getSeasonBox().removeAll();
-            MolvixDB.getEpisodeBox().removeAll();
-            MolvixDB.getDownloadableEpisodeBox().removeAll();
+            cleanUpDatabase();
             if (deleteVideosCheck.isChecked()) {
                 File appExternalFiles = getExternalFilesDir(null);
                 if (appExternalFiles != null && appExternalFiles.exists()) {
@@ -66,5 +61,14 @@ public class ManagedSpaceActivity extends BaseActivity {
                 UiUtils.showSafeToast("Application specific settings cleared successfully");
             }
         });
+    }
+
+    private void cleanUpDatabase() {
+        MolvixDB.getMovieBox().removeAll();
+        MolvixDB.getNotificationBox().removeAll();
+        MolvixDB.getPresetsBox().removeAll();
+        MolvixDB.getSeasonBox().removeAll();
+        MolvixDB.getEpisodeBox().removeAll();
+        MolvixDB.getDownloadableEpisodeBox().removeAll();
     }
 }

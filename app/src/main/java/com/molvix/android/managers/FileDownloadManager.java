@@ -83,6 +83,7 @@ public class FileDownloadManager {
             MolvixLogger.d(ContentManager.class.getSimpleName(), "Download is completed for " + episode.getEpisodeName() + "/" + episode.getSeason().getSeasonName() + "/" + episode.getSeason().getMovie().getMovieName());
             finalizeDownload(episode);
             AppPrefs.removeKey(AppConstants.DOWNLOAD_ID_KEY + download.getId());
+            LetterBoxManager.stripOutLetterBox(episode);
         }
     }
 

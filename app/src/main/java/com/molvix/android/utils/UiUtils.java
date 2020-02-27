@@ -1,7 +1,6 @@
 package com.molvix.android.utils;
 
 import android.content.Context;
-import android.content.res.Resources;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
@@ -13,7 +12,6 @@ import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.style.ForegroundColorSpan;
-import android.util.TypedValue;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
@@ -22,7 +20,6 @@ import android.widget.ImageView;
 import android.widget.Toast;
 import android.widget.ViewFlipper;
 
-import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
@@ -58,14 +55,6 @@ public class UiUtils {
     public static void runOnMain(final @NonNull Runnable runnable) {
         if (isMainThread()) runnable.run();
         else handler.post(runnable);
-    }
-
-    public static int getColorFromAttr(int attr){
-        TypedValue typedValue=new TypedValue();
-        Resources.Theme theme=ApplicationLoader.getInstance().getTheme();
-        theme.resolveAttribute(attr,typedValue,true);
-        @ColorInt int color=typedValue.data;
-        return color;
     }
 
     public static void loadImageIntoView(ImageView imageView, String photoUrl) {

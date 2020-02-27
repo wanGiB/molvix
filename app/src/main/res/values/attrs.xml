@@ -45,7 +45,6 @@
 
     <declare-styleable name="MolvixTextView">
         <attr name="textStyle" />
-        <attr name="text_animationStyle" />
     </declare-styleable>
 
     <attr name="textStyle" format="enum">

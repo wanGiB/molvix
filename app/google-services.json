@@ -15,6 +15,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "78247283780-h4vo442rlbnh9ono2vp4scpmuv6nmr9j.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.molvix.android",
+            "certificate_hash": "c2b23f0501c3134a116dee375f7bad75329d6d0b"
+          }
+        },
+        {
           "client_id": "78247283780-anu79q09ft1cq0qh19og4uu5ap1dqtp7.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {

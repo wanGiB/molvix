@@ -10,7 +10,6 @@ import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
@@ -247,10 +246,7 @@ public class EpisodeView extends FrameLayout {
             } else {
                 if (ConnectivityUtils.isDeviceConnectedToTheInternet()) {
                     if (AppPrefs.getEpisodeDownloadProgress(episode.getEpisodeId()) > -1) {
-                        String progressMessage = AppPrefs.getEpisodeDownloadProgressText(episode.getEpisodeId());
-                        if (StringUtils.isNotEmpty(progressMessage)) {
-                            UiUtils.showSafeToast("Download already in progress");
-                        }
+                        UiUtils.showSafeToast("Download already in progress");
                         return;
                     }
                     int downloadCoins = AppPrefs.getAvailableDownloadCoins();
@@ -329,6 +325,7 @@ public class EpisodeView extends FrameLayout {
         UiUtils.toggleViewVisibility(downloadProgressContainer, true);
         downloadProgressBar.setProgress(AppPrefs.getEpisodeDownloadProgress(episode.getEpisodeId()));
         downloadProgressTextView.setText(AppPrefs.getEpisodeDownloadProgressText(episode.getEpisodeId()));
+        downloadOrPlayButton.setText(getContext().getString(R.string.downloading));
     }
 
     private void checkToSeeIfEpisodeAlreadyDownloaded(String episodeName) {
