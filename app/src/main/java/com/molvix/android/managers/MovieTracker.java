@@ -3,20 +3,15 @@ package com.molvix.android.managers;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
+import android.text.format.DateUtils;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import android.text.format.DateUtils;
-
 import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.DataSource;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
-import com.bumptech.glide.load.engine.GlideException;
-import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.RequestOptions;
 import com.bumptech.glide.request.target.CustomTarget;
-import com.bumptech.glide.request.target.Target;
 import com.bumptech.glide.request.transition.Transition;
 import com.molvix.android.companions.AppConstants;
 import com.molvix.android.components.ApplicationLoader;
@@ -125,18 +120,6 @@ public class MovieTracker {
                     .asBitmap()
                     .load(artUrl)
                     .apply(imageLoadRequestOptions)
-                    .listener(new RequestListener<Bitmap>() {
-                        @Override
-                        public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Bitmap> target, boolean isFirstResource) {
-                            return false;
-                        }
-
-                        @Override
-                        public boolean onResourceReady(Bitmap resource, Object model, Target<Bitmap> target, DataSource dataSource, boolean isFirstResource) {
-                            return false;
-                        }
-
-                    })
                     .into(new CustomTarget<Bitmap>() {
                         @Override
                         public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
@@ -145,6 +128,7 @@ public class MovieTracker {
 
                         @Override
                         public void onLoadCleared(@Nullable Drawable placeholder) {
+
                         }
 
                     });

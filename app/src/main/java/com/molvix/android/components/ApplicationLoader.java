@@ -11,6 +11,7 @@ import com.huxq17.download.config.DownloadConfig;
 import com.huxq17.download.core.DownloadTaskExecutor;
 import com.huxq17.download.core.SimpleDownloadTaskExecutor;
 import com.molvix.android.R;
+import com.molvix.android.companions.AppConstants;
 import com.molvix.android.database.ObjectBox;
 import com.molvix.android.managers.ContentManager;
 import com.molvix.android.utils.AuthorizationHeaderConnection;
@@ -25,18 +26,19 @@ public class ApplicationLoader extends MultiDexApplication {
 
         @Override
         public int getMaxDownloadNumber() {
-            return 20;
+            return AppConstants.MAXIMUM_RUNNABLE_TASK;
         }
 
         @Override
         public String getName() {
-            return "VideoDownloadDispatcher";
+            return "MolvixVideoDownloadDispatcher";
         }
 
         @Override
         public String getTag() {
             return "video";
         }
+
     };
 
     @Override
@@ -52,11 +54,15 @@ public class ApplicationLoader extends MultiDexApplication {
 
     private void initDownloadManager() {
         DownloadConfig.newBuilder()
-                .setMaxRunningTaskNum(20)
-                .setMinUsableStorageSpace(10 * 1024L * 1024)
+                .setMaxRunningTaskNum(AppConstants.MAXIMUM_RUNNABLE_TASK)
+                .setMinUsableStorageSpace(getMinUsableStorageSpace())
                 .setDownloadConnectionFactory(new AuthorizationHeaderConnection
                         .Factory(NetworkClient.getIgnoreCertificateOkHttpClient()))
                 .build();
+    }
+
+    private long getMinUsableStorageSpace() {
+        return 10 * 1024L * 1024;
     }
 
     private void initPresets() {

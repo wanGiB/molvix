@@ -13,6 +13,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class AppConstants {
 
+    public static final int MAXIMUM_RUNNABLE_TASK = 20;
     public static final String MEDIA_PLAY_BACK_FOR_ = "media_play_back_for_";
     public static final String PREFERRED_APP_THEME = "preferred_molvix_app_theme";
     public static final String DOWNLOAD_COINS = "download_coins";
