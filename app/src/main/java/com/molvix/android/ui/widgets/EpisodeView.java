@@ -10,6 +10,7 @@ import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
@@ -344,6 +345,21 @@ public class EpisodeView extends FrameLayout {
 
     private void checkAndSelectEpisodeQuality(Episode episode) {
         int existingEpisodeQuality = episode.getEpisodeQuality();
+        episodeDownloadOptionsSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                TextView text = view.findViewById(android.R.id.text1);
+                if (text != null) {
+                    setTextColorForSelection(text);
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+
+            }
+
+        });
         if (existingEpisodeQuality != 0) {
             if (existingEpisodeQuality == AppConstants.STANDARD_QUALITY) {
                 episodeDownloadOptionsSpinner.setSelection(1);
@@ -355,6 +371,15 @@ public class EpisodeView extends FrameLayout {
         } else {
             episodeDownloadOptionsSpinner.setSelection(1);
         }
+    }
+
+    private void setTextColorForSelection(TextView text) {
+        ThemeManager.ThemeSelection themeSelection = ThemeManager.getThemeSelection();
+        int colorRes = themeSelection == ThemeManager.ThemeSelection.DARK
+                ? R.color.movie_seasons_color
+                : R.color.ease_gray;
+        int textColor = ContextCompat.getColor(getContext(), colorRes);
+        text.setTextColor(textColor);
     }
 
     private void setToDownloadable() {

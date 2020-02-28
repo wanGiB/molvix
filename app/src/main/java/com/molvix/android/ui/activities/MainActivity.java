@@ -172,7 +172,7 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
                     if (!selectedGenres.contains(selectionToLowerCase)) {
                         selectedGenres.add(selectionToLowerCase);
                     }
-                }else{
+                } else {
                     selectedGenres.remove(selectionToLowerCase);
                 }
             });
@@ -180,7 +180,7 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
                 dialog.dismiss();
                 if (!selectedGenres.isEmpty()) {
                     EventBus.getDefault().post(new FilterByGenresEvent(selectedGenres));
-                }else{
+                } else {
                     UiUtils.showSafeToast("Nothing selected");
                 }
             });
@@ -694,6 +694,10 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
     public void loadRewardedVideoAd() {
         gamificationHostDialog = ProgressDialog.show(this, "Loading ad", "Please wait...");
         gamificationHostDialog.setCancelable(true);
+        loadRewardedVideoAdNow();
+    }
+
+    private void loadRewardedVideoAdNow() {
         AdRequest.Builder adBuilder = new AdRequest.Builder();
         if (BuildConfig.DEBUG) {
             adBuilder.addTestDevice(AppConstants.TEST_DEVICE_ID);

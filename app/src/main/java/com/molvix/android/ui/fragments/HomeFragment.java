@@ -317,13 +317,17 @@ public class HomeFragment extends BaseFragment {
                 displayTotalNumberOfFoundResultsInHeader(result);
             }
             swipeRefreshLayout.setRefreshing(false);
-//            if (!movies.isEmpty() && BuildConfig.DEBUG) {
-//                //Let's grab the movies and create Presets
-//                createPresetsFromMovies(movies);
-//            }
+//            createDebugPresets();
         });
     }
-    
+
+//    private void createDebugPresets() {
+//        if (!movies.isEmpty() && BuildConfig.DEBUG) {
+//            //Let's grab the movies and create Presets
+//            createPresetsFromMovies(movies);
+//        }
+//    }
+
 //    private void createPresetsFromMovies(List<Movie> movies) {
 //        try {
 //            PackageManager packageManager = ApplicationLoader.getInstance().getPackageManager();
@@ -452,6 +456,7 @@ public class HomeFragment extends BaseFragment {
             DecimalFormat moviesNoFormatter = new DecimalFormat("#,###");
             String resultMsg = totalNumberOfMovies == 1 ? "result" : "results";
             headerTextView.setText(moviesNoFormatter.format(totalNumberOfMovies) + " " + resultMsg + " found");
+            UiUtils.toggleViewVisibility(contentLoadingView,queriedMovies.isEmpty());
         });
     }
     

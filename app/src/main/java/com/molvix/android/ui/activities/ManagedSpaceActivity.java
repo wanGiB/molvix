@@ -51,14 +51,16 @@ public class ManagedSpaceActivity extends BaseActivity {
                     if (molvixFolder.exists()) {
                         boolean molvixDirDelete = FileUtils.deleteDirectory(molvixFolder);
                         if (molvixDirDelete) {
-                            UiUtils.showSafeToast("Downloaded Videos and application specific settings deleted successfully");
+                            UiUtils.showSafeToast("Downloaded Videos and other data successfully cleared");
                         }else{
                             UiUtils.showSafeToast("Sorry, we couldn't delete downloaded videos. Please try again.");
                         }
                     }
+                }else{
+                    UiUtils.showSafeToast("Data successfully cleared");
                 }
             } else {
-                UiUtils.showSafeToast("Application specific settings cleared successfully");
+                UiUtils.showSafeToast("Data successfully cleared");
             }
         });
     }
@@ -71,4 +73,5 @@ public class ManagedSpaceActivity extends BaseActivity {
         MolvixDB.getEpisodeBox().removeAll();
         MolvixDB.getDownloadableEpisodeBox().removeAll();
     }
+
 }

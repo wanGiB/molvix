@@ -13,12 +13,10 @@ import androidx.preference.SwitchPreferenceCompat;
 import com.molvix.android.R;
 import com.molvix.android.components.ApplicationLoader;
 import com.molvix.android.eventbuses.DownloadCoinsUpdatedEvent;
-import com.molvix.android.managers.ContentManager;
 import com.molvix.android.managers.ThemeManager;
 import com.molvix.android.preferences.AppPrefs;
 import com.molvix.android.ui.activities.SplashActivity;
 import com.molvix.android.utils.Gamification;
-import com.molvix.android.utils.MolvixLogger;
 import com.molvix.android.utils.UiUtils;
 import com.morsebyte.shailesh.twostagerating.TwoStageRate;
 
@@ -30,6 +28,7 @@ public class MoreContentsFragment extends PreferenceFragmentCompat implements Pr
 
     private SwitchPreferenceCompat dailyMovieRecommendationSwitch;
     private SwitchPreferenceCompat downloadedMoviesUpdateSwitch;
+    private SwitchPreferenceCompat themePref;
     private Preference downloadCoinsPref;
     private Handler mUIHandler = new Handler();
 
@@ -40,11 +39,11 @@ public class MoreContentsFragment extends PreferenceFragmentCompat implements Pr
         dailyMovieRecommendationSwitch = findPreference(getString(R.string.daily_movie_recommendation_key));
         downloadedMoviesUpdateSwitch = findPreference(getString(R.string.downloaded_movies_update_key));
         if (downloadedMoviesUpdateSwitch != null) {
-            downloadedMoviesUpdateSwitch.setDefaultValue(AppPrefs.canBeUpdatedOnDownloadedMovies());
+            downloadedMoviesUpdateSwitch.setChecked(AppPrefs.canBeUpdatedOnDownloadedMovies());
             downloadedMoviesUpdateSwitch.setOnPreferenceChangeListener(this);
         }
         if (dailyMovieRecommendationSwitch != null) {
-            dailyMovieRecommendationSwitch.setDefaultValue(AppPrefs.canDailyMoviesBeRecommended());
+            dailyMovieRecommendationSwitch.setChecked(AppPrefs.canDailyMoviesBeRecommended());
             dailyMovieRecommendationSwitch.setOnPreferenceChangeListener(this);
         }
         Preference feedBackPref = findPreference(getString(R.string.feedback_key));
@@ -69,11 +68,11 @@ public class MoreContentsFragment extends PreferenceFragmentCompat implements Pr
 
             }
         }
-        SwitchPreferenceCompat themePref = findPreference(getString(R.string.theme_key));
+        themePref = findPreference(getString(R.string.theme_key));
         if (themePref != null) {
-            boolean darkMode = ThemeManager.getThemeSelection() == ThemeManager.ThemeSelection.DARK;
-            MolvixLogger.d(ContentManager.class.getSimpleName(), "Theme Selection=" + ThemeManager.getThemeSelection());
-            themePref.setDefaultValue(darkMode);
+            ThemeManager.ThemeSelection themeSelection = ThemeManager.getThemeSelection();
+            themePref.setDefaultValue(themeSelection == ThemeManager.ThemeSelection.DARK);
+            themePref.setChecked(themeSelection == ThemeManager.ThemeSelection.DARK);
             themePref.setOnPreferenceChangeListener(this);
         }
         downloadCoinsPref = findPreference(getString(R.string.download_coins));
@@ -124,8 +123,10 @@ public class MoreContentsFragment extends PreferenceFragmentCompat implements Pr
         } else if (preference.getKey().equals(getString(R.string.theme_key))) {
             if (((Boolean) newValue)) {
                 ThemeManager.setThemeSelection(ThemeManager.ThemeSelection.DARK);
+                themePref.setDefaultValue(true);
             } else {
                 ThemeManager.setThemeSelection(ThemeManager.ThemeSelection.LIGHT);
+                themePref.setDefaultValue(false);
             }
             UiUtils.snackMessage(getString(R.string.please_wait), getView(), false, null, null);
             restartApp();

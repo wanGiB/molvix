@@ -16,8 +16,6 @@ import com.molvix.android.ui.widgets.NotificationView;
 import com.molvix.android.utils.DateUtils;
 import com.molvix.android.utils.MolvixGenUtils;
 
-import org.apache.commons.lang3.StringUtils;
-
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
