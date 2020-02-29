@@ -56,7 +56,6 @@ public class AppConstants {
     public static final String DISPLAY_MOVIE = "display_movie";
     public static final String IN_PROGRESS_DOWNLOADS = "in_progress_downloads";
 
-    public static final String DOWNLOAD_ID_KEY = "DownloadIdKey_";
     public static final String LAST_AD_LOAD_TIME = "last_ad_load_time";
     public static final String SEASON_EPISODES_REFRESHED = "SeasonEpisodesRefreshed_";
     public static final String DATA = "data";

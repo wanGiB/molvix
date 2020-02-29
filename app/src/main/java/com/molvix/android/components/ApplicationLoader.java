@@ -18,7 +18,7 @@ import com.molvix.android.database.ObjectBox;
 import com.molvix.android.eventbuses.EpisodeDownloadErrorException;
 import com.molvix.android.managers.ContentManager;
 import com.molvix.android.managers.EpisodesManager;
-import com.molvix.android.managers.LetterBoxManager;
+import com.molvix.android.managers.VideoCleaner;
 import com.molvix.android.managers.MolvixNotificationManager;
 import com.molvix.android.managers.MovieTracker;
 import com.molvix.android.models.DownloadableEpisode;
@@ -78,8 +78,7 @@ public class ApplicationLoader extends MultiDexApplication {
             Episode episode = MolvixDB.getEpisode(episodeId);
             MolvixLogger.d(ContentManager.class.getSimpleName(), "Download is completed for " + episode.getEpisodeName() + "/" + episode.getSeason().getSeasonName() + "/" + episode.getSeason().getMovie().getMovieName());
             finalizeDownload(episode);
-            AppPrefs.removeKey(AppConstants.DOWNLOAD_ID_KEY + download.getId());
-            LetterBoxManager.stripOutLetterBox(episode);
+            VideoCleaner.cleanVideoEpisode(episode);
         }
     }
 
@@ -91,7 +90,6 @@ public class ApplicationLoader extends MultiDexApplication {
             MolvixLogger.d(ContentManager.class.getSimpleName(), "An error occurred while downloading " + episode.getEpisodeName() + "/" + episode.getSeason().getSeasonName() + "/" + episode.getSeason().getMovie().getMovieName() + "");
             EventBus.getDefault().post(new EpisodeDownloadErrorException(episode));
             resetEpisodeDownloadProgress(episode);
-            AppPrefs.removeKey(AppConstants.DOWNLOAD_ID_KEY + download.getId());
         }
     }
 

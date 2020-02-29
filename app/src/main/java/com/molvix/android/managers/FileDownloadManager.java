@@ -63,7 +63,6 @@ public class FileDownloadManager {
         if (downloadableEpisode != null) {
             MolvixDB.deleteDownloadableEpisode(downloadableEpisode);
         }
-        AppPrefs.removeKey(AppConstants.DOWNLOAD_ID_KEY + episode.getEpisodeId().hashCode());
         AppPrefs.removeFromInProgressDownloads(episode);
         ApplicationLoader.resetEpisodeDownloadProgress(episode);
         MolvixLogger.d(ContentManager.class.getSimpleName(), "Episode " + episode.getEpisodeName() + " cancelled");

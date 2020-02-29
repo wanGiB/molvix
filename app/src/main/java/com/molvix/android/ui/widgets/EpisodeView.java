@@ -139,7 +139,7 @@ public class EpisodeView extends FrameLayout {
     }
 
     public void showDownloadDirInstr() {
-        String message = "Videos would be downloaded to the <b>...\"/Molvix/Videos/" + WordUtils.capitalize(movie.getMovieName()) + "/" + season.getSeasonName() + "/" + "\"</b> folder";
+        String message = "Videos would be downloaded to the <b>\".../Molvix/Videos/" + WordUtils.capitalize(movie.getMovieName()) + "/" + season.getSeasonName() + "/" + "\"</b> folder";
         UiUtils.toggleViewVisibility(downloadDirectoryFolderView, true);
         downloadDirectoryFolderView.setText(UiUtils.fromHtml(message));
     }

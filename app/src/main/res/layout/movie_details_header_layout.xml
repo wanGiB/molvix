@@ -20,6 +20,7 @@
             android:layout_height="200dp"
             android:background="?attr/movie_art_background_color"
             android:scaleType="centerCrop"
+            android:fitsSystemWindows="true"
             tools:ignore="ContentDescription" />
 
         <com.molvix.android.ui.widgets.MolvixTextView

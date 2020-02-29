@@ -463,7 +463,9 @@ public class HomeFragment extends BaseFragment {
             DecimalFormat moviesNoFormatter = new DecimalFormat("#,###");
             String resultMsg = totalNumberOfMovies == 1 ? "result" : "results";
             headerTextView.setText(moviesNoFormatter.format(totalNumberOfMovies) + " " + resultMsg + " found");
-            UiUtils.toggleViewVisibility(contentLoadingView, queriedMovies.isEmpty());
+            if (queriedMovies.isEmpty()) {
+                UiUtils.toggleViewVisibility(contentLoadingView, false);
+            }
         });
     }
 

@@ -89,6 +89,9 @@ public class MoreContentsFragment extends PreferenceFragmentCompat implements Pr
     @Override
     public void onResume() {
         super.onResume();
+        if (downloadCoinsPref != null) {
+            downloadCoinsPref.setSummary(UiUtils.fromHtml("You currently have <b>" + AppPrefs.getAvailableDownloadCoins() + "</b> download coins"));
+        }
         checkAndRegisterEventBus();
     }
 
