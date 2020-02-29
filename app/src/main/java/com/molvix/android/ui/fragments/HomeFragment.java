@@ -24,6 +24,7 @@ import com.molvix.android.companions.AppConstants;
 import com.molvix.android.database.MolvixDB;
 import com.molvix.android.eventbuses.ConnectivityChangedEvent;
 import com.molvix.android.eventbuses.DisplayNewMoviesEvent;
+import com.molvix.android.eventbuses.FetchMoviesEvent;
 import com.molvix.android.eventbuses.FilterByGenresEvent;
 import com.molvix.android.eventbuses.SearchEvent;
 import com.molvix.android.managers.ContentManager;
@@ -42,6 +43,7 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -74,19 +76,21 @@ public class HomeFragment extends BaseFragment {
     private TextView headerTextView;
     private DataSubscription moviesSubscription;
 
-    private enum LoadMode{
+    public enum LoadMode {
         MODE_DEFAULT,
         MODE_SEARCH,
         MODE_GENRES,
         MODE_LATEST_MOVIES
     }
 
+    public static AtomicReference<LoadMode> activeLoadMode = new AtomicReference<>(LoadMode.MODE_DEFAULT);
+
     private void setSearchString(String searchString) {
         if (moviesAdapter != null) {
             moviesAdapter.setSearchString(searchString);
         }
     }
-    
+
     @Override
     public void onResume() {
         super.onResume();
@@ -141,11 +145,13 @@ public class HomeFragment extends BaseFragment {
                     contentLoadingProgressMessageView.setText(getString(R.string.loading_msg));
                     spinMoviesDownloadJob();
                 }
-            }else if (event instanceof DisplayNewMoviesEvent){
+            } else if (event instanceof DisplayNewMoviesEvent) {
                 displayNewestMovies();
-            }else if (event instanceof FilterByGenresEvent){
-                FilterByGenresEvent filterByGenresEvent= (FilterByGenresEvent) event;
+            } else if (event instanceof FilterByGenresEvent) {
+                FilterByGenresEvent filterByGenresEvent = (FilterByGenresEvent) event;
                 displayMoviesByGenre(filterByGenresEvent.getSelectedGenres());
+            } else if (event instanceof FetchMoviesEvent) {
+                fetchMovies();
             }
         });
     }
@@ -157,7 +163,7 @@ public class HomeFragment extends BaseFragment {
             List<Movie> results = MolvixDB.getMovieBox()
                     .query()
                     .filter(entity -> {
-                        if (entity.getMovieGenre()==null){
+                        if (entity.getMovieGenre() == null) {
                             return false;
                         }
                         return StringUtils.containsAny(entity.getMovieGenre().toLowerCase(), MolvixGenUtils.charSequencesToLowerCase(MolvixGenUtils.getCharSequencesFromList(selectedGenres)));
@@ -165,7 +171,7 @@ public class HomeFragment extends BaseFragment {
                     .build()
                     .find();
             clearCurrentData();
-            loadMovies(results,LoadMode.MODE_GENRES);
+            loadMovies(results, LoadMode.MODE_GENRES);
         }).start();
     }
 
@@ -299,6 +305,7 @@ public class HomeFragment extends BaseFragment {
 
     private void loadMovies(List<Movie> result, LoadMode loadMode) {
         mUiHandler.post(() -> {
+            activeLoadMode.set(loadMode);
             for (Movie movie : result) {
                 if (!movies.contains(movie)) {
                     checkAndAddAd();
@@ -311,7 +318,7 @@ public class HomeFragment extends BaseFragment {
                 }
             }
             postCreateUI();
-            if (loadMode==LoadMode.MODE_DEFAULT) {
+            if (loadMode == LoadMode.MODE_DEFAULT) {
                 displayTotalNumberOfMoviesLoadedInHeader();
             } else {
                 displayTotalNumberOfFoundResultsInHeader(result);
@@ -456,10 +463,10 @@ public class HomeFragment extends BaseFragment {
             DecimalFormat moviesNoFormatter = new DecimalFormat("#,###");
             String resultMsg = totalNumberOfMovies == 1 ? "result" : "results";
             headerTextView.setText(moviesNoFormatter.format(totalNumberOfMovies) + " " + resultMsg + " found");
-            UiUtils.toggleViewVisibility(contentLoadingView,queriedMovies.isEmpty());
+            UiUtils.toggleViewVisibility(contentLoadingView, queriedMovies.isEmpty());
         });
     }
-    
+
     private void nullifyActiveSearch() {
         if (moviesAdapter != null) {
             moviesAdapter.setSearchString(null);

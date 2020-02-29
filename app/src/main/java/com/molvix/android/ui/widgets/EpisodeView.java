@@ -377,7 +377,7 @@ public class EpisodeView extends FrameLayout {
         ThemeManager.ThemeSelection themeSelection = ThemeManager.getThemeSelection();
         int colorRes = themeSelection == ThemeManager.ThemeSelection.DARK
                 ? R.color.movie_seasons_color
-                : R.color.ease_gray;
+                : R.color.ease_gray_dark;
         int textColor = ContextCompat.getColor(getContext(), colorRes);
         text.setTextColor(textColor);
     }

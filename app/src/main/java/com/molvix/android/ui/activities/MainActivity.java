@@ -42,6 +42,7 @@ import com.molvix.android.database.MolvixDB;
 import com.molvix.android.eventbuses.CheckForDownloadableEpisodes;
 import com.molvix.android.eventbuses.DisplayNewMoviesEvent;
 import com.molvix.android.eventbuses.EpisodeDownloadErrorException;
+import com.molvix.android.eventbuses.FetchMoviesEvent;
 import com.molvix.android.eventbuses.FilterByGenresEvent;
 import com.molvix.android.eventbuses.LoadEpisodesForSeason;
 import com.molvix.android.eventbuses.SearchEvent;
@@ -570,6 +571,10 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
         }
         if (fragmentsPager.getCurrentItem() != 0) {
             fragmentsPager.setCurrentItem(0);
+            return;
+        }
+        if (HomeFragment.activeLoadMode.get() != HomeFragment.LoadMode.MODE_DEFAULT) {
+            EventBus.getDefault().post(new FetchMoviesEvent());
             return;
         }
         super.onBackPressed();
