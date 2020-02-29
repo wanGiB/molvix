@@ -36,7 +36,7 @@ public class MovieTracker {
 
     private static BitmapLoadTask bitmapLoadTask;
 
-    static void recordEpisodeAsDownloaded(Episode episode) {
+    public static void recordEpisodeAsDownloaded(Episode episode) {
         //Add to user notifications pane
         Season season = episode.getSeason();
         Movie movie = season.getMovie();

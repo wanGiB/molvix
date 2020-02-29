@@ -71,7 +71,7 @@ public class MovieDetailsView extends FrameLayout {
 
     private Handler mUIHandler = new Handler();
     private BottomSheetDialog bottomSheetDialog;
-    private EpisodesAdapter bottomSheetRecyclerViewAdapter;
+    private EpisodesAdapter episodesAdapter;
 
     public MovieDetailsView(@NonNull Context context) {
         super(context);
@@ -147,10 +147,10 @@ public class MovieDetailsView extends FrameLayout {
         bottomSheetTitleView.setText(WordUtils.capitalize(season.getSeasonName()));
         List<Episode> seasonEpisodes = season.getEpisodes();
         List<Episode> episodes = new ArrayList<>(seasonEpisodes);
-        bottomSheetRecyclerViewAdapter = new EpisodesAdapter(getContext(), episodes);
+        episodesAdapter = new EpisodesAdapter(getContext(), episodes);
         LinearLayoutManager bottomSheetLinearLayoutManager = new LinearLayoutManager(getContext());
         bottomSheetRecyclerView.setLayoutManager(bottomSheetLinearLayoutManager);
-        bottomSheetRecyclerView.setAdapter(bottomSheetRecyclerViewAdapter);
+        bottomSheetRecyclerView.setAdapter(episodesAdapter);
         onSharedPreferenceChangeListener = (sharedPreferences, key) -> {
             if (key.contains(AppConstants.EPISODE_DOWNLOAD_PROGRESS)) {
                 String episodeId = key.replace(AppConstants.EPISODE_DOWNLOAD_PROGRESS, "").trim();
@@ -158,13 +158,7 @@ public class MovieDetailsView extends FrameLayout {
                 dummyEpisode.setEpisodeId(episodeId);
                 if (episodes.contains(dummyEpisode)) {
                     int indexOfEpisode = episodes.indexOf(dummyEpisode);
-                    if (indexOfEpisode != -1) {
-                        if (AppPrefs.getEpisodeDownloadProgress(episodeId) == -1) {
-                            episodes.set(indexOfEpisode, MolvixDB.getEpisode(episodeId));
-                        }
-                        bottomSheetRecyclerViewAdapter.notifyItemChanged(indexOfEpisode);
-                        new Handler().postDelayed(() -> bottomSheetRecyclerViewAdapter.notifyItemChanged(indexOfEpisode), 1000);
-                    }
+                    episodesAdapter.notifyItemChanged(indexOfEpisode, episodes.get(indexOfEpisode));
                 }
             } else if (key.contains(AppConstants.SEASON_EPISODES_REFRESHED)) {
                 String seasonId = key.replace(AppConstants.SEASON_EPISODES_REFRESHED, "").trim();
@@ -177,7 +171,7 @@ public class MovieDetailsView extends FrameLayout {
                                 episodes.add(episode);
                             }
                         }
-                        bottomSheetRecyclerViewAdapter.notifyDataSetChanged();
+                        episodesAdapter.notifyDataSetChanged();
                         SeasonsManager.refreshSeasonEpisodes(updatedSeason, false);
                         episodesRefreshingProgressBar.setVisibility(GONE);
                     }
@@ -185,6 +179,10 @@ public class MovieDetailsView extends FrameLayout {
             }
         };
         AppPrefs.getAppPreferences().registerOnSharedPreferenceChangeListener(onSharedPreferenceChangeListener);
+        loadBannerAd(adView);
+    }
+
+    private void loadBannerAd(AdView adView) {
         AdRequest.Builder builder = new AdRequest.Builder();
         if (BuildConfig.DEBUG) {
             builder.addTestDevice(AppConstants.TEST_DEVICE_ID);
@@ -196,8 +194,8 @@ public class MovieDetailsView extends FrameLayout {
     @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
-        if (bottomSheetRecyclerViewAdapter != null) {
-            bottomSheetRecyclerViewAdapter.notifyDataSetChanged();
+        if (episodesAdapter != null) {
+            episodesAdapter.notifyDataSetChanged();
         }
         if (onSharedPreferenceChangeListener != null) {
             AppPrefs.getAppPreferences().registerOnSharedPreferenceChangeListener(onSharedPreferenceChangeListener);

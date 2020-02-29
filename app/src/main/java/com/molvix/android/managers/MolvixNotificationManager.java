@@ -34,7 +34,7 @@ import com.molvix.android.utils.UiUtils;
 
 import org.apache.commons.lang3.text.WordUtils;
 
-class MolvixNotificationManager {
+public class MolvixNotificationManager {
 
     private static void createNotificationChannel(String channelName, String channelDescription, String channelId) {
         // Create the NotificationChannel, but only on API 26+ because
@@ -52,7 +52,7 @@ class MolvixNotificationManager {
         }
     }
 
-    static void showEpisodeDownloadProgressNotification(String movieName, String movieDescription, String seasonId, String episodeId, String title, int progress, String progressMessage) {
+    public static void showEpisodeDownloadProgressNotification(String movieName, String movieDescription, String seasonId, String episodeId, String title, int progress, String progressMessage) {
         createNotificationChannel(movieName, movieDescription, seasonId);
 
         int identifier = Math.abs(episodeId.hashCode());

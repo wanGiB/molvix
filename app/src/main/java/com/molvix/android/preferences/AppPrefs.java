@@ -146,23 +146,6 @@ public class AppPrefs {
         return getAppPreferences().getStringSet(AppConstants.IN_PROGRESS_DOWNLOADS, new HashSet<>());
     }
 
-    public static int getDownloadIdFromEpisodeId(String episodeId) {
-        return getAppPreferences().getInt(AppConstants.DOWNLOAD + CryptoUtils.getSha256Digest(episodeId), 0);
-    }
-
-    public static void mapEpisodeIdToDownloadId(String episodeId, int downloadId) {
-        getAppPreferences().edit().putInt(AppConstants.DOWNLOAD + CryptoUtils.getSha256Digest(episodeId), downloadId).apply();
-        mapDownloadIdToEpisodeId(downloadId, episodeId);
-    }
-
-    private static void mapDownloadIdToEpisodeId(int downloadId, String episodeId) {
-        getAppPreferences().edit().putString(AppConstants.DOWNLOAD_ID_KEY + downloadId, episodeId).apply();
-    }
-
-    public static String getEpisodeIdFromDownloadId(int downloadId) {
-        return getAppPreferences().getString(AppConstants.DOWNLOAD_ID_KEY + downloadId, null);
-    }
-
     public static boolean hasBeenNotified(String checkKey) {
         return getAppPreferences().getBoolean(AppConstants.NOTIFICATION + checkKey, false);
     }

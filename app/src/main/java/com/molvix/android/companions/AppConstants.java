@@ -13,7 +13,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class AppConstants {
 
-    public static final int MAXIMUM_RUNNABLE_TASK = 1;
+    public static final int MAXIMUM_RUNNABLE_TASK = 20;
     public static final String MEDIA_PLAY_BACK_FOR_ = "media_play_back_for_";
     public static final String PREFERRED_APP_THEME = "preferred_molvix_app_theme";
     public static final String DOWNLOAD_COINS = "download_coins";
@@ -55,11 +55,8 @@ public class AppConstants {
     public static final String NOTIFICATION = "Notification_";
     public static final String DISPLAY_MOVIE = "display_movie";
     public static final String IN_PROGRESS_DOWNLOADS = "in_progress_downloads";
-    public static final String DOWNLOAD = "OngoingDownload_";
 
-    public static final String DOWNLOAD_PAUSED = "DownloadPaused_";
     public static final String DOWNLOAD_ID_KEY = "DownloadIdKey_";
-    public static final String ESTIMATED_FILE_LENGTH = "EstimatedFileLength_";
     public static final String LAST_AD_LOAD_TIME = "last_ad_load_time";
     public static final String SEASON_EPISODES_REFRESHED = "SeasonEpisodesRefreshed_";
     public static final String DATA = "data";

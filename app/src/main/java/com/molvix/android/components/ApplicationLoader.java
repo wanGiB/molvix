@@ -7,39 +7,160 @@ import androidx.multidex.MultiDex;
 import androidx.multidex.MultiDexApplication;
 
 import com.google.android.gms.ads.MobileAds;
+import com.huxq17.download.Pump;
 import com.huxq17.download.config.DownloadConfig;
-import com.huxq17.download.core.DownloadTaskExecutor;
-import com.huxq17.download.core.SimpleDownloadTaskExecutor;
+import com.huxq17.download.core.DownloadInfo;
+import com.huxq17.download.core.DownloadListener;
 import com.molvix.android.R;
 import com.molvix.android.companions.AppConstants;
+import com.molvix.android.database.MolvixDB;
 import com.molvix.android.database.ObjectBox;
+import com.molvix.android.eventbuses.EpisodeDownloadErrorException;
 import com.molvix.android.managers.ContentManager;
+import com.molvix.android.managers.EpisodesManager;
+import com.molvix.android.managers.LetterBoxManager;
+import com.molvix.android.managers.MolvixNotificationManager;
+import com.molvix.android.managers.MovieTracker;
+import com.molvix.android.models.DownloadableEpisode;
+import com.molvix.android.models.Episode;
+import com.molvix.android.models.Movie;
+import com.molvix.android.models.Season;
+import com.molvix.android.preferences.AppPrefs;
+import com.molvix.android.ui.notifications.notification.MolvixNotification;
 import com.molvix.android.utils.AuthorizationHeaderConnection;
+import com.molvix.android.utils.FileUtils;
+import com.molvix.android.utils.MolvixLogger;
 import com.molvix.android.utils.NetworkClient;
+
+import org.apache.commons.lang3.text.WordUtils;
+import org.greenrobot.eventbus.EventBus;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.Set;
 
 public class ApplicationLoader extends MultiDexApplication {
 
     @SuppressLint("StaticFieldLeak")
     private static Context _INSTANCE;
 
-    public static DownloadTaskExecutor videoDownloadDispatcher = new SimpleDownloadTaskExecutor() {
+    public static DownloadListener globalDownloadListener = new DownloadListener() {
 
         @Override
-        public int getMaxDownloadNumber() {
-            return AppConstants.MAXIMUM_RUNNABLE_TASK;
+        public void onProgress(int progress) {
+            handleDownloadProgress(getDownloadInfo());
         }
 
         @Override
-        public String getName() {
-            return "MolvixVideoDownloadDispatcher";
+        public void onFailed() {
+            handleDownloadError(getDownloadInfo());
         }
 
         @Override
-        public String getTag() {
-            return "video";
+        public void onSuccess() {
+            handleCompletedDownload(getDownloadInfo());
         }
 
     };
+
+    private static void tryShutdownPump() {
+        Set<String> inProgressDownloads = AppPrefs.getInProgressDownloads();
+        if (inProgressDownloads.isEmpty()) {
+            if (globalDownloadListener.isEnable()) {
+                globalDownloadListener.disable();
+            }
+            Pump.shutdown();
+        }
+    }
+
+    private static void handleCompletedDownload(@NotNull DownloadInfo download) {
+        String episodeId = download.getId();
+        if (episodeId != null) {
+            Episode episode = MolvixDB.getEpisode(episodeId);
+            MolvixLogger.d(ContentManager.class.getSimpleName(), "Download is completed for " + episode.getEpisodeName() + "/" + episode.getSeason().getSeasonName() + "/" + episode.getSeason().getMovie().getMovieName());
+            finalizeDownload(episode);
+            AppPrefs.removeKey(AppConstants.DOWNLOAD_ID_KEY + download.getId());
+            LetterBoxManager.stripOutLetterBox(episode);
+        }
+    }
+
+    private static void handleDownloadError(@NotNull DownloadInfo download) {
+        String episodeId = download.getId();
+        if (episodeId != null) {
+            Episode episode = MolvixDB.getEpisode(episodeId);
+            MolvixNotification.with(ApplicationLoader.getInstance()).cancel(Math.abs(episode.getEpisodeId().hashCode()));
+            MolvixLogger.d(ContentManager.class.getSimpleName(), "An error occurred while downloading " + episode.getEpisodeName() + "/" + episode.getSeason().getSeasonName() + "/" + episode.getSeason().getMovie().getMovieName() + "");
+            EventBus.getDefault().post(new EpisodeDownloadErrorException(episode));
+            resetEpisodeDownloadProgress(episode);
+            AppPrefs.removeKey(AppConstants.DOWNLOAD_ID_KEY + download.getId());
+        }
+    }
+
+    private static void handleDownloadProgress(@NotNull DownloadInfo downloadInfo) {
+        String episodeId = downloadInfo.getId();
+        if (episodeId != null) {
+            Episode episode = MolvixDB.getEpisode(episodeId);
+            long completedSize = downloadInfo.getCompletedSize();
+            long totalSize = downloadInfo.getContentLength();
+            updateDownloadProgress(episode, completedSize, totalSize);
+        }
+    }
+
+    public static void resetEpisodeDownloadProgress(Episode episode) {
+        AppPrefs.updateEpisodeDownloadProgressMsg(episode.getEpisodeId(), "");
+        AppPrefs.updateEpisodeDownloadProgress(episode.getEpisodeId(), -1);
+    }
+
+    private static void finalizeDownload(Episode episode) {
+        Season season = episode.getSeason();
+        Movie movie = season.getMovie();
+        String movieName = WordUtils.capitalize(movie.getMovieName());
+        String seasonName = season.getSeasonName();
+        String seasonId = season.getSeasonId();
+        String movieDescription = movie.getMovieDescription();
+        String episodeId = episode.getEpisodeId();
+        resetEpisodeDownloadProgress(episode);
+        movie.setSeenByUser(true);
+        movie.setRecommendedToUser(true);
+        MolvixDB.updateMovie(movie);
+        DownloadableEpisode downloadableEpisode = MolvixDB.getDownloadableEpisode(episodeId);
+        if (downloadableEpisode != null) {
+            MolvixDB.deleteDownloadableEpisode(downloadableEpisode);
+        }
+        MovieTracker.recordEpisodeAsDownloaded(episode);
+        AppPrefs.removeFromInProgressDownloads(episode);
+        MolvixNotificationManager.showEpisodeDownloadProgressNotification(movieName, movieDescription, seasonId, episodeId, movieName + "/" + seasonName + "/" + episode.getEpisodeName(), 100, "");
+        MolvixLogger.d(ContentManager.class.getSimpleName(), "Episode " + episode.getEpisodeName() + " completed");
+    }
+
+    private static void updateDownloadProgress(Episode episode, long downloaded, long totalBytes) {
+        try {
+            Season season = episode.getSeason();
+            Movie movie = season.getMovie();
+            String movieName = WordUtils.capitalize(movie.getMovieName());
+            String movieDescription = movie.getMovieDescription();
+            String seasonId = season.getSeasonId();
+            String seasonName = season.getSeasonName();
+            long progressPercent = downloaded * 100 / totalBytes;
+            String progressMessage = FileUtils.getProgressDisplayLine(downloaded, totalBytes);
+            MolvixNotificationManager.showEpisodeDownloadProgressNotification(movieName, movieDescription, seasonId, episode.getEpisodeId(), episode.getEpisodeName() + "/" + seasonName + "/" + movieName, (int) progressPercent, progressMessage);
+            MolvixLogger.d(ContentManager.class.getSimpleName(), "Download in Progress for " + episode.getEpisodeName() + " Progress=" + progressMessage);
+            AppPrefs.updateEpisodeDownloadProgress(episode.getEpisodeId(), (int) progressPercent);
+            AppPrefs.updateEpisodeDownloadProgressMsg(episode.getEpisodeId(), progressMessage);
+        } catch (Exception e) {
+            backwardCompatibilityCleanUp(episode);
+        }
+    }
+
+    private static void backwardCompatibilityCleanUp(Episode episode) {
+        AppPrefs.removeFromInProgressDownloads(episode);
+        AppPrefs.updateEpisodeDownloadProgress(episode.getEpisodeId(), -1);
+        AppPrefs.updateEpisodeDownloadProgressMsg(episode.getEpisodeId(), "");
+        EpisodesManager.popDownloadableEpisode(episode);
+        MolvixNotification.with(ApplicationLoader.getInstance()).cancel(Math.abs(episode.getEpisodeId().hashCode()));
+        Pump.stop(episode.getEpisodeId());
+        tryShutdownPump();
+        MolvixLogger.d(ContentManager.class.getSimpleName(), "Episode " + episode.getEpisodeName() + " backward scrapped");
+    }
 
     @Override
     public void onCreate() {
@@ -85,10 +206,6 @@ public class ApplicationLoader extends MultiDexApplication {
 
     public static Context getInstance() {
         return _INSTANCE;
-    }
-
-    public static DownloadTaskExecutor getVideoDownloadDispatcher() {
-        return videoDownloadDispatcher;
     }
 
 }
