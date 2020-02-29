@@ -6,6 +6,7 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.SwitchPreferenceCompat;
@@ -62,6 +63,19 @@ public class MoreContentsFragment extends PreferenceFragmentCompat implements Pr
                     if (packageInfo != null) {
                         String versionName = packageInfo.versionName;
                         molvixAppVersionPref.setSummary("Version " + versionName);
+                        molvixAppVersionPref.setOnPreferenceClickListener(preference -> {
+                            if (getContext() != null) {
+                                AlertDialog.Builder aboutAppDialogBuilder = new AlertDialog.Builder(getContext());
+                                aboutAppDialogBuilder.setTitle("Molvix");
+                                aboutAppDialogBuilder.setMessage(UiUtils.fromHtml("You are currently using Version <b>" + versionName + "</b> of Molvix.<br/><br/><b>Molvix</b>, an acronym for <b>Mobile Videos</b>, brings all your favorite TV Series and TV Shows closer to you."));
+                                aboutAppDialogBuilder.setPositiveButton("OK", (dialogInterface, i) -> {
+                                    dialogInterface.dismiss();
+                                    dialogInterface.cancel();
+                                });
+                                aboutAppDialogBuilder.create().show();
+                            }
+                            return true;
+                        });
                     }
                 }
             } catch (Exception ignored) {

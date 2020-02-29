@@ -3,6 +3,7 @@
     android:title="General Settings">
 
     <PreferenceCategory android:title="Reward System">
+
         <Preference
             android:defaultValue="Your download coins"
             android:key="@string/download_coins"
