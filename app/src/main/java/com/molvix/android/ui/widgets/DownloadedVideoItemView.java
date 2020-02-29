@@ -122,7 +122,9 @@ public class DownloadedVideoItemView extends FrameLayout {
                 //Play Video Here
                 if (getContext() instanceof MainActivity) {
                     MainActivity mainActivity = (MainActivity) getContext();
-                    mainActivity.playVideo(DownloadedVideosFragment.downloadedVideoItems, downloadedVideoItem);
+                    if (!DownloadedVideosFragment.downloadedVideoItems.isEmpty()) {
+                        mainActivity.playVideo(DownloadedVideosFragment.downloadedVideoItems, downloadedVideoItem);
+                    }
                 }
             }
         };

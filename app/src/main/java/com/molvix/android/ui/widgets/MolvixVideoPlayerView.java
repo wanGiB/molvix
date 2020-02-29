@@ -79,39 +79,43 @@ public class MolvixVideoPlayerView extends FrameLayout {
     }
 
     public void playVideos(List<DownloadedVideoItem> playList, int startIndex) {
-        DownloadedVideoItem activeItemOnPlayList = playList.get(startIndex);
-        setupVideoControls(playList, startIndex);
-        videoTitleView.setText(activeItemOnPlayList.getTitle());
-        videoView.setVideoPath(activeItemOnPlayList.getDownloadedFile().getPath());
-        videoView.setOnPreparedListener(() -> {
-            try {
-                long lastPlayBackPosition = AppPrefs.getLastMediaPlayBackPositionFor(activeItemOnPlayList.getDownloadedFile());
-                if (lastPlayBackPosition > 0) {
-                    videoView.seekTo(lastPlayBackPosition);
-                }
-                videoView.start();
-                activeFileReference.set(activeItemOnPlayList.getDownloadedFile());
-            } catch (Exception ignored) {
+        try {
+            DownloadedVideoItem activeItemOnPlayList = playList.get(startIndex);
+            setupVideoControls(playList, startIndex);
+            videoTitleView.setText(activeItemOnPlayList.getTitle());
+            videoView.setVideoPath(activeItemOnPlayList.getDownloadedFile().getPath());
+            videoView.setOnPreparedListener(() -> {
+                try {
+                    long lastPlayBackPosition = AppPrefs.getLastMediaPlayBackPositionFor(activeItemOnPlayList.getDownloadedFile());
+                    if (lastPlayBackPosition > 0) {
+                        videoView.seekTo(lastPlayBackPosition);
+                    }
+                    videoView.start();
+                    activeFileReference.set(activeItemOnPlayList.getDownloadedFile());
+                } catch (Exception ignored) {
 
-            }
-        });
-        videoView.setOnErrorListener(e -> {
-            AlertDialog.Builder errorBuilder = new AlertDialog.Builder(getContext());
-            errorBuilder.setMessage(UiUtils.fromHtml("Sorry, couldn't play <b>" + activeItemOnPlayList.getTitle() + "</b>.It seems this video is corrupt or not fully downloaded."));
-            errorBuilder.setPositiveButton("OK", (dialog, which) -> {
-                dialog.dismiss();
+                }
+            });
+            videoView.setOnErrorListener(e -> {
+                AlertDialog.Builder errorBuilder = new AlertDialog.Builder(getContext());
+                errorBuilder.setMessage(UiUtils.fromHtml("Sorry, couldn't play <b>" + activeItemOnPlayList.getTitle() + "</b>.It seems this video is corrupt or not fully downloaded."));
+                errorBuilder.setPositiveButton("OK", (dialog, which) -> {
+                    dialog.dismiss();
+                    removePlayer();
+                });
+                errorBuilder.create().show();
+                return true;
+            });
+            videoNavBackView.setOnClickListener(v -> {
+                UiUtils.blinkView(videoNavBackView);
                 removePlayer();
             });
-            errorBuilder.create().show();
-            return true;
-        });
-        videoNavBackView.setOnClickListener(v -> {
-            UiUtils.blinkView(videoNavBackView);
-            removePlayer();
-        });
-        videoTitleView.setOnClickListener(v -> {
-            //Do nothing, just don't let the search box behind take focus
-        });
+            videoTitleView.setOnClickListener(v -> {
+                //Do nothing, just don't let the search box behind take focus
+            });
+        } catch (Exception ignored) {
+
+        }
     }
 
     private void removePlayer() {
@@ -153,7 +157,7 @@ public class MolvixVideoPlayerView extends FrameLayout {
     }
 
     private void reEnterImmersiveModeDelayed() {
-        new Handler().postDelayed(this::enterImmersiveMode, (long) 3000);
+        new Handler().postDelayed(this::enterImmersiveMode, 3000);
     }
 
     private void listenToControlsVisibilityChange(VideoControls videoControls) {
