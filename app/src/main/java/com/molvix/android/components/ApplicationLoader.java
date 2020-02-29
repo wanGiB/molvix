@@ -99,9 +99,7 @@ public class ApplicationLoader extends MultiDexApplication {
         String episodeId = downloadInfo.getId();
         if (episodeId != null) {
             Episode episode = MolvixDB.getEpisode(episodeId);
-            long completedSize = downloadInfo.getCompletedSize();
-            long totalSize = downloadInfo.getContentLength();
-            updateDownloadProgress(episode, completedSize, totalSize);
+            updateDownloadProgress(episode, downloadInfo);
         }
     }
 
@@ -132,7 +130,7 @@ public class ApplicationLoader extends MultiDexApplication {
         MolvixLogger.d(ContentManager.class.getSimpleName(), "Episode " + episode.getEpisodeName() + " completed");
     }
 
-    private static void updateDownloadProgress(Episode episode, long downloaded, long totalBytes) {
+    private static void updateDownloadProgress(Episode episode, @NotNull DownloadInfo downloadInfo) {
         try {
             Season season = episode.getSeason();
             Movie movie = season.getMovie();
@@ -140,18 +138,20 @@ public class ApplicationLoader extends MultiDexApplication {
             String movieDescription = movie.getMovieDescription();
             String seasonId = season.getSeasonId();
             String seasonName = season.getSeasonName();
-            long progressPercent = downloaded * 100 / totalBytes;
-            String progressMessage = FileUtils.getProgressDisplayLine(downloaded, totalBytes);
-            MolvixNotificationManager.showEpisodeDownloadProgressNotification(movieName, movieDescription, seasonId, episode.getEpisodeId(), episode.getEpisodeName() + "/" + seasonName + "/" + movieName, (int) progressPercent, progressMessage);
+            int progressPercent = downloadInfo.getProgress();
+            long completedSize = downloadInfo.getCompletedSize();
+            long totalSize = downloadInfo.getContentLength();
+            String progressMessage=FileUtils.getDataSize(completedSize) + "/" + FileUtils.getDataSize(totalSize);
+            MolvixNotificationManager.showEpisodeDownloadProgressNotification(movieName, movieDescription, seasonId, episode.getEpisodeId(), episode.getEpisodeName() + "/" + seasonName + "/" + movieName, progressPercent, progressMessage);
             MolvixLogger.d(ContentManager.class.getSimpleName(), "Download in Progress for " + episode.getEpisodeName() + " Progress=" + progressMessage);
-            AppPrefs.updateEpisodeDownloadProgress(episode.getEpisodeId(), (int) progressPercent);
+            AppPrefs.updateEpisodeDownloadProgress(episode.getEpisodeId(), progressPercent);
             AppPrefs.updateEpisodeDownloadProgressMsg(episode.getEpisodeId(), progressMessage);
         } catch (Exception e) {
-            backwardCompatibilityCleanUp(episode);
+            backwardCompatibilityCleanUp(episode, e);
         }
     }
 
-    private static void backwardCompatibilityCleanUp(Episode episode) {
+    private static void backwardCompatibilityCleanUp(Episode episode, Exception e) {
         AppPrefs.removeFromInProgressDownloads(episode);
         AppPrefs.updateEpisodeDownloadProgress(episode.getEpisodeId(), -1);
         AppPrefs.updateEpisodeDownloadProgressMsg(episode.getEpisodeId(), "");
@@ -159,7 +159,11 @@ public class ApplicationLoader extends MultiDexApplication {
         MolvixNotification.with(ApplicationLoader.getInstance()).cancel(Math.abs(episode.getEpisodeId().hashCode()));
         Pump.stop(episode.getEpisodeId());
         tryShutdownPump();
-        MolvixLogger.d(ContentManager.class.getSimpleName(), "Episode " + episode.getEpisodeName() + " backward scrapped");
+        String errorMessage = e.getMessage();
+        if (errorMessage == null) {
+            errorMessage = "unknown";
+        }
+        MolvixLogger.d(ContentManager.class.getSimpleName(), "Episode " + episode.getEpisodeName() + " backward scrapped due to " + errorMessage);
     }
 
     @Override
