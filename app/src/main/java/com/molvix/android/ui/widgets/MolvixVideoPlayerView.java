@@ -80,6 +80,7 @@ public class MolvixVideoPlayerView extends FrameLayout {
 
     public void playVideos(List<DownloadedVideoItem> playList, int startIndex) {
         try {
+            initDeviceOrientation();
             DownloadedVideoItem activeItemOnPlayList = playList.get(startIndex);
             setupVideoControls(playList, startIndex);
             videoTitleView.setText(activeItemOnPlayList.getTitle());
@@ -115,6 +116,14 @@ public class MolvixVideoPlayerView extends FrameLayout {
             });
         } catch (Exception ignored) {
 
+        }
+    }
+
+    private void initDeviceOrientation() {
+        if (getContext() instanceof MainActivity) {
+            MainActivity mainActivity = (MainActivity) getContext();
+            int orientation = mainActivity.getResources().getConfiguration().orientation;
+            currentOrientation.set(orientation);
         }
     }
 
