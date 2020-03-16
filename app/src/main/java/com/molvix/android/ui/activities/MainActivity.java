@@ -118,6 +118,7 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
     private AtomicBoolean activeVideoPlayBackPaused = new AtomicBoolean(false);
 
     private RewardedVideoAd mRewardedVideoAd;
+    public static AtomicBoolean canShowLoadedVideoAd = new AtomicBoolean(false);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -197,6 +198,16 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
     private void setupRewardedVideoAd() {
         mRewardedVideoAd = MobileAds.getRewardedVideoAdInstance(this);
         mRewardedVideoAd.setRewardedVideoAdListener(this);
+        loadRewardedVideoAdNow();
+    }
+
+    private void loadRewardedVideoAdNow() {
+        AdRequest.Builder adBuilder = new AdRequest.Builder();
+        if (BuildConfig.DEBUG) {
+            adBuilder.addTestDevice(AppConstants.TEST_DEVICE_ID);
+        }
+        mRewardedVideoAd.loadAd(getString(R.string.rewarded_video_release_ad_unit_id),
+                adBuilder.build());
     }
 
     private void resetAdsLoader() {
@@ -687,25 +698,23 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
     }
 
     public void loadRewardedVideoAd() {
-        gamificationHostDialog = ProgressDialog.show(this, "Loading ad", "Please wait...");
-        gamificationHostDialog.setCancelable(true);
-        loadRewardedVideoAdNow();
-    }
-
-    private void loadRewardedVideoAdNow() {
-        AdRequest.Builder adBuilder = new AdRequest.Builder();
-        if (BuildConfig.DEBUG) {
-            adBuilder.addTestDevice(AppConstants.TEST_DEVICE_ID);
+        canShowLoadedVideoAd.set(true);
+        if (mRewardedVideoAd.isLoaded()) {
+            mRewardedVideoAd.show();
+        } else {
+            gamificationHostDialog = ProgressDialog.show(this, "Loading ad", "Please wait...");
+            gamificationHostDialog.setCancelable(true);
+            loadRewardedVideoAdNow();
         }
-        mRewardedVideoAd.loadAd(getString(R.string.rewarded_video_release_ad_unit_id),
-                adBuilder.build());
     }
 
     @Override
     public void onRewardedVideoAdLoaded() {
         closeGamificationProgressDialog();
         MolvixLogger.d(ContentManager.class.getSimpleName(), "Rewarded Video ad loaded");
-        mRewardedVideoAd.show();
+        if (canShowLoadedVideoAd.get()) {
+            mRewardedVideoAd.show();
+        }
     }
 
     @Override
@@ -728,6 +737,7 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
         MolvixLogger.d(ContentManager.class.getSimpleName(), "Rewarded Video reward with " + rewardItem.getType() + ",amount=" + rewardItem.getAmount());
         AppPrefs.incrementDownloadCoins(12);
         UiUtils.showSafeToast("You have received 12 download coins!!!");
+        canShowLoadedVideoAd.set(false);
     }
 
     @Override
@@ -738,7 +748,9 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
     @Override
     public void onRewardedVideoAdFailedToLoad(int i) {
         closeGamificationProgressDialog();
-        UiUtils.showSafeToast("Failed to load video ad.Please review your data connection and try again.");
+        if (canShowLoadedVideoAd.get()) {
+            UiUtils.showSafeToast("Failed to load video ad.Please review your data connection and try again.");
+        }
         MolvixLogger.d(ContentManager.class.getSimpleName(), "Rewarded Video Failed to load due to error code " + i);
     }
 

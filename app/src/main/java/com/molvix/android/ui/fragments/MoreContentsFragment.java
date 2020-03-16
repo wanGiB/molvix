@@ -67,7 +67,7 @@ public class MoreContentsFragment extends PreferenceFragmentCompat implements Pr
                             if (getContext() != null) {
                                 AlertDialog.Builder aboutAppDialogBuilder = new AlertDialog.Builder(getContext());
                                 aboutAppDialogBuilder.setTitle("Molvix");
-                                aboutAppDialogBuilder.setMessage(UiUtils.fromHtml("You are currently using Version <b>" + versionName + "</b> of Molvix.<br/><br/><b>Molvix</b>, an acronym for <b>Mobile Videos</b>, is basically an easy gateway to all your favorite TV Series and TV Shows."));
+                                aboutAppDialogBuilder.setMessage(UiUtils.fromHtml("You are currently using Version <b>" + versionName + "</b> of Molvix.<br/><br/><b>Molvix</b>, an acronym for <b>Mobile Videos Extension</b>, is basically an easy gateway to all your favorite TV Series and TV Shows."));
                                 aboutAppDialogBuilder.setPositiveButton("OK", (dialogInterface, i) -> {
                                     dialogInterface.dismiss();
                                     dialogInterface.cancel();

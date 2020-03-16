@@ -9,6 +9,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -25,6 +26,7 @@ import com.molvix.android.utils.UiUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -69,13 +71,22 @@ public class NotificationsFragment extends BaseFragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         clearNotificationsFab.hide();
-        clearNotificationsFab.setOnClickListener(v -> {
-            notifications.clear();
-            notificationsAdapter.notifyDataSetChanged();
-            MolvixDB.getNotificationBox().removeAll();
-            invalidateUI();
-            notificationsCenterLabel.setText(getString(R.string.all_caught_up));
-        });
+        clearNotificationsFab.setOnClickListener(v -> new AlertDialog.Builder(Objects.requireNonNull(getActivity())).setMessage("This will clear all your current notifications!").setPositiveButton("CLEAR", (dialogInterface, i) -> {
+            dialogInterface.dismiss();
+            dialogInterface.cancel();
+            clearThemAll();
+        }).setNegativeButton("CANCEL", (dialogInterface, i) -> {
+            dialogInterface.dismiss();
+            dialogInterface.cancel();
+        }).create().show());
+    }
+
+    private void clearThemAll() {
+        notifications.clear();
+        notificationsAdapter.notifyDataSetChanged();
+        MolvixDB.getNotificationBox().removeAll();
+        invalidateUI();
+        notificationsCenterLabel.setText(getString(R.string.all_caught_up));
     }
 
     @SuppressWarnings("ConstantConditions")

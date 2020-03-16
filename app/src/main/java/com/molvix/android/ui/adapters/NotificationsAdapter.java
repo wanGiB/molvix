@@ -102,7 +102,7 @@ public class NotificationsAdapter extends RecyclerView.Adapter<RecyclerView.View
 
         void bindDate(String dateString) {
             String currentYear = AppConstants.DATE_FORMATTER_IN_YEARS.format(new Date());
-            dateLabelView.setText(dateString.replace(","+currentYear, ""));
+            dateLabelView.setText(dateString.replace(", "+currentYear, ""));
         }
 
     }
