@@ -26,12 +26,14 @@ import com.molvix.android.R;
 import com.molvix.android.beans.DownloadedVideoItem;
 import com.molvix.android.preferences.AppPrefs;
 import com.molvix.android.ui.activities.MainActivity;
+import com.molvix.android.utils.MolvixLogger;
 import com.molvix.android.utils.UiUtils;
 
 import java.io.File;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
 import butterknife.BindView;
@@ -55,6 +57,7 @@ public class MolvixVideoPlayerView extends FrameLayout {
     private AtomicInteger currentOrientation = new AtomicInteger(1);
     private AtomicBoolean controlsShown = new AtomicBoolean(false);
     private AtomicBoolean titleContainerVisible = new AtomicBoolean(true);
+    private AtomicLong totalVideoDurationRef = new AtomicLong(0);
 
     public MolvixVideoPlayerView(@NonNull Context context) {
         super(context);
@@ -93,8 +96,19 @@ public class MolvixVideoPlayerView extends FrameLayout {
                     }
                     videoView.start();
                     activeFileReference.set(activeItemOnPlayList.getDownloadedFile());
+                    long totalVideoDuration = videoView.getDuration();
+                    totalVideoDurationRef.set(totalVideoDuration);
                 } catch (Exception ignored) {
 
+                }
+            });
+            videoView.setOnBufferUpdateListener(percent -> {
+                long totalVideoDuration = totalVideoDurationRef.get();
+                if (totalVideoDuration > 0) {
+                    long currentVideoDuration = videoView.getCurrentPosition();
+                    if (currentVideoDuration > totalVideoDuration) {
+                        tryPlayNextEpisode(playList, startIndex);
+                    }
                 }
             });
             videoView.setOnErrorListener(e -> {
@@ -301,19 +315,25 @@ public class MolvixVideoPlayerView extends FrameLayout {
                 playVideos(downloadedVideoItems, downloadedVideoItems.indexOf(previous));
             }
         } catch (Exception e) {
-            UiUtils.showSafeToast("Error in playback.Please try again later");
+            UiUtils.showSafeToast("Error playing previous episode.Please try again later.");
         }
     }
 
     private void tryPlayNextEpisode(List<DownloadedVideoItem> downloadedVideoItems,
                                     int startIndex) {
+        int nextIndex = startIndex + 1;
         try {
-            DownloadedVideoItem next = downloadedVideoItems.get(startIndex + 1);
+            DownloadedVideoItem next = downloadedVideoItems.get(nextIndex);
             if (next != null) {
                 playVideos(downloadedVideoItems, downloadedVideoItems.indexOf(next));
             }
         } catch (Exception e) {
-            UiUtils.showSafeToast("Error in playback.Please try again later");
+            if (nextIndex >= downloadedVideoItems.size()) {
+                removePlayer();
+            } else {
+                UiUtils.showSafeToast("Error playing next episode.Please try again later.");
+                MolvixLogger.d(MolvixVideoPlayerView.class.getSimpleName(), "VideoPlayBack error " + e.getMessage());
+            }
         }
     }
 
