@@ -397,6 +397,7 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
 
     @SuppressLint("SetJavaScriptEnabled")
     private void hackPage(Episode episode) {
+        MolvixLogger.d(ContentManager.class.getSimpleName(),"About to hack Page");
         runOnUiThread(() -> {
             AdvancedWebView hackWebView = new AdvancedWebView(MainActivity.this);
             hackWebView.getSettings().setJavaScriptEnabled(true);

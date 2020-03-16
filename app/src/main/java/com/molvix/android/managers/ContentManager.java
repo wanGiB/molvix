@@ -315,7 +315,6 @@ public class ContentManager {
             StringBuilder genresBuilder = new StringBuilder();
             for (Element genreElement : genres) {
                 String genre = genreElement.text();
-                MolvixLogger.d(ContentManager.class.getSimpleName(), "Genre=" + genre);
                 if (genre != null) {
                     genresBuilder.append(genre).append(",");
                 }
