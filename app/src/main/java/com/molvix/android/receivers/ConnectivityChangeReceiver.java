@@ -6,18 +6,15 @@ import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.os.AsyncTask;
 
-import com.molvix.android.database.MolvixDB;
 import com.molvix.android.eventbuses.ConnectivityChangedEvent;
 import com.molvix.android.managers.ContentManager;
-import com.molvix.android.managers.FileDownloadManager;
 import com.molvix.android.managers.MovieTracker;
-import com.molvix.android.models.Episode;
 import com.molvix.android.preferences.AppPrefs;
 import com.molvix.android.utils.ConnectivityUtils;
 
 import org.greenrobot.eventbus.EventBus;
 
-import java.util.Set;
+import static com.molvix.android.utils.DownloadUtils.checkAndResumePausedDownloads;
 
 public class ConnectivityChangeReceiver extends BroadcastReceiver {
     private NotificationsPullTask notificationsPullTask;
@@ -37,18 +34,6 @@ public class ConnectivityChangeReceiver extends BroadcastReceiver {
             EventBus.getDefault().post(new ConnectivityChangedEvent());
             fetchNotifications();
             ContentManager.fetchPresets();
-        }
-    }
-
-    private void checkAndResumePausedDownloads() {
-        Set<String> pausedDownloads = AppPrefs.getInProgressDownloads();
-        if (!pausedDownloads.isEmpty()) {
-            for (String episodeId : pausedDownloads) {
-                Episode episode = MolvixDB.getEpisode(episodeId);
-                if (episode != null) {
-                    FileDownloadManager.downloadEpisode(episode);
-                }
-            }
         }
     }
 

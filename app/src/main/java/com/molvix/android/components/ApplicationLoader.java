@@ -2,6 +2,7 @@ package com.molvix.android.components;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.os.Handler;
 
 import androidx.multidex.MultiDex;
 import androidx.multidex.MultiDexApplication;
@@ -28,6 +29,7 @@ import com.molvix.android.models.Season;
 import com.molvix.android.preferences.AppPrefs;
 import com.molvix.android.ui.notifications.notification.MolvixNotification;
 import com.molvix.android.utils.AuthorizationHeaderConnection;
+import com.molvix.android.utils.DownloadUtils;
 import com.molvix.android.utils.FileUtils;
 import com.molvix.android.utils.MolvixLogger;
 import com.molvix.android.utils.NetworkClient;
@@ -53,6 +55,7 @@ public class ApplicationLoader extends MultiDexApplication {
         @Override
         public void onFailed() {
             handleDownloadError(getDownloadInfo());
+            new Handler().postDelayed(DownloadUtils::checkAndResumePausedDownloads,1000);
         }
 
         @Override

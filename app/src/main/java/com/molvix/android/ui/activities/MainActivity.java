@@ -92,6 +92,8 @@ import butterknife.ButterKnife;
 import im.delight.android.webview.AdvancedWebView;
 import io.objectbox.reactive.DataSubscription;
 
+import static com.molvix.android.utils.DownloadUtils.checkAndResumePausedDownloads;
+
 public class MainActivity extends BaseActivity implements RewardedVideoAdListener {
 
     @BindView(R.id.search_view)
@@ -304,18 +306,6 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
 
     private void unLockAppCaptchaSolver() {
         EpisodesManager.unLockCaptchaSolver();
-    }
-
-    private void checkAndResumePausedDownloads() {
-        Set<String> pausedDownloads = AppPrefs.getInProgressDownloads();
-        if (!pausedDownloads.isEmpty()) {
-            for (String episodeId : pausedDownloads) {
-                Episode episode = MolvixDB.getEpisode(episodeId);
-                if (episode != null && AppPrefs.getEpisodeDownloadProgress(episodeId) == -1) {
-                    FileDownloadManager.downloadEpisode(episode);
-                }
-            }
-        }
     }
 
     @Override

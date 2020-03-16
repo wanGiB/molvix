@@ -89,6 +89,7 @@ public class UiUtils {
                 .into(imageView);
     }
 
+    @SuppressWarnings("unchecked")
     public static void loadVideoThumbNailIntoView(ImageView imageView, String videoThumbNailUrl) {
         if (imageView instanceof LoadingImageView) {
             LoadingImageView loadingImageView = (LoadingImageView) imageView;
@@ -98,6 +99,7 @@ public class UiUtils {
                 .diskCacheStrategy(DiskCacheStrategy.ALL);
         Glide.with(ApplicationLoader.getInstance())
                 .load(videoThumbNailUrl)
+                .thumbnail()
                 .apply(imageLoadRequestOptions)
                 .listener(new RequestListener<Drawable>() {
                     @Override
