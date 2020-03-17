@@ -40,6 +40,7 @@ import com.molvix.android.companions.AppConstants;
 import com.molvix.android.components.ApplicationLoader;
 import com.molvix.android.database.MolvixDB;
 import com.molvix.android.eventbuses.CheckForDownloadableEpisodes;
+import com.molvix.android.eventbuses.ConnectivityChangedEvent;
 import com.molvix.android.eventbuses.DisplayNewMoviesEvent;
 import com.molvix.android.eventbuses.EpisodeDownloadErrorException;
 import com.molvix.android.eventbuses.FetchMoviesEvent;
@@ -67,6 +68,8 @@ import com.molvix.android.ui.widgets.MolvixSearchView;
 import com.molvix.android.ui.widgets.MolvixVideoPlayerView;
 import com.molvix.android.ui.widgets.MovieDetailsView;
 import com.molvix.android.ui.widgets.NewUpdateAvailableView;
+import com.molvix.android.utils.ConnectivityUtils;
+import com.molvix.android.utils.DownloadUtils;
 import com.molvix.android.utils.FileUtils;
 import com.molvix.android.utils.MolvixGenUtils;
 import com.molvix.android.utils.MolvixLogger;
@@ -91,8 +94,6 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import im.delight.android.webview.AdvancedWebView;
 import io.objectbox.reactive.DataSubscription;
-
-import static com.molvix.android.utils.DownloadUtils.checkAndResumePausedDownloads;
 
 public class MainActivity extends BaseActivity implements RewardedVideoAdListener {
 
@@ -124,6 +125,7 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        AppConstants.MAIN_ACTIVITY_IN_FOCUS.set(true);
         ButterKnife.bind(this);
         initContentFilterClickListener();
         initSearchBox();
@@ -132,21 +134,27 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
         setupViewPager();
         observeNewIntent(getIntent());
         fetchDownloadableEpisodes();
-        checkAndResumePausedDownloads();
+        checkAndResumeUnFinishedDownloads();
         cleanUpUnLinkedDownloadKeys();
         setupRewardedVideoAd();
         resetAdsLoader();
         AdsLoadManager.spin();
     }
 
+    @Override
+    protected void onRestart() {
+        AppConstants.MAIN_ACTIVITY_IN_FOCUS.set(true);
+        super.onRestart();
+    }
+
     private void initContentFilterClickListener() {
         contentFilterer.setOnClickListener(v -> {
             UiUtils.blinkView(v);
-            displayFilterablePolicies();
+            displayFilters();
         });
     }
 
-    private void displayFilterablePolicies() {
+    private void displayFilters() {
         PopupMenu filterMenu = new PopupMenu(this, contentFilterer);
         filterMenu.inflate(R.menu.filter_menu);
         filterMenu.setOnMenuItemClickListener(item -> {
@@ -216,6 +224,7 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
 
     @Override
     protected void onDestroy() {
+        AppConstants.MAIN_ACTIVITY_IN_FOCUS.set(false);
         mRewardedVideoAd.destroy(this);
         cleanUp();
         super.onDestroy();
@@ -228,6 +237,7 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
 
     @Override
     public void onPause() {
+        AppConstants.MAIN_ACTIVITY_IN_FOCUS.set(false);
         mRewardedVideoAd.pause(this);
         checkAndPauseAnyActivePlayBack();
         super.onPause();
@@ -235,8 +245,9 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
 
     @Override
     public void onResume() {
+        AppConstants.MAIN_ACTIVITY_IN_FOCUS.set(true);
         mRewardedVideoAd.resume(this);
-        checkAndResumeAnyInActivePlayBack();
+        checkAndResumeAnyActivePlayBack();
         fetchDownloadableEpisodes();
         super.onResume();
     }
@@ -251,7 +262,7 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
         }
     }
 
-    private void checkAndResumeAnyInActivePlayBack() {
+    private void checkAndResumeAnyActivePlayBack() {
         if (rootContainer.getChildAt(rootContainer.getChildCount() - 1) instanceof MolvixVideoPlayerView) {
             MolvixVideoPlayerView molvixVideoPlayerView = (MolvixVideoPlayerView) rootContainer.getChildAt(rootContainer.getChildCount() - 1);
             if (activeVideoPlayBackPaused.get()) {
@@ -264,6 +275,7 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
     @Override
     public void onStop() {
         super.onStop();
+        AppConstants.MAIN_ACTIVITY_IN_FOCUS.set(false);
         cleanUp();
     }
 
@@ -343,8 +355,22 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
                 EpisodeDownloadErrorException episodeDownloadErrorException = (EpisodeDownloadErrorException) event;
                 Episode episode = episodeDownloadErrorException.getEpisode();
                 UiUtils.snackMessage("Sorry, an error occurred while downloading " + episode.getEpisodeName() + "/" + episode.getSeason().getSeasonName() + " of " + WordUtils.capitalize(episode.getSeason().getMovie().getMovieName()) + ".Please try again", rootContainer, true, null, null);
+            } else if (event instanceof ConnectivityChangedEvent) {
+                if (ConnectivityUtils.isDeviceConnectedToTheInternet()) {
+                    checkAndResumeUnFinishedDownloads();
+                }
             }
         });
+    }
+
+    private void checkAndResumeUnFinishedDownloads() {
+        Set<String> pausedDownloads = AppPrefs.getInProgressDownloads();
+        if (!pausedDownloads.isEmpty()) {
+            int sizeOfUnFinishedDownloads = pausedDownloads.size();
+            String quantifier = sizeOfUnFinishedDownloads == 1 ? "download" : "downloads";
+            String message = "You have " + sizeOfUnFinishedDownloads + " unfinished " + quantifier;
+            UiUtils.snackMessage(message, bottomNavView, false, "RESUME", DownloadUtils::checkAndResumePausedDownloads);
+        }
     }
 
     private void setupViewPager() {
@@ -397,7 +423,7 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
 
     @SuppressLint("SetJavaScriptEnabled")
     private void hackPage(Episode episode) {
-        MolvixLogger.d(ContentManager.class.getSimpleName(),"About to hack Page");
+        MolvixLogger.d(ContentManager.class.getSimpleName(), "About to hack Page");
         runOnUiThread(() -> {
             AdvancedWebView hackWebView = new AdvancedWebView(MainActivity.this);
             hackWebView.getSettings().setJavaScriptEnabled(true);
@@ -511,6 +537,8 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
             } else if (invocationType.equals(AppConstants.DISPLAY_MOVIE)) {
                 String movieId = intent.getStringExtra(AppConstants.MOVIE_ID);
                 loadMovieDetails(movieId);
+            } else if (invocationType.equals(AppConstants.SHOW_UNFINISHED_DOWNLOADS)) {
+                checkAndResumeUnFinishedDownloads();
             }
         }
     }

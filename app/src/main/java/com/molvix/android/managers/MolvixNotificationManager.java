@@ -27,12 +27,15 @@ import com.molvix.android.models.Notification;
 import com.molvix.android.preferences.AppPrefs;
 import com.molvix.android.ui.activities.CancelDownloadActivity;
 import com.molvix.android.ui.activities.MainActivity;
+import com.molvix.android.ui.activities.ResumeUnFinishedDownloadsActivity;
 import com.molvix.android.ui.notifications.notification.Load;
 import com.molvix.android.ui.notifications.notification.MolvixNotification;
 import com.molvix.android.utils.MolvixLogger;
 import com.molvix.android.utils.UiUtils;
 
 import org.apache.commons.lang3.text.WordUtils;
+
+import java.util.Set;
 
 public class MolvixNotificationManager {
 
@@ -143,6 +146,42 @@ public class MolvixNotificationManager {
             new BitmapLoadTask(newMovieAvailableNotification, displayMessage, checkKey).execute(updatedMovie);
         } else {
             new MovieContentsExtractionTask(newMovieAvailableNotification, displayMessage, checkKey).execute(updatedMovie);
+        }
+    }
+
+    public static void checkAndResumeUnFinishedDownloads() {
+        if (!AppConstants.MAIN_ACTIVITY_IN_FOCUS.get()) {
+            Set<String> unFinishedDownloads = AppPrefs.getInProgressDownloads();
+            if (!unFinishedDownloads.isEmpty()) {
+
+                int sizeOfUnFinishedDownloads = unFinishedDownloads.size();
+                String quantifier = sizeOfUnFinishedDownloads == 1 ? "download" : "downloads";
+                String message = "You have " + sizeOfUnFinishedDownloads + " unfinished " + quantifier;
+
+                Intent unFinishedDownloadsIntent = new Intent(ApplicationLoader.getInstance(), ResumeUnFinishedDownloadsActivity.class);
+                PendingIntent unFinishedDownloadsPendingIntent = PendingIntent.getActivity(ApplicationLoader.getInstance(), 100, unFinishedDownloadsIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+                Intent mainIntent = new Intent(ApplicationLoader.getInstance(), MainActivity.class);
+                mainIntent.putExtra(AppConstants.INVOCATION_TYPE, AppConstants.SHOW_UNFINISHED_DOWNLOADS);
+
+                PendingIntent mainPendingIntent = PendingIntent.getActivity(ApplicationLoader.getInstance(), 100, mainIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+                createNotificationChannel("UnFinished Molvix Downloads", "UnFinished Molvix Downloads", "UnFinished Molvix Downloads");
+
+                MolvixNotification.with(ApplicationLoader.getInstance())
+                        .load()
+                        .identifier(Math.abs(AppConstants.SHOW_UNFINISHED_DOWNLOADS.hashCode()))
+                        .notificationChannelId("UnFinished Molvix Downloads")
+                        .title("Molvix")
+                        .message(message)
+                        .autoCancel(true)
+                        .click(mainPendingIntent)
+                        .button(android.R.drawable.stat_sys_download, "RESUME " + quantifier.toUpperCase(), unFinishedDownloadsPendingIntent)
+                        .smallIcon(R.drawable.ic_stat_molvix_logo)
+                        .largeIcon(R.mipmap.ic_launcher)
+                        .simple()
+                        .build();
+            }
         }
     }
 

@@ -18,6 +18,7 @@ public class AppConstants {
     public static final String PREFERRED_APP_THEME = "preferred_molvix_app_theme";
     public static final String DOWNLOAD_COINS = "download_coins";
     public static final String GENRES = "genres";
+    public static final String SHOW_UNFINISHED_DOWNLOADS = "show_unfinished_downloads";
     public static HashMap<String, String> MOVIE_NAME_TO_ART_URL_MAP = new HashMap<>();
     @SuppressLint("ConstantLocale")
     public static final SimpleDateFormat DATE_FORMATTER_IN_12HRS = new SimpleDateFormat("h:mm a", Locale.getDefault());
@@ -68,4 +69,5 @@ public class AppConstants {
     public static final String GOOGLE_PLAY_PACKAGE_NAME = "com.android.vending";
     public static final String PRESETS_DOWNSTREAM_URL = "https://raw.githubusercontent.com/molvixapp/lizandry/master/presets.json";
     public static Stack<Integer> downloadedVideoItemsPositionsStack = new Stack<>();
+    public static AtomicBoolean MAIN_ACTIVITY_IN_FOCUS = new AtomicBoolean(false);
 }

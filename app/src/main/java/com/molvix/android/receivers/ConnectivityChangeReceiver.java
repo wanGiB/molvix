@@ -8,13 +8,12 @@ import android.os.AsyncTask;
 
 import com.molvix.android.eventbuses.ConnectivityChangedEvent;
 import com.molvix.android.managers.ContentManager;
+import com.molvix.android.managers.MolvixNotificationManager;
 import com.molvix.android.managers.MovieTracker;
 import com.molvix.android.preferences.AppPrefs;
 import com.molvix.android.utils.ConnectivityUtils;
 
 import org.greenrobot.eventbus.EventBus;
-
-import static com.molvix.android.utils.DownloadUtils.checkAndResumePausedDownloads;
 
 public class ConnectivityChangeReceiver extends BroadcastReceiver {
     private NotificationsPullTask notificationsPullTask;
@@ -30,7 +29,7 @@ public class ConnectivityChangeReceiver extends BroadcastReceiver {
             if (AppPrefs.canDailyMoviesBeRecommended()) {
                 MovieTracker.recommendUnWatchedMoviesToUser();
             }
-            checkAndResumePausedDownloads();
+            MolvixNotificationManager.checkAndResumeUnFinishedDownloads();
             EventBus.getDefault().post(new ConnectivityChangedEvent());
             fetchNotifications();
             ContentManager.fetchPresets();

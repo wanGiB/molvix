@@ -57,6 +57,7 @@
         </activity>
 
         <activity android:name=".ui.activities.CancelDownloadActivity" />
+        <activity android:name=".ui.activities.ResumeUnFinishedDownloadsActivity" />
         <activity android:name=".ui.activities.ManagedSpaceActivity" />
 
         <receiver
