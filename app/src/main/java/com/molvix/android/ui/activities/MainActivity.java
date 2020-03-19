@@ -3,7 +3,6 @@ package com.molvix.android.ui.activities;
 import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -621,7 +620,9 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
                         JSONObject jsonObject = new JSONObject(consoleMessageString);
                         String imageData = jsonObject.optString("imageData");
                         String cleanImage = imageData.replace("data:image/png;base64,", "").replace("data:image/jpeg;base64,", "");
-                        previewCaptchaImage(cleanImage);
+                        if (StringUtils.isNotEmpty(cleanImage)) {
+                            predictCaptchaImageText(cleanImage);
+                        }
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
@@ -632,29 +633,33 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
         hackWebView.loadUrl(episode.getEpisodeCaptchaSolverLink());
     }
 
-    private void previewCaptchaImage(String cleanImage) {
-        @SuppressLint("InflateParams") View captchaContentView = LayoutInflater.from(this).inflate(R.layout.captcha_dialog_content_view, null);
-        ImageView captchaImageView = captchaContentView.findViewById(R.id.captcha_image_view);
-        TextView predictionTextView = captchaContentView.findViewById(R.id.prediction);
-        byte[] decodedString = Base64.decode(cleanImage, Base64.DEFAULT);
-        Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
-        captchaImageView.setImageBitmap(decodedByte);
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setView(captchaContentView);
-        builder.setTitle("Captcha To Attack");
-        builder.setPositiveButton("OK", (dialogInterface, i) -> {
+    private void predictCaptchaImageText(String cleanImage) {
+        if (StringUtils.isNotEmpty(cleanImage)) {
+            @SuppressLint("InflateParams") View captchaContentView = LayoutInflater.from(this).inflate(R.layout.captcha_dialog_content_view, null);
+            ImageView captchaImageView = captchaContentView.findViewById(R.id.captcha_image_view);
+            TextView predictionTextView = captchaContentView.findViewById(R.id.prediction);
+            byte[] decodedString = Base64.decode(cleanImage, Base64.DEFAULT);
+            Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+            if (decodedByte != null) {
+                captchaImageView.setImageBitmap(decodedByte);
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setView(captchaContentView);
+                builder.setTitle("Captcha To Attack");
+                builder.setPositiveButton("OK", (dialogInterface, i) -> {
 
-        });
-        builder.setNegativeButton("Attack", (dialogInterface, i) -> {
-            //Attempt to predict the Captcha Text Here
-            String prediction = ML.predictTextFromBitmap(decodedByte);
-            if (prediction != null) {
-                predictionTextView.setText(prediction);
-            } else {
-                predictionTextView.setText("Prediction failed");
+                });
+                builder.setNegativeButton("Attack", (dialogInterface, i) -> {
+                    //Attempt to predict the Captcha Text Here
+                    String prediction = ML.predictTextFromBitmap(decodedByte);
+                    if (StringUtils.isNotEmpty(prediction)) {
+                        MolvixLogger.d(ContentManager.class.getSimpleName(), "Prediction=" + prediction);
+                    } else {
+                        MolvixLogger.d(ContentManager.class.getSimpleName(), "Prediction failed");
+                    }
+                });
+                builder.create().show();
             }
-        });
-        builder.create().show();
+        }
     }
 
     private void observeNewIntent(Intent intent) {
