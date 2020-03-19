@@ -27,13 +27,5 @@ public class DownloadedItemsPositionsManager {
             return 0;
         }
     }
-
-    public static boolean canShowBackNav() {
-        return !AppConstants.downloadedVideoItemsPositionsStack.isEmpty();
-    }
-
-    public static void clearPositionsStack() {
-        AppConstants.downloadedVideoItemsPositionsStack.clear();
-    }
-
+    
 }

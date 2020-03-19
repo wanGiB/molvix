@@ -18,9 +18,6 @@ import com.google.android.gms.ads.formats.UnifiedNativeAd;
 import com.google.android.gms.ads.formats.UnifiedNativeAdView;
 import com.molvix.android.R;
 
-/**
- * @author Wan Clem
- ***/
 public class AdMobNativeAdView extends FrameLayout {
 
     public AdMobNativeAdView(Context context) {

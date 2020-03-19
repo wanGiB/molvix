@@ -14,5 +14,4 @@ public class MoviesToSave {
     public List<Pair<String, String>> getMovies() {
         return movies;
     }
-
 }

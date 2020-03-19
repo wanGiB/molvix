@@ -79,7 +79,7 @@ import com.molvix.android.ui.widgets.MolvixVideoPlayerView;
 import com.molvix.android.ui.widgets.MovieDetailsView;
 import com.molvix.android.ui.widgets.NewUpdateAvailableView;
 import com.molvix.android.utils.ConnectivityUtils;
-import com.molvix.android.utils.DownloadUtils;
+import com.molvix.android.utils.DownloaderUtils;
 import com.molvix.android.utils.FileUtils;
 import com.molvix.android.utils.MolvixGenUtils;
 import com.molvix.android.utils.MolvixLogger;
@@ -383,7 +383,7 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
             int sizeOfUnFinishedDownloads = pausedDownloads.size();
             String quantifier = sizeOfUnFinishedDownloads == 1 ? "download" : "downloads";
             String message = "You have " + sizeOfUnFinishedDownloads + " unfinished " + quantifier;
-            UiUtils.snackMessage(message, bottomNavView, false, "RESUME", DownloadUtils::checkAndResumePausedDownloads);
+            UiUtils.snackMessage(message, bottomNavView, false, "RESUME", DownloaderUtils::checkAndResumePausedDownloads);
         }
     }
 

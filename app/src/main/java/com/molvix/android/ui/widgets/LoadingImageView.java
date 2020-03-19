@@ -10,9 +10,6 @@ import androidx.core.content.ContextCompat;
 import com.molvix.android.R;
 import com.molvix.android.managers.ThemeManager;
 
-/**
- * @author Wan Clem
- */
 public class LoadingImageView extends RoundedImageView {
 
     private boolean isLoading = false;

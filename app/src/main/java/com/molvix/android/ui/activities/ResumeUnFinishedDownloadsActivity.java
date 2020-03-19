@@ -7,7 +7,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.molvix.android.companions.AppConstants;
 import com.molvix.android.ui.notifications.notification.MolvixNotification;
-import com.molvix.android.utils.DownloadUtils;
+import com.molvix.android.utils.DownloaderUtils;
 
 public class ResumeUnFinishedDownloadsActivity extends AppCompatActivity {
 
@@ -19,7 +19,7 @@ public class ResumeUnFinishedDownloadsActivity extends AppCompatActivity {
 
     private void checkIntent() {
         MolvixNotification.with(this).cancel(Math.abs(AppConstants.SHOW_UNFINISHED_DOWNLOADS.hashCode()));
-        DownloadUtils.checkAndResumePausedDownloads();
+        DownloaderUtils.checkAndResumePausedDownloads();
     }
 
 }

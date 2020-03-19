@@ -7,7 +7,7 @@ import com.molvix.android.preferences.AppPrefs;
 
 import java.util.Set;
 
-public class DownloadUtils {
+public class DownloaderUtils {
     public static void checkAndResumePausedDownloads() {
         if (ConnectivityUtils.isDeviceConnectedToTheInternet()) {
             Set<String> pausedDownloads = AppPrefs.getInProgressDownloads();

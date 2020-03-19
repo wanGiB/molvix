@@ -67,10 +67,10 @@ public class AppConstants {
     public static final String MOVIE_ART_URL = "movie_art_url";
     public static final String FORCED_VERSION_CODE_UPDATE = "forced_version_code_update";
     public static final String FORCED_VERSION_NAME_UPDATE = "forced_version_name_update";
-    public static AtomicBoolean canShuffleExistingMovieCollection = new AtomicBoolean(true);
-    public static AtomicReference<UnifiedNativeAd> unifiedNativeAdAtomicReference = new AtomicReference<>();
     public static final String GOOGLE_PLAY_PACKAGE_NAME = "com.android.vending";
     public static final String PRESETS_DOWNSTREAM_URL = "https://raw.githubusercontent.com/molvixapp/lizandry/master/presets.json";
     public static Stack<Integer> downloadedVideoItemsPositionsStack = new Stack<>();
+    public static AtomicBoolean canShuffleExistingMovieCollection = new AtomicBoolean(true);
+    public static AtomicReference<UnifiedNativeAd> unifiedNativeAdAtomicReference = new AtomicReference<>();
     public static AtomicBoolean MAIN_ACTIVITY_IN_FOCUS = new AtomicBoolean(false);
 }

@@ -50,7 +50,7 @@ public class MoviesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
             moviesItemViewHolder.bindData(movies.get(position), getSearchString());
         } else {
             AdsItemViewHolder adsItemViewHolder = (AdsItemViewHolder) holder;
-            adsItemViewHolder.loadAd();
+            adsItemViewHolder.loadAd(position);
         }
     }
 
@@ -99,13 +99,13 @@ public class MoviesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
             ButterKnife.bind(this, itemView);
         }
 
-        void loadAd() {
+        void loadAd(int position) {
             UnifiedNativeAd unifiedNativeAd = AppConstants.unifiedNativeAdAtomicReference.get();
             if (unifiedNativeAd != null && ConnectivityUtils.isDeviceConnectedToTheInternet()) {
-                UiUtils.toggleViewVisibility(adMobNativeAdView, true);
+                UiUtils.toggleViewVisibility(itemView, true);
                 adMobNativeAdView.loadInAd(unifiedNativeAd);
             } else {
-                UiUtils.toggleViewVisibility(adMobNativeAdView, false);
+                UiUtils.toggleViewVisibility(itemView, false);
             }
         }
 

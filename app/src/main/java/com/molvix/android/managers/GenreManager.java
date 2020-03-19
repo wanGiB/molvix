@@ -18,7 +18,7 @@ public class GenreManager {
         return genresList;
     }
 
-    public static void persistGenres(List<String> genresList) {
+    static void persistGenres(List<String> genresList) {
         if (!genresList.isEmpty()) {
             String genresString = new Gson().toJson(genresList, new TypeToken<List<String>>() {
             }.getType());
