@@ -420,9 +420,7 @@ public class HomeFragment extends BaseFragment {
     private void displayTotalNumberOfMoviesLoadedInHeader() {
         mUiHandler.post(() -> {
             if (!movies.isEmpty()) {
-                int totalNumberOfMovies = movies.size();
-                DecimalFormat moviesNoFormatter = new DecimalFormat("#,###");
-                headerTextView.setText("Over " + moviesNoFormatter.format(totalNumberOfMovies) + " series available");
+                headerTextView.setText("Recommended For You");
             }
         });
     }

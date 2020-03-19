@@ -37,6 +37,7 @@ import com.molvix.android.models.Movie;
 import com.molvix.android.models.Notification;
 import com.molvix.android.models.Season;
 import com.molvix.android.preferences.AppPrefs;
+import com.molvix.android.ui.activities.MainActivity;
 import com.molvix.android.ui.adapters.EpisodesAdapter;
 import com.molvix.android.utils.ConnectivityUtils;
 import com.molvix.android.utils.UiUtils;
@@ -109,11 +110,19 @@ public class MovieDetailsView extends FrameLayout {
                         pullMovieDetailsFromTheInternet(movie);
                     } else {
                         UiUtils.showSafeToast("Please connect to the internet and try again.");
+                        closeView();
                     }
                 } else {
                     loadMovieDetails(movie);
                 }
             }
+        }
+    }
+
+    private void closeView() {
+        if (getContext() instanceof MainActivity) {
+            MainActivity mainActivity = (MainActivity) getContext();
+            mainActivity.onBackPressed();
         }
     }
 

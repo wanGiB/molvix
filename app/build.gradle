@@ -6,7 +6,7 @@ android {
     buildToolsVersion "29.0.3"
     defaultConfig {
         applicationId "com.molvix.android"
-        minSdkVersion 17
+        minSdkVersion 19
         targetSdkVersion 29
         versionCode 14
         versionName "1.41"
@@ -67,4 +67,5 @@ dependencies {
     implementation 'org.jetbrains:annotations:16.0.2'
 //    implementation 'com.arthenica:mobile-ffmpeg-full-gpl:4.3.1.LTS'
     implementation 'com.google.android.gms:play-services-ads:18.3.0'
+//    implementation 'com.rmtheis:tess-two:9.0.0'
 }

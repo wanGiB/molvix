@@ -3,22 +3,31 @@ package com.molvix.android.ui.activities;
 import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Base64;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.ConsoleMessage;
+import android.webkit.WebChromeClient;
 import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
+import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
@@ -38,6 +47,7 @@ import com.molvix.android.R;
 import com.molvix.android.beans.DownloadedVideoItem;
 import com.molvix.android.companions.AppConstants;
 import com.molvix.android.components.ApplicationLoader;
+import com.molvix.android.contracts.DoneCallback;
 import com.molvix.android.database.MolvixDB;
 import com.molvix.android.eventbuses.CheckForDownloadableEpisodes;
 import com.molvix.android.eventbuses.ConnectivityChangedEvent;
@@ -82,7 +92,11 @@ import org.greenrobot.eventbus.EventBus;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -134,7 +148,7 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
         setupViewPager();
         observeNewIntent(getIntent());
         fetchDownloadableEpisodes();
-        checkAndResumeUnFinishedDownloads();
+        checkAndDisplayUnFinishedDownloads();
         cleanUpUnLinkedDownloadKeys();
         setupRewardedVideoAd();
         resetAdsLoader();
@@ -357,13 +371,13 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
                 UiUtils.snackMessage("Sorry, an error occurred while downloading " + episode.getEpisodeName() + "/" + episode.getSeason().getSeasonName() + " of " + WordUtils.capitalize(episode.getSeason().getMovie().getMovieName()) + ".Please try again", rootContainer, true, null, null);
             } else if (event instanceof ConnectivityChangedEvent) {
                 if (ConnectivityUtils.isDeviceConnectedToTheInternet()) {
-                    checkAndResumeUnFinishedDownloads();
+                    checkAndDisplayUnFinishedDownloads();
                 }
             }
         });
     }
 
-    private void checkAndResumeUnFinishedDownloads() {
+    private void checkAndDisplayUnFinishedDownloads() {
         Set<String> pausedDownloads = AppPrefs.getInProgressDownloads();
         if (!pausedDownloads.isEmpty()) {
             int sizeOfUnFinishedDownloads = pausedDownloads.size();
@@ -465,16 +479,87 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
         }
     }
 
-    private void injectMagicScript(AdvancedWebView hackWebView) {
-        String javascriptCodeInjection =
-                "javascript:function clickCaptchaButton(){\n" +
+    private void byPassCaptcha(AdvancedWebView hackWebView) {
+        String currentPageUrl = hackWebView.getUrl();
+        String captchaBase64String = "javascript:(function getBase64StringOfCaptcha() {\n" +
+                "    var pageImgs = document.getElementsByTagName(\"img\");\n" +
+                "    if (pageImgs != undefined) {\n" +
+                "        var pageImgsLength = pageImgs.length;\n" +
+                "        var i;\n" +
+                "        for (i = 0; i < pageImgsLength; i++) {\n" +
+                "            var pageImg = pageImgs[i];\n" +
+                "            var imageSrc = pageImg.src;\n" +
+                "            var targetKeyword = \"captcha\";\n" +
+                "            if (imageSrc.toLowerCase().indexOf(targetKeyword) != -1) {\n" +
+                "                var canvas = document.createElement(\"canvas\");\n" +
+                "                var ctx = canvas.getContext(\"2d\");\n" +
+                "                ctx.drawImage(pageImg, 0, 0);\n" +
+                "                var dataURL = canvas.toDataURL(\"image/png\");\n" +
+                "                var result = {};\n" +
+                "                result[\"imageData\"] = dataURL;\n" +
+                "                result[\"molvixData\"] = \"molvixData\";\n" +
+                "                console.log(JSON.stringify(result));\n" +
+                "                break;\n" +
+                "            }\n" +
+                "        }\n" +
+                "    }\n" +
+                "})();\n";
+
+        String continueDownload =
+                "javascript:(function clickCaptchaButton() {\n" +
                         "    document.getElementsByTagName('input')[0].click();\n" +
-                        "}\n" +
-                        "clickCaptchaButton();";
-        if (Build.VERSION.SDK_INT >= 19) {
-            hackWebView.evaluateJavascript(javascriptCodeInjection, value -> MolvixLogger.d(ContentManager.class.getSimpleName(), "Result after evaluating JavaScript=" + value));
-        } else {
-            hackWebView.loadUrl(javascriptCodeInjection);
+                        "})();";
+        new CaptchaPageInfoTask(currentPageUrl, (response, e) -> {
+            if (response != null) {
+                runOnUiThread(() -> {
+                    if (response.equals(AppConstants.SOLVE_COMPLEX_CAPTCHA)) {
+                        evaluateJavaScript(hackWebView, captchaBase64String);
+                    } else if (response.equals(AppConstants.NO_COMPLEX_CAPTCHA)) {
+                        evaluateJavaScript(hackWebView, continueDownload);
+                    }
+                });
+            }
+        }).execute();
+    }
+
+    private void evaluateJavaScript(AdvancedWebView hackWebView, String javascript) {
+        hackWebView.evaluateJavascript(javascript, null);
+    }
+
+    static class CaptchaPageInfoTask extends AsyncTask<Void, Void, Void> {
+
+        private String pageUrl;
+        private DoneCallback<String> hackDoneCallback;
+
+        CaptchaPageInfoTask(String pageUrl, DoneCallback<String> hackDoneCallback) {
+            this.pageUrl = pageUrl;
+            this.hackDoneCallback = hackDoneCallback;
+        }
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            try {
+                Document document = Jsoup.connect(pageUrl).get();
+                Element formElement = document.selectFirst("form");
+                if (formElement != null) {
+                    Element firstCaptchaImg = formElement.selectFirst("img");
+                    if (firstCaptchaImg != null) {
+                        String imageSrc = firstCaptchaImg.attr("src");
+                        if (imageSrc != null) {
+                            hackDoneCallback.done(AppConstants.SOLVE_COMPLEX_CAPTCHA, null);
+                        } else {
+                            hackDoneCallback.done(AppConstants.NO_COMPLEX_CAPTCHA, null);
+                        }
+                    } else {
+                        hackDoneCallback.done(AppConstants.NO_COMPLEX_CAPTCHA, null);
+                    }
+                } else {
+                    hackDoneCallback.done(AppConstants.NO_FORM_ELEMENT_FOUND, null);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return null;
         }
     }
 
@@ -486,7 +571,7 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
                 super.onPageFinished(view, url);
                 MolvixLogger.d(ContentManager.class.getSimpleName(), "OnPageFinished and url=" + url);
                 if (url.toLowerCase().contains("areyouhuman")) {
-                    injectMagicScript(hackWebView);
+                    byPassCaptcha(hackWebView);
                 }
             }
 
@@ -526,19 +611,62 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
             }
 
         });
+        hackWebView.setWebChromeClient(new WebChromeClient() {
+            @Override
+            public boolean onConsoleMessage(ConsoleMessage consoleMessage) {
+                String consoleMessageString = consoleMessage.message();
+                if (consoleMessageString.contains("molvixData")) {
+                    try {
+                        JSONObject jsonObject = new JSONObject(consoleMessageString);
+                        String imageData = jsonObject.optString("imageData");
+                        String cleanImage = imageData.replace("data:image/png;base64,", "").replace("data:image/jpeg;base64,", "");
+                        previewCaptchaImage(cleanImage);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+                return super.onConsoleMessage(consoleMessage);
+            }
+        });
         hackWebView.loadUrl(episode.getEpisodeCaptchaSolverLink());
+    }
+
+    private void previewCaptchaImage(String cleanImage) {
+        @SuppressLint("InflateParams") View captchaContentView = LayoutInflater.from(this).inflate(R.layout.captcha_dialog_content_view, null);
+        ImageView captchaImageView = captchaContentView.findViewById(R.id.captcha_image_view);
+        TextView predictionTextView = captchaContentView.findViewById(R.id.prediction);
+        byte[] decodedString = Base64.decode(cleanImage, Base64.DEFAULT);
+        Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+        captchaImageView.setImageBitmap(decodedByte);
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setView(captchaContentView);
+        builder.setTitle("Captcha To Attack");
+        builder.setPositiveButton("OK", (dialogInterface, i) -> {
+
+        });
+        builder.setNegativeButton("Attack", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                //Attempt to predict the Captcha Text Here
+            }
+        });
+        builder.create().show();
     }
 
     private void observeNewIntent(Intent intent) {
         String invocationType = intent.getStringExtra(AppConstants.INVOCATION_TYPE);
         if (invocationType != null) {
-            if (invocationType.equals(AppConstants.NAVIGATE_TO_SECOND_FRAGMENT)) {
-                fragmentsPager.setCurrentItem(1);
-            } else if (invocationType.equals(AppConstants.DISPLAY_MOVIE)) {
-                String movieId = intent.getStringExtra(AppConstants.MOVIE_ID);
-                loadMovieDetails(movieId);
-            } else if (invocationType.equals(AppConstants.SHOW_UNFINISHED_DOWNLOADS)) {
-                checkAndResumeUnFinishedDownloads();
+            switch (invocationType) {
+                case AppConstants.NAVIGATE_TO_SECOND_FRAGMENT:
+                    fragmentsPager.setCurrentItem(1);
+                    break;
+                case AppConstants.DISPLAY_MOVIE:
+                    String movieId = intent.getStringExtra(AppConstants.MOVIE_ID);
+                    loadMovieDetails(movieId);
+                    break;
+                case AppConstants.SHOW_UNFINISHED_DOWNLOADS:
+                    checkAndDisplayUnFinishedDownloads();
+                    break;
             }
         }
     }
@@ -615,7 +743,6 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
     }
 
     private void initNavBarTints() {
-
         ColorStateList lightModeIconsColorStates = new ColorStateList(
                 new int[][]{new int[]{-android.R.attr.state_checked}, new int[]{android.R.attr.state_checked}},
                 new int[]{ContextCompat.getColor(this, R.color.grey500), Color.BLACK});

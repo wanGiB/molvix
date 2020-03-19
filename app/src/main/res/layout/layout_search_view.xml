@@ -27,7 +27,7 @@
             android:padding="16dp"
             android:textColor="?attr/search_text_color"
             android:textColorHint="?attr/search_hint_color"
-            android:textSize="14sp" />
+            android:textSize="15sp" />
 
         <androidx.appcompat.widget.AppCompatImageView
             android:id="@+id/close_search"

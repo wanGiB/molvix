@@ -19,6 +19,9 @@ public class AppConstants {
     public static final String DOWNLOAD_COINS = "download_coins";
     public static final String GENRES = "genres";
     public static final String SHOW_UNFINISHED_DOWNLOADS = "show_unfinished_downloads";
+    public static final String NO_COMPLEX_CAPTCHA = "_no_complex_captcha";
+    public static final String SOLVE_COMPLEX_CAPTCHA = "_solve_complex_captcha";
+    public static final String NO_FORM_ELEMENT_FOUND = "_no_form_element_found";
     public static HashMap<String, String> MOVIE_NAME_TO_ART_URL_MAP = new HashMap<>();
     @SuppressLint("ConstantLocale")
     public static final SimpleDateFormat DATE_FORMATTER_IN_12HRS = new SimpleDateFormat("h:mm a", Locale.getDefault());
