@@ -3,6 +3,7 @@
     <words>
       <w>admob</w>
       <w>areyouhuman</w>
+      <w>bigrams</w>
       <w>enque</w>
       <w>gamification</w>
       <w>imgs</w>
@@ -10,6 +11,10 @@
       <w>molvixapp</w>
       <w>pluralizer</w>
       <w>recommendability</w>
+      <w>tessbase</w>
+      <w>tessdata</w>
+      <w>tesseract</w>
+      <w>traineddata</w>
       <w>tvseries</w>
     </words>
   </dictionary>

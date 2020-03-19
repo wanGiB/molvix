@@ -67,5 +67,5 @@ dependencies {
     implementation 'org.jetbrains:annotations:16.0.2'
 //    implementation 'com.arthenica:mobile-ffmpeg-full-gpl:4.3.1.LTS'
     implementation 'com.google.android.gms:play-services-ads:18.3.0'
-//    implementation 'com.rmtheis:tess-two:9.0.0'
+    implementation 'com.rmtheis:tess-two:9.0.0'
 }

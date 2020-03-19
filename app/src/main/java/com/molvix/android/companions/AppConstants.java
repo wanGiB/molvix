@@ -1,6 +1,7 @@
 package com.molvix.android.companions;
 
 import android.annotation.SuppressLint;
+import android.util.SparseBooleanArray;
 
 import com.google.android.gms.ads.formats.UnifiedNativeAd;
 

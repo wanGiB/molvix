@@ -81,6 +81,7 @@ import com.molvix.android.ui.widgets.NewUpdateAvailableView;
 import com.molvix.android.utils.ConnectivityUtils;
 import com.molvix.android.utils.DownloaderUtils;
 import com.molvix.android.utils.FileUtils;
+import com.molvix.android.utils.ML;
 import com.molvix.android.utils.MolvixGenUtils;
 import com.molvix.android.utils.MolvixLogger;
 import com.molvix.android.utils.UiUtils;
@@ -644,10 +645,13 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
         builder.setPositiveButton("OK", (dialogInterface, i) -> {
 
         });
-        builder.setNegativeButton("Attack", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                //Attempt to predict the Captcha Text Here
+        builder.setNegativeButton("Attack", (dialogInterface, i) -> {
+            //Attempt to predict the Captcha Text Here
+            String prediction = ML.predictTextFromBitmap(decodedByte);
+            if (prediction != null) {
+                predictionTextView.setText(prediction);
+            } else {
+                predictionTextView.setText("Prediction failed");
             }
         });
         builder.create().show();
@@ -773,6 +777,7 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
         subscribeToPresetsChanges();
         ContentManager.fetchPresets();
         ContentManager.fetchMovieGenres();
+        ML.checkAndMoveMLFilesToDevice();
     }
 
     private void subscribeToPresetsChanges() {
