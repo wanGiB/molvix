@@ -45,8 +45,6 @@ public class ML {
                 File expectedFile = getDataFile(fileName);
                 if (!expectedFile.exists()) {
                     copyFileFromAssets(fileName, expectedFile.getPath());
-                } else {
-                    MolvixLogger.d(ContentManager.class.getSimpleName(), fileName + " already exists");
                 }
             }
         }
@@ -58,8 +56,6 @@ public class ML {
             File expectedFile = getDataFile(expectedFilename);
             if (!expectedFile.exists()) {
                 copyFileFromAssets(expectedFilename, expectedFile.getPath());
-            } else {
-                MolvixLogger.d(ContentManager.class.getSimpleName(), expectedFilename + " already exists");
             }
         }
     }
@@ -121,12 +117,7 @@ public class ML {
     public static String predictTextFromBitmap(Bitmap bitmap) {
         try {
             final TessBaseAPI baseApi = new TessBaseAPI();
-            boolean success = baseApi.init(TESSBASE_PATH, DEFAULT_LANGUAGE, TessBaseAPI.OEM_TESSERACT_ONLY);
-            if (success) {
-                MolvixLogger.d(ContentManager.class.getSimpleName(), "TessBaseAPI Init successfully");
-            } else {
-                MolvixLogger.d(ContentManager.class.getSimpleName(), "TessBaseAPI Init failed");
-            }
+            baseApi.init(TESSBASE_PATH, DEFAULT_LANGUAGE, TessBaseAPI.OEM_TESSERACT_ONLY);
             baseApi.setPageSegMode(TessBaseAPI.PageSegMode.PSM_SINGLE_LINE);
             baseApi.setImage(bitmap);
             String result = baseApi.getUTF8Text();

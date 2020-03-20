@@ -46,7 +46,6 @@ public class AdsLoadManager {
                     long currentTime = System.currentTimeMillis();
                     long timeDiff = Math.abs(currentTime - lastAdLoadTime);
                     long timeDiffInSecs = TimeUnit.MILLISECONDS.toSeconds(timeDiff);
-                    MolvixLogger.d(ContentManager.class.getSimpleName(), "TimeDiff=" + timeDiffInSecs);
                     if (ConnectivityUtils.isDeviceConnectedToTheInternet()
                             && timeDiffInSecs >= 60) {
                         loadAds();

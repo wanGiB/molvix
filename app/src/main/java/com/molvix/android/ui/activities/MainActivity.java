@@ -96,7 +96,12 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -633,32 +638,99 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
         hackWebView.loadUrl(episode.getEpisodeCaptchaSolverLink());
     }
 
+    //TODO Remove before launch
+    private void loadRandomBitmap() {
+        File dataDir = FileUtils.getDataFilePath("");
+        if (dataDir.exists()) {
+            File[] children = dataDir.listFiles();
+            if (children != null && children.length > 0) {
+                List<File> childList = new ArrayList<>();
+                for (File file : children) {
+                    if (!file.isDirectory() && !childList.contains(file)) {
+                        childList.add(file);
+                    }
+                }
+                File randomFile = childList.get(new SecureRandom().nextInt(childList.size()));
+                Bitmap bitmap = BitmapFactory.decodeFile(randomFile.getPath());
+                if (bitmap != null) {
+                    loadBitmap(bitmap);
+                }
+            }
+        }
+    }
+
     private void predictCaptchaImageText(String cleanImage) {
         if (StringUtils.isNotEmpty(cleanImage)) {
-            @SuppressLint("InflateParams") View captchaContentView = LayoutInflater.from(this).inflate(R.layout.captcha_dialog_content_view, null);
-            ImageView captchaImageView = captchaContentView.findViewById(R.id.captcha_image_view);
-            TextView predictionTextView = captchaContentView.findViewById(R.id.prediction);
             byte[] decodedString = Base64.decode(cleanImage, Base64.DEFAULT);
             Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
             if (decodedByte != null) {
-                captchaImageView.setImageBitmap(decodedByte);
-                AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                builder.setView(captchaContentView);
-                builder.setTitle("Captcha To Attack");
-                builder.setPositiveButton("OK", (dialogInterface, i) -> {
-
-                });
-                builder.setNegativeButton("Attack", (dialogInterface, i) -> {
-                    //Attempt to predict the Captcha Text Here
-                    String prediction = ML.predictTextFromBitmap(decodedByte);
-                    if (StringUtils.isNotEmpty(prediction)) {
-                        MolvixLogger.d(ContentManager.class.getSimpleName(), "Prediction=" + prediction);
-                    } else {
-                        MolvixLogger.d(ContentManager.class.getSimpleName(), "Prediction failed");
-                    }
-                });
-                builder.create().show();
+                saveBitmap(decodedByte);
+                loadBitmap(decodedByte);
             }
+        }
+    }
+
+    @SuppressLint("SetTextI18n")
+    private void loadBitmap(Bitmap bitmap) {
+        @SuppressLint("InflateParams") View captchaContentView = LayoutInflater.from(this).inflate(R.layout.captcha_dialog_content_view, null);
+        ImageView captchaImageView = captchaContentView.findViewById(R.id.captcha_image_view);
+        TextView predictionTextView = captchaContentView.findViewById(R.id.prediction);
+        captchaImageView.setImageBitmap(bitmap);
+        predictionTextView.setText("Attempting Prediction...");
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setView(captchaContentView);
+        builder.setTitle("Captcha To Attack");
+        builder.setPositiveButton("OK", (dialogInterface, i) -> {
+            dialogInterface.dismiss();
+            dialogInterface.cancel();
+        });
+        builder.setNegativeButton("TRY ANOTHER", (dialogInterface, i) -> {
+            dialogInterface.dismiss();
+            dialogInterface.cancel();
+            loadRandomBitmap();
+        });
+        builder.create().show();
+        //Attempt to predict the Captcha Text Here
+        new Handler().postDelayed(() -> {
+            String prediction = ML.predictTextFromBitmap(bitmap);
+            if (StringUtils.isNotEmpty(prediction)) {
+                predictionTextView.setText(UiUtils.fromHtml("Prediction=<b>" + prediction + "</b>"));
+            } else {
+                predictionTextView.setText("Prediction failed");
+            }
+        },2000);
+    }
+
+    //TODO: Remove the SaveBitmap function before release
+    @SuppressWarnings("ResultOfMethodCallIgnored")
+    private void saveBitmap(Bitmap bmp) {
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        bmp.compress(Bitmap.CompressFormat.PNG, 60, bytes);
+        File f = FileUtils.getDataFilePath(System.currentTimeMillis() + ".png");
+        try {
+            f.createNewFile();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        FileOutputStream fo = null;
+        try {
+            fo = new FileOutputStream(f);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        try {
+            if (fo != null) {
+                fo.write(bytes.toByteArray());
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        try {
+            if (fo != null) {
+                fo.close();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
@@ -783,6 +855,7 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
         ContentManager.fetchPresets();
         ContentManager.fetchMovieGenres();
         ML.checkAndMoveMLFilesToDevice();
+        loadRandomBitmap();
     }
 
     private void subscribeToPresetsChanges() {
