@@ -15,7 +15,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Base64;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.ConsoleMessage;
@@ -25,8 +24,6 @@ import android.webkit.WebResourceRequest;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.FrameLayout;
-import android.widget.ImageView;
-import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
@@ -80,11 +77,11 @@ import com.molvix.android.ui.widgets.NewUpdateAvailableView;
 import com.molvix.android.utils.ConnectivityUtils;
 import com.molvix.android.utils.DownloaderUtils;
 import com.molvix.android.utils.FileUtils;
-import com.molvix.android.utils.ML;
 import com.molvix.android.utils.MolvixGenUtils;
 import com.molvix.android.utils.MolvixLogger;
 import com.molvix.android.utils.UiUtils;
 import com.morsebyte.shailesh.twostagerating.dialog.UriHelper;
+import com.yarolegovich.lovelydialog.LovelyTextInputDialog;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.text.WordUtils;
@@ -96,18 +93,14 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -139,6 +132,8 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
 
     private RewardedVideoAd mRewardedVideoAd;
     public static AtomicBoolean canShowLoadedVideoAd = new AtomicBoolean(false);
+
+    private AtomicReference<String> lastCaptchaErrorMessage = new AtomicReference<>(null);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -207,7 +202,7 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
                     selectedGenres.remove(selectionToLowerCase);
                 }
             });
-            genresDialogBuilder.setPositiveButton("ACTIVATE", (dialog, which) -> {
+            genresDialogBuilder.setPositiveButton("FILTER", (dialog, which) -> {
                 dialog.dismiss();
                 if (!selectedGenres.isEmpty()) {
                     EventBus.getDefault().post(new FilterByGenresEvent(selectedGenres));
@@ -576,7 +571,14 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
                 super.onPageFinished(view, url);
                 MolvixLogger.d(ContentManager.class.getSimpleName(), "OnPageFinished and url=" + url);
                 if (url.toLowerCase().contains("areyouhuman")) {
-                    byPassCaptcha(hackWebView);
+                    //Check that the last captcha was not wrong
+                    String captchaAttackTest = "javascript:(function captchaMatchTest(){\n" +
+                            "        var documentBody = document.getElementsByTagName(\"body\")[0].innerHTML;\n" +
+                            "        var captchaData={};\n" +
+                            "        captchaData[\"molvixCaptcha\"]=documentBody;\n" +
+                            "        console.log(JSON.stringify(captchaData));\n" +
+                            "    })();";
+                    evaluateJavaScript(hackWebView, captchaAttackTest);
                 }
             }
 
@@ -589,6 +591,7 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
                     return;
                 }
                 if (mimeTypeOfUrl.toLowerCase().contains("video")) {
+                    lastCaptchaErrorMessage.set(null);
                     hackWebView.stopLoading();
                     if (episode.getEpisodeQuality() == AppConstants.STANDARD_QUALITY) {
                         episode.setStandardQualityDownloadLink(url);
@@ -626,7 +629,25 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
                         String imageData = jsonObject.optString("imageData");
                         String cleanImage = imageData.replace("data:image/png;base64,", "").replace("data:image/jpeg;base64,", "");
                         if (StringUtils.isNotEmpty(cleanImage)) {
-                            predictCaptchaImageText(cleanImage);
+                            loadCaptchaImage(hackWebView, cleanImage);
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                } else if (consoleMessageString.contains("molvixCaptcha")) {
+                    try {
+                        JSONObject jsonObject = new JSONObject(consoleMessageString);
+                        String bodyString = jsonObject.optString("molvixCaptcha");
+                        if (StringUtils.isNotEmpty(bodyString)) {
+                            if (StringUtils.containsIgnoreCase(bodyString, "Error: Captcha Does Not Match")) {
+                                //Display captcha error
+                                lastCaptchaErrorMessage.set("Last Captcha was incorrect.");
+                                if (hackWebView.canGoBack()) {
+                                    hackWebView.goBack();
+                                }
+                            } else {
+                                byPassCaptcha(hackWebView);
+                            }
                         }
                     } catch (JSONException e) {
                         e.printStackTrace();
@@ -638,100 +659,42 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
         hackWebView.loadUrl(episode.getEpisodeCaptchaSolverLink());
     }
 
-    //TODO Remove before launch
-    private void loadRandomBitmap() {
-        File dataDir = FileUtils.getDataFilePath("");
-        if (dataDir.exists()) {
-            File[] children = dataDir.listFiles();
-            if (children != null && children.length > 0) {
-                List<File> childList = new ArrayList<>();
-                for (File file : children) {
-                    if (!file.isDirectory() && !childList.contains(file)) {
-                        childList.add(file);
-                    }
-                }
-                File randomFile = childList.get(new SecureRandom().nextInt(childList.size()));
-                Bitmap bitmap = BitmapFactory.decodeFile(randomFile.getPath());
-                if (bitmap != null) {
-                    loadBitmap(bitmap);
-                }
-            }
-        }
-    }
-
-    private void predictCaptchaImageText(String cleanImage) {
+    private void loadCaptchaImage(AdvancedWebView advancedWebView, String cleanImage) {
         if (StringUtils.isNotEmpty(cleanImage)) {
             byte[] decodedString = Base64.decode(cleanImage, Base64.DEFAULT);
             Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
             if (decodedByte != null) {
-                saveBitmap(decodedByte);
-                loadBitmap(decodedByte);
+                loadUserSolveCaptcha(advancedWebView, decodedByte);
             }
         }
     }
 
     @SuppressLint("SetTextI18n")
-    private void loadBitmap(Bitmap bitmap) {
-        @SuppressLint("InflateParams") View captchaContentView = LayoutInflater.from(this).inflate(R.layout.captcha_dialog_content_view, null);
-        ImageView captchaImageView = captchaContentView.findViewById(R.id.captcha_image_view);
-        TextView predictionTextView = captchaContentView.findViewById(R.id.prediction);
-        captchaImageView.setImageBitmap(bitmap);
-        predictionTextView.setText("Attempting Prediction...");
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setView(captchaContentView);
-        builder.setTitle("Captcha To Attack");
-        builder.setPositiveButton("OK", (dialogInterface, i) -> {
-            dialogInterface.dismiss();
-            dialogInterface.cancel();
-        });
-        builder.setNegativeButton("TRY ANOTHER", (dialogInterface, i) -> {
-            dialogInterface.dismiss();
-            dialogInterface.cancel();
-            loadRandomBitmap();
-        });
-        builder.create().show();
-        //Attempt to predict the Captcha Text Here
-        new Handler().postDelayed(() -> {
-            String prediction = ML.predictTextFromBitmap(bitmap);
-            if (StringUtils.isNotEmpty(prediction)) {
-                predictionTextView.setText(UiUtils.fromHtml("Prediction=<b>" + prediction + "</b>"));
-            } else {
-                predictionTextView.setText("Prediction failed");
-            }
-        },2000);
-    }
-
-    //TODO: Remove the SaveBitmap function before release
-    @SuppressWarnings("ResultOfMethodCallIgnored")
-    private void saveBitmap(Bitmap bmp) {
-        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-        bmp.compress(Bitmap.CompressFormat.PNG, 60, bytes);
-        File f = FileUtils.getDataFilePath(System.currentTimeMillis() + ".png");
-        try {
-            f.createNewFile();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        FileOutputStream fo = null;
-        try {
-            fo = new FileOutputStream(f);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-        try {
-            if (fo != null) {
-                fo.write(bytes.toByteArray());
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        try {
-            if (fo != null) {
-                fo.close();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    private void loadUserSolveCaptcha(AdvancedWebView advancedWebView, Bitmap bitmap) {
+        new LovelyTextInputDialog(this)
+                .setTopColorRes(ThemeManager.getThemeSelection() == ThemeManager.ThemeSelection.DARK
+                        ? R.color.dracula_primary :
+                        R.color.colorPrimary)
+                .setTitle(R.string.enter_text_shown_title)
+                .setMessage((lastCaptchaErrorMessage.get() != null ? "Your last entry was wrong\n" : "") + "Please enter the text shown above to complete download")
+                .setIcon(bitmap)
+                .setInputFilter(R.string.text_input_error_message, text -> text.matches("\\w+"))
+                .setConfirmButton(android.R.string.ok, text -> {
+                    if (StringUtils.isNotEmpty(text)) {
+                        String injectionString = "javascript: function injectCaptcha(captcha){\n" +
+                                "    var form = document.getElementsByTagName(\"form\")[0];\n" +
+                                "    var captchaInput = form.elements[0];\n" +
+                                "    var captchaButton = form.elements[1];\n" +
+                                "    captchaInput.value=captcha;\n" +
+                                "    captchaButton.click();\n" +
+                                "}\n" +
+                                "injectCaptcha(\"+" + text + "\");";
+                        evaluateJavaScript(advancedWebView, injectionString);
+                    } else {
+                        UiUtils.showSafeToast("Nothing was entered");
+                    }
+                })
+                .show();
     }
 
     private void observeNewIntent(Intent intent) {
@@ -854,8 +817,6 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
         subscribeToPresetsChanges();
         ContentManager.fetchPresets();
         ContentManager.fetchMovieGenres();
-        ML.checkAndMoveMLFilesToDevice();
-        loadRandomBitmap();
     }
 
     private void subscribeToPresetsChanges() {

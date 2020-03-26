@@ -70,6 +70,8 @@
     <string name="new_">New</string>
     <string name="show_newest_series">Show Newest Series</string>
     <string name="filter_by_genre">Filter by Genre</string>
+    <string name="enter_text_shown_title">Enter Text Shown</string>
+    <string name="text_input_error_message">Invalid Character entered</string>
     <string-array name="reply_choices">
         <item>Yes</item>
         <item>No</item>

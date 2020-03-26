@@ -65,7 +65,6 @@ dependencies {
     implementation 'com.huxq17.pump:download:1.2.13'
     implementation 'com.squareup.okhttp3:okhttp:3.11.0'
     implementation 'org.jetbrains:annotations:16.0.2'
-//    implementation 'com.arthenica:mobile-ffmpeg-full-gpl:4.3.1.LTS'
     implementation 'com.google.android.gms:play-services-ads:18.3.0'
-    implementation 'com.rmtheis:tess-two:9.0.0'
+    implementation 'com.yarolegovich:lovely-dialog:1.1.0'
 }
