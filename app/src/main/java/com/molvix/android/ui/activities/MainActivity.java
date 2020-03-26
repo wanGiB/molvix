@@ -479,7 +479,7 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
         }
     }
 
-    private void byPassCaptcha(AdvancedWebView hackWebView) {
+    private void prepareToByPassCaptcha(AdvancedWebView hackWebView) {
         String currentPageUrl = hackWebView.getUrl();
         String captchaBase64String = "javascript:(function getBase64StringOfCaptcha() {\n" +
                 "    var pageImgs = document.getElementsByTagName(\"img\");\n" +
@@ -572,13 +572,13 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
                 MolvixLogger.d(ContentManager.class.getSimpleName(), "OnPageFinished and url=" + url);
                 if (url.toLowerCase().contains("areyouhuman")) {
                     //Check that the last captcha was not wrong
-                    String captchaAttackTest = "javascript:(function captchaMatchTest(){\n" +
+                    String captchaAttackFeasibilityTest = "javascript:(function captchaMatchTest(){\n" +
                             "        var documentBody = document.getElementsByTagName(\"body\")[0].innerHTML;\n" +
                             "        var captchaData={};\n" +
                             "        captchaData[\"molvixCaptcha\"]=documentBody;\n" +
                             "        console.log(JSON.stringify(captchaData));\n" +
                             "    })();";
-                    evaluateJavaScript(hackWebView, captchaAttackTest);
+                    evaluateJavaScript(hackWebView, captchaAttackFeasibilityTest);
                 }
             }
 
@@ -619,6 +619,7 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
             }
 
         });
+
         hackWebView.setWebChromeClient(new WebChromeClient() {
             @Override
             public boolean onConsoleMessage(ConsoleMessage consoleMessage) {
@@ -635,6 +636,7 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
                         e.printStackTrace();
                     }
                 } else if (consoleMessageString.contains("molvixCaptcha")) {
+                    MolvixLogger.d(ContentManager.class.getSimpleName(),consoleMessageString);
                     try {
                         JSONObject jsonObject = new JSONObject(consoleMessageString);
                         String bodyString = jsonObject.optString("molvixCaptcha");
@@ -646,8 +648,10 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
                                     hackWebView.goBack();
                                 }
                             } else {
-                                byPassCaptcha(hackWebView);
+                                prepareToByPassCaptcha(hackWebView);
                             }
+                        }else{
+                            prepareToByPassCaptcha(hackWebView);
                         }
                     } catch (JSONException e) {
                         e.printStackTrace();
