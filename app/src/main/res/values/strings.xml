@@ -72,6 +72,8 @@
     <string name="filter_by_genre">Filter by Genre</string>
     <string name="enter_text_shown_title">Enter Text Shown Above</string>
     <string name="text_input_error_message">Empty or invalid characters detected</string>
+    <string name="download_error">Download Error!</string>
+    <string name="try_again">Try Again</string>
     <string-array name="reply_choices">
         <item>Yes</item>
         <item>No</item>

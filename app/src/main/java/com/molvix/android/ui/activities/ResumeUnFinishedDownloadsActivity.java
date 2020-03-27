@@ -20,6 +20,7 @@ public class ResumeUnFinishedDownloadsActivity extends AppCompatActivity {
     private void checkIntent() {
         MolvixNotification.with(this).cancel(Math.abs(AppConstants.SHOW_UNFINISHED_DOWNLOADS.hashCode()));
         DownloaderUtils.checkAndResumePausedDownloads();
+        finish();
     }
 
 }

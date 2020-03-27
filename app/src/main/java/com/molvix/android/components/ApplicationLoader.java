@@ -55,7 +55,6 @@ public class ApplicationLoader extends MultiDexApplication {
         @Override
         public void onFailed() {
             handleDownloadError(getDownloadInfo());
-            new Handler().postDelayed(DownloaderUtils::checkAndResumePausedDownloads,1000);
         }
 
         @Override
@@ -79,7 +78,7 @@ public class ApplicationLoader extends MultiDexApplication {
         String episodeId = download.getId();
         if (episodeId != null) {
             Episode episode = MolvixDB.getEpisode(episodeId);
-            MolvixLogger.d(ContentManager.class.getSimpleName(), "Download is completed for " + episode.getEpisodeName() + "/" + episode.getSeason().getSeasonName() + "/" + episode.getSeason().getMovie().getMovieName());
+            MolvixLogger.d(ContentManager.class.getSimpleName(), "Download completed for " + EpisodesManager.getEpisodeFullName(episode));
             finalizeDownload(episode);
             VideoCleaner.cleanVideoEpisode(episode);
         }
@@ -90,9 +89,10 @@ public class ApplicationLoader extends MultiDexApplication {
         if (episodeId != null) {
             Episode episode = MolvixDB.getEpisode(episodeId);
             MolvixNotification.with(ApplicationLoader.getInstance()).cancel(Math.abs(episode.getEpisodeId().hashCode()));
-            MolvixLogger.d(ContentManager.class.getSimpleName(), "An error occurred while downloading " + episode.getEpisodeName() + "/" + episode.getSeason().getSeasonName() + "/" + episode.getSeason().getMovie().getMovieName() + "");
+            MolvixLogger.d(ContentManager.class.getSimpleName(), "An error occurred while downloading " + EpisodesManager.getEpisodeFullName(episode));
             EventBus.getDefault().post(new EpisodeDownloadErrorException(episode));
             resetEpisodeDownloadProgress(episode);
+            new Handler().postDelayed(DownloaderUtils::checkAndResumePausedDownloads, 3000);
         }
     }
 
@@ -128,7 +128,6 @@ public class ApplicationLoader extends MultiDexApplication {
         MovieTracker.recordEpisodeAsDownloaded(episode);
         AppPrefs.removeFromInProgressDownloads(episode);
         MolvixNotificationManager.showEpisodeDownloadProgressNotification(movieName, movieDescription, seasonId, episodeId, movieName + "/" + seasonName + "/" + episode.getEpisodeName(), 100, "");
-        MolvixLogger.d(ContentManager.class.getSimpleName(), "Episode " + episode.getEpisodeName() + " completed");
     }
 
     private static void updateDownloadProgress(Episode episode, @NotNull DownloadInfo downloadInfo) {
@@ -142,9 +141,8 @@ public class ApplicationLoader extends MultiDexApplication {
             int progressPercent = downloadInfo.getProgress();
             long completedSize = downloadInfo.getCompletedSize();
             long totalSize = downloadInfo.getContentLength();
-            String progressMessage=FileUtils.getDataSize(completedSize) + "/" + FileUtils.getDataSize(totalSize);
+            String progressMessage = FileUtils.getDataSize(completedSize) + "/" + FileUtils.getDataSize(totalSize);
             MolvixNotificationManager.showEpisodeDownloadProgressNotification(movieName, movieDescription, seasonId, episode.getEpisodeId(), episode.getEpisodeName() + "/" + seasonName + "/" + movieName, progressPercent, progressMessage);
-            MolvixLogger.d(ContentManager.class.getSimpleName(), "Download in Progress for " + episode.getEpisodeName() + " Progress=" + progressMessage);
             AppPrefs.updateEpisodeDownloadProgress(episode.getEpisodeId(), progressPercent);
             AppPrefs.updateEpisodeDownloadProgressMsg(episode.getEpisodeId(), progressMessage);
         } catch (Exception e) {
@@ -164,7 +162,7 @@ public class ApplicationLoader extends MultiDexApplication {
         if (errorMessage == null) {
             errorMessage = "unknown";
         }
-        MolvixLogger.d(ContentManager.class.getSimpleName(), "Episode " + episode.getEpisodeName() + " backward scrapped due to " + errorMessage);
+        MolvixLogger.d(ContentManager.class.getSimpleName(), EpisodesManager.getEpisodeFullName(episode) + " backward scrapped due to " + errorMessage);
     }
 
     @Override

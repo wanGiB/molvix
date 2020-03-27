@@ -62,8 +62,6 @@ import butterknife.ButterKnife;
 
 public class EpisodeView extends FrameLayout {
 
-    private static String TAG = EpisodeView.class.getSimpleName();
-
     @BindView(R.id.episode_name_view)
     TextView episodeNameView;
 
@@ -428,15 +426,13 @@ public class EpisodeView extends FrameLayout {
                 if (links != null && !links.isEmpty()) {
                     List<String> downloadOptions = new ArrayList<>();
                     for (Element link : links) {
-                        String episodeFileName = link.text();
                         String episodeDownloadLink = link.attr("href");
                         if (episodeDownloadLink.contains(AppConstants.DOWNLOADABLE)) {
-                            MolvixLogger.d(TAG, episodeFileName + ", " + episodeDownloadLink);
                             downloadOptions.add(episodeDownloadLink);
                         }
                     }
                     if (!downloadOptions.isEmpty()) {
-                        MolvixLogger.d(ContentManager.class.getSimpleName(), "Found Captcha Links \n" + downloadOptions);
+                        MolvixLogger.d(ContentManager.class.getSimpleName(), "Found Captcha Links for " + EpisodesManager.getEpisodeFullName(episode) + " are \n" + downloadOptions);
                         String episodeCaptchaSolverLink = null;
                         if (downloadOptions.size() == 1) {
                             episodeCaptchaSolverLink = downloadOptions.get(0);
@@ -480,14 +476,14 @@ public class EpisodeView extends FrameLayout {
                                 e.printStackTrace();
                             }
                         }
-                        String finalEpisodeCaptchaSolverLink = episodeCaptchaSolverLink;
-                        if (finalEpisodeCaptchaSolverLink != null) {
-                            episode.setEpisodeCaptchaSolverLink(finalEpisodeCaptchaSolverLink);
+                        if (episodeCaptchaSolverLink != null) {
+                            MolvixLogger.d(ContentManager.class.getSimpleName(), "Binding Captcha Solver Link to " + EpisodesManager.getEpisodeFullName(episode));
+                            episode.setEpisodeCaptchaSolverLink(episodeCaptchaSolverLink);
                             MolvixDB.updateEpisode(episode);
                             EpisodesManager.enqueDownloadableEpisode(episode);
                         } else {
-                            MolvixLogger.d(ContentManager.class.getSimpleName(), "Damn! We couldn't get a captcha link");
-                            UiUtils.showSafeToast("Sorry, failed to download " + episode.getEpisodeName() + ".Please try again.");
+                            MolvixLogger.d(ContentManager.class.getSimpleName(), "Damn! We couldn't grab a captcha link for " + EpisodesManager.getEpisodeFullName(episode));
+                            UiUtils.showSafeToast("Sorry, failed to download " + EpisodesManager.getEpisodeFullName(episode) + ".Please try again.");
                             AppPrefs.updateEpisodeDownloadProgress(episode.getEpisodeId(), -1);
                             MolvixDB.updateEpisode(episode);
                         }
@@ -495,9 +491,10 @@ public class EpisodeView extends FrameLayout {
                 }
             } catch (IOException e) {
                 e.printStackTrace();
-                UiUtils.showSafeToast("Sorry, failed to download " + episode.getEpisodeName() + ".Please try again.");
+                UiUtils.showSafeToast("Sorry, failed to download " + EpisodesManager.getEpisodeFullName(episode) + ".Please try again.");
                 AppPrefs.updateEpisodeDownloadProgress(episode.getEpisodeId(), -1);
             }
         }
+
     }
 }

@@ -11,7 +11,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.text.DecimalFormat;
-import java.util.Locale;
 
 @SuppressWarnings("ResultOfMethodCallIgnored")
 public class FileUtils {
@@ -117,14 +116,6 @@ public class FileUtils {
         return MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
     }
 
-    public static String getProgressDisplayLine(long currentBytes, long totalBytes) {
-        return getBytesToMBString(currentBytes) + "/" + getBytesToMBString(totalBytes);
-    }
-
-    private static String getBytesToMBString(long bytes) {
-        return String.format(Locale.ENGLISH, "%.2fMb", bytes / (1024.00 * 1024.00));
-    }
-
     private static float getFileSizeInMB(long fileLength) {
         return (float) (fileLength / (1024.00 * 1024.00));
     }
@@ -160,7 +151,7 @@ public class FileUtils {
         }
         DecimalFormat format = new DecimalFormat("####.00");
         if (size < 1024) {
-            return size + "bytes";
+            return size + "B";
         } else if (size < 1024 * 1024) {
             float kbSize = size / 1024f;
             return format.format(kbSize) + "KB";

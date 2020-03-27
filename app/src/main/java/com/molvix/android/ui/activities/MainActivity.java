@@ -19,8 +19,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.ConsoleMessage;
 import android.webkit.WebChromeClient;
-import android.webkit.WebResourceError;
-import android.webkit.WebResourceRequest;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.FrameLayout;
@@ -81,10 +79,10 @@ import com.molvix.android.utils.MolvixGenUtils;
 import com.molvix.android.utils.MolvixLogger;
 import com.molvix.android.utils.UiUtils;
 import com.morsebyte.shailesh.twostagerating.dialog.UriHelper;
+import com.yarolegovich.lovelydialog.LovelyStandardDialog;
 import com.yarolegovich.lovelydialog.LovelyTextInputDialog;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.text.WordUtils;
 import org.greenrobot.eventbus.EventBus;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONException;
@@ -127,13 +125,12 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
     private ProgressDialog gamificationHostDialog;
     private List<Fragment> fragments;
     private DataSubscription presetsSubscription;
-    private AtomicBoolean activeVideoPlayBackPaused = new AtomicBoolean(false);
-
     private RewardedVideoAd mRewardedVideoAd;
-    public static AtomicBoolean canShowLoadedVideoAd = new AtomicBoolean(false);
 
+    public static AtomicBoolean canShowLoadedVideoAd = new AtomicBoolean(false);
     private AtomicReference<String> lastCaptchaErrorMessage = new AtomicReference<>("");
     private AtomicBoolean solvableCaptchaDialogShowing = new AtomicBoolean(false);
+    private AtomicBoolean activeVideoPlayBackPaused = new AtomicBoolean(false);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -262,7 +259,6 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
         AppConstants.MAIN_ACTIVITY_IN_FOCUS.set(true);
         mRewardedVideoAd.resume(this);
         checkAndResumeAnyActivePlayBack();
-        fetchDownloadableEpisodes();
         super.onResume();
     }
 
@@ -368,7 +364,7 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
             } else if (event instanceof EpisodeDownloadErrorException) {
                 EpisodeDownloadErrorException episodeDownloadErrorException = (EpisodeDownloadErrorException) event;
                 Episode episode = episodeDownloadErrorException.getEpisode();
-                UiUtils.snackMessage("Sorry, an error occurred while downloading " + episode.getEpisodeName() + "/" + episode.getSeason().getSeasonName() + " of " + WordUtils.capitalize(episode.getSeason().getMovie().getMovieName()) + ".Please try again", rootContainer, true, null, null);
+                UiUtils.snackMessage("Sorry, an error occurred while downloading " + EpisodesManager.getEpisodeFullName(episode) + ".Please try again", rootContainer, true, null, null);
             } else if (event instanceof ConnectivityChangedEvent) {
                 if (ConnectivityUtils.isDeviceConnectedToTheInternet()) {
                     checkAndDisplayUnFinishedDownloads();
@@ -404,7 +400,7 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
 
             @Override
             public void onPageSelected(int position) {
-                UiUtils.toggleViewVisibility(contentFilterer, position == 0);
+                UiUtils.toggleViewAlpha(contentFilterer, position == 0);
                 if (position == 0) {
                     bottomNavView.setSelectedItemId(R.id.navigation_home);
                 } else if (position == 1) {
@@ -436,51 +432,73 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
     }
 
     @SuppressLint("SetJavaScriptEnabled")
-    private void hackPage(Episode episode) {
-        MolvixLogger.d(ContentManager.class.getSimpleName(), "About to hack Page");
+    private void tryByPassEpisodeCaptcha(Episode episode) {
+        MolvixLogger.d(ContentManager.class.getSimpleName(), "About to bypass captcha for " + EpisodesManager.getEpisodeFullName(episode));
         runOnUiThread(() -> {
-            AdvancedWebView hackWebView = new AdvancedWebView(MainActivity.this);
-            hackWebView.getSettings().setJavaScriptEnabled(true);
-            hackWebView.setCookiesEnabled(true);
-            hackWebView.setMixedContentAllowed(true);
-            hackWebView.setThirdPartyCookiesEnabled(true);
-            if (rootContainer.getChildAt(0) instanceof AdvancedWebView) {
-                rootContainer.removeViewAt(0);
+            AdvancedWebView hackWebView;
+            if (rootContainer.getChildAt(getHackWebViewIndex()) instanceof AdvancedWebView) {
+                //We already have an existing hack web view for this app session
+                //Simply re-use it
+                hackWebView = (AdvancedWebView) rootContainer.getChildAt(getHackWebViewIndex());
+            } else {
+                //Otherwise create a new hack web view and add it as the first child
+                //in the View Group
+                hackWebView = new AdvancedWebView(MainActivity.this);
+                hackWebView.getSettings().setJavaScriptEnabled(true);
+                hackWebView.getSettings().setDomStorageEnabled(true);
+                hackWebView.setCookiesEnabled(true);
+                hackWebView.setMixedContentAllowed(true);
+                hackWebView.setThirdPartyCookiesEnabled(true);
+                rootContainer.addView(hackWebView, getHackWebViewIndex());
             }
-            rootContainer.addView(hackWebView, 0);
             solveEpisodeCaptchaChallenge(hackWebView, episode);
         });
     }
 
+    private int getHackWebViewIndex() {
+        return 0;
+    }
+
     private void fetchDownloadableEpisodes() {
         new Thread(() -> {
+            MolvixLogger.d(ContentManager.class.getSimpleName(), "Checking for downloadable episodes");
             List<DownloadableEpisode> downloadableEpisodes = MolvixDB.getDownloadableEpisodeBox().query().build().find();
             List<DownloadableEpisode> processed = new ArrayList<>();
             if (!downloadableEpisodes.isEmpty()) {
                 for (DownloadableEpisode existingData : downloadableEpisodes) {
                     Set<String> downloadsInProgress = AppPrefs.getInProgressDownloads();
                     if (downloadsInProgress.contains(existingData.getDownloadableEpisodeId())) {
+                        //Remove downloads that are already in progress, we don't want them
+                        //We only want to process downloads that are yet to start
                         MolvixDB.getDownloadableEpisodeBox().remove(existingData);
                     } else {
                         processed.add(existingData);
                     }
                 }
                 processDownloadableEpisodes(processed);
+            } else {
+                MolvixLogger.d(ContentManager.class.getSimpleName(), "No downloadable episodes found");
             }
         }).start();
     }
 
     private void processDownloadableEpisodes(List<DownloadableEpisode> changedData) {
         if (!changedData.isEmpty()) {
+            MolvixLogger.d(ContentManager.class.getSimpleName(), "Some processed downloads waiting to be downloaded have being received...");
             DownloadableEpisode first = changedData.get(0);
             if (EpisodesManager.isCaptchaSolvable()) {
-                hackPage(first.getEpisode());
+                if (ConnectivityUtils.isDeviceConnectedToTheInternet()) {
+                    tryByPassEpisodeCaptcha(first.getEpisode());
+                } else {
+                    MolvixLogger.d(ContentManager.class.getSimpleName(), "No network to bypass captcha of " + EpisodesManager.getEpisodeFullName(first.getEpisode()));
+                }
+            } else {
+                MolvixLogger.d(ContentManager.class.getSimpleName(), "Unfortunately, the captcha solver is currently locked against " + EpisodesManager.getEpisodeFullName(first.getEpisode()) + ".We'll wait for now.");
             }
         }
     }
 
-    private void prepareToByPassCaptcha(AdvancedWebView hackWebView) {
-        MolvixLogger.d(ContentManager.class.getSimpleName(), "Preparing to bypass captcha");
+    private void grabBase64OfEpisodeCaptcha(AdvancedWebView hackWebView) {
         String currentPageUrl = hackWebView.getUrl();
         String captchaBase64String = "javascript:(function getBase64StringOfCaptcha() {\n" +
                 "    var pageImgs = document.getElementsByTagName(\"img\");\n" +
@@ -566,62 +584,14 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
 
     private void solveEpisodeCaptchaChallenge(AdvancedWebView hackWebView, Episode episode) {
         EpisodesManager.lockCaptchaSolver(episode.getEpisodeId());
-        hackWebView.setWebViewClient(new WebViewClient() {
-            @Override
-            public void onPageFinished(WebView view, String url) {
-                super.onPageFinished(view, url);
-                MolvixLogger.d(ContentManager.class.getSimpleName(), "OnPageFinished and url=" + url);
-                if (url.toLowerCase().contains("areyouhuman")) {
-                    //Check that the last captcha was not wrong
-                    String captchaAttackFeasibilityTest = "javascript:(function captchaMatchTest(){\n" +
-                            "        var documentBody = document.getElementsByTagName(\"body\")[0].innerHTML;\n" +
-                            "        var captchaData={};\n" +
-                            "        captchaData[\"molvixCaptcha\"]=documentBody;\n" +
-                            "        console.log(JSON.stringify(captchaData));\n" +
-                            "    })();";
-                    evaluateJavaScript(hackWebView, captchaAttackFeasibilityTest);
-                }
-            }
+        hackWebView.setWebViewClient(getWebViewClient(hackWebView, episode));
+        hackWebView.setWebChromeClient(getWebViewChromeClient(hackWebView, episode));
+        hackWebView.loadUrl(episode.getEpisodeCaptchaSolverLink());
+    }
 
-            @Override
-            public void onPageStarted(WebView view, String url, Bitmap favicon) {
-                super.onPageStarted(view, url, favicon);
-                MolvixLogger.d(ContentManager.class.getSimpleName(), "OnPageStarted and url=" + url);
-                String mimeTypeOfUrl = FileUtils.getMimeType(url);
-                if (mimeTypeOfUrl == null) {
-                    return;
-                }
-                if (mimeTypeOfUrl.toLowerCase().contains("video")) {
-                    lastCaptchaErrorMessage.set("");
-                    hackWebView.stopLoading();
-                    if (episode.getEpisodeQuality() == AppConstants.STANDARD_QUALITY) {
-                        episode.setStandardQualityDownloadLink(url);
-                    } else if (episode.getEpisodeQuality() == AppConstants.HIGH_QUALITY) {
-                        episode.setHighQualityDownloadLink(url);
-                    } else {
-                        episode.setLowQualityDownloadLink(url);
-                    }
-                    MolvixDB.updateEpisode(episode);
-                    FileDownloadManager.downloadEpisode(episode);
-                    hackWebView.onDestroy();
-                    rootContainer.removeView(hackWebView);
-                    EpisodesManager.popDownloadableEpisode(episode);
-                }
-            }
-
-            @Override
-            public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
-                super.onReceivedError(view, request, error);
-                unLockAppCaptchaSolver();
-                UiUtils.showSafeToast("An error occurred while trying to download " + episode.getEpisodeName() + "/" + episode.getSeason().getSeasonName() + " of " + WordUtils.capitalize(episode.getSeason().getMovie().getMovieName() + ".Please try again"));
-                AppPrefs.updateEpisodeDownloadProgress(episode.getEpisodeId(), -1);
-                AppPrefs.updateEpisodeDownloadProgressMsg(episode.getEpisodeId(), "");
-                EventBus.getDefault().post(new CheckForDownloadableEpisodes());
-            }
-
-        });
-
-        hackWebView.setWebChromeClient(new WebChromeClient() {
+    @NotNull
+    private WebChromeClient getWebViewChromeClient(AdvancedWebView hackWebView, Episode episode) {
+        return new WebChromeClient() {
             @Override
             public boolean onConsoleMessage(ConsoleMessage consoleMessage) {
                 String consoleMessageString = consoleMessage.message();
@@ -654,20 +624,90 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
                                     MolvixLogger.d(ContentManager.class.getSimpleName(), "Sorry, WebView cannot go back");
                                 }
                             } else {
-                                prepareToByPassCaptcha(hackWebView);
+                                grabBase64OfEpisodeCaptcha(hackWebView);
                             }
                         } else {
-                            prepareToByPassCaptcha(hackWebView);
+                            grabBase64OfEpisodeCaptcha(hackWebView);
                         }
                     } catch (JSONException e) {
                         e.printStackTrace();
                         MolvixLogger.d(ContentManager.class.getSimpleName(), e.getMessage());
                     }
+                } else if (consoleMessageString.contains("molvixMeta")) {
+                    try {
+                        JSONObject jsonObject = new JSONObject(consoleMessageString);
+                        String bodyString = jsonObject.optString("molvixMeta");
+                        if (bodyString.toLowerCase().contains("Webpage not available".toLowerCase())) {
+                            unLockAppCaptchaSolver();
+                            if (hackWebView.getUrl() != null && !hackWebView.getUrl().contains("google")) {
+                                displayEpisodeDownloadErrorMessage("An error occurred while trying to download <b>" + EpisodesManager.getEpisodeFullName(episode) + "</b>.Please try again", episode);
+                            }
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
                 }
                 return super.onConsoleMessage(consoleMessage);
             }
-        });
-        hackWebView.loadUrl(episode.getEpisodeCaptchaSolverLink());
+        };
+    }
+
+    @NotNull
+    private WebViewClient getWebViewClient(AdvancedWebView hackWebView, Episode episode) {
+        return new WebViewClient() {
+            @Override
+            public void onPageFinished(WebView view, String url) {
+                super.onPageFinished(view, url);
+                MolvixLogger.d(ContentManager.class.getSimpleName(), "OnPageFinished and url=" + url);
+                if (url.toLowerCase().contains("areyouhuman")) {
+                    //Check that the last captcha was not wrong
+                    String captchaAttackFeasibilityTest = "javascript:(function captchaMatchTest(){\n" +
+                            "        var documentBody = document.getElementsByTagName(\"body\")[0].innerHTML;\n" +
+                            "        var captchaData={};\n" +
+                            "        captchaData[\"molvixCaptcha\"]=documentBody;\n" +
+                            "        console.log(JSON.stringify(captchaData));\n" +
+                            "    })();";
+                    evaluateJavaScript(hackWebView, captchaAttackFeasibilityTest);
+                }
+                String errorCheck = "\n" +
+                        "    javascript:(function docBodyString(){\n" +
+                        "                var docBody = document.getElementsByTagName('body')[0];\n" +
+                        "                if(docBody!=undefined){\n" +
+                        "                    var responseJSON = {};\n" +
+                        "                    responseJSON[\"molvixMeta\"]=docBody.innerHTML;\n" +
+                        "                    console.log(JSON.stringify(responseJSON));\n" +
+                        "                }\n" +
+                        "            })();";
+                evaluateJavaScript(hackWebView, errorCheck);
+            }
+
+            @Override
+            public void onPageStarted(WebView view, String url, Bitmap favicon) {
+                super.onPageStarted(view, url, favicon);
+                MolvixLogger.d(ContentManager.class.getSimpleName(), "OnPageStarted and url=" + url);
+                String mimeTypeOfUrl = FileUtils.getMimeType(url);
+                if (mimeTypeOfUrl == null) {
+                    return;
+                }
+                if (mimeTypeOfUrl.toLowerCase().contains("video")) {
+                    lastCaptchaErrorMessage.set("");
+                    hackWebView.stopLoading();
+                    if (episode.getEpisodeQuality() == AppConstants.STANDARD_QUALITY) {
+                        episode.setStandardQualityDownloadLink(url);
+                    } else if (episode.getEpisodeQuality() == AppConstants.HIGH_QUALITY) {
+                        episode.setHighQualityDownloadLink(url);
+                    } else {
+                        episode.setLowQualityDownloadLink(url);
+                    }
+                    MolvixDB.updateEpisode(episode);
+                    FileDownloadManager.downloadEpisode(episode);
+                    //Just re-route to google to refresh the page
+                    hackWebView.loadUrl("https://www.google.come");
+                    EpisodesManager.popDownloadableEpisode(episode);
+                }
+            }
+
+        };
     }
 
     private void loadCaptchaImage(AdvancedWebView advancedWebView, String cleanImage) {
@@ -680,6 +720,25 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
                 }
             }
         }
+    }
+
+    private void displayEpisodeDownloadErrorMessage(String errorMessage, Episode episode) {
+        LovelyStandardDialog dialog = new LovelyStandardDialog(this)
+                .setTopColorRes(R.color.red800)
+                .setTitle("Download Error!")
+                .setCancelable(false)
+                .setMessage(UiUtils.fromHtml(errorMessage))
+                .setPositiveButton("Try Again", view -> {
+                    if (ConnectivityUtils.isDeviceConnectedToTheInternet()) {
+                        EventBus.getDefault().post(new CheckForDownloadableEpisodes());
+                    } else {
+                        UiUtils.snackMessage("Network error!", bottomNavView, true, null, null);
+                    }
+                }).setNegativeButton(android.R.string.cancel, view -> {
+                });
+        dialog.show();
+        AppPrefs.updateEpisodeDownloadProgress(episode.getEpisodeId(), -1);
+        AppPrefs.updateEpisodeDownloadProgressMsg(episode.getEpisodeId(), "");
     }
 
     @SuppressLint("SetTextI18n")

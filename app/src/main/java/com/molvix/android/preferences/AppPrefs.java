@@ -137,7 +137,6 @@ public class AppPrefs {
         Set<String> inProgressDownloads = getAppPreferences().getStringSet(AppConstants.IN_PROGRESS_DOWNLOADS, new HashSet<>());
         inProgressDownloads.remove(episode.getEpisodeId());
         getAppPreferences().edit().putStringSet(AppConstants.IN_PROGRESS_DOWNLOADS, inProgressDownloads).apply();
-
         updateEpisodeDownloadProgressMsg(episode.getEpisodeId(), "");
         updateEpisodeDownloadProgress(episode.getEpisodeId(), -1);
     }
@@ -234,11 +233,11 @@ public class AppPrefs {
     }
 
     public static void persistGenresString(String genresString) {
-        getAppPreferences().edit().putString(AppConstants.GENRES,genresString).apply();
+        getAppPreferences().edit().putString(AppConstants.GENRES, genresString).apply();
     }
 
-    public static String getGenresString(){
-        return getAppPreferences().getString(AppConstants.GENRES,null);
+    public static String getGenresString() {
+        return getAppPreferences().getString(AppConstants.GENRES, null);
     }
 
 }

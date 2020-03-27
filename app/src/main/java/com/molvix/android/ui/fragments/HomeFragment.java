@@ -22,6 +22,7 @@ import com.liucanwen.app.headerfooterrecyclerview.RecyclerViewUtils;
 import com.molvix.android.R;
 import com.molvix.android.companions.AppConstants;
 import com.molvix.android.database.MolvixDB;
+import com.molvix.android.eventbuses.CheckForDownloadableEpisodes;
 import com.molvix.android.eventbuses.ConnectivityChangedEvent;
 import com.molvix.android.eventbuses.DisplayNewMoviesEvent;
 import com.molvix.android.eventbuses.FetchMoviesEvent;
@@ -268,6 +269,7 @@ public class HomeFragment extends BaseFragment {
             movies.clear();
             moviesAdapter.notifyDataSetChanged();
             fetchMovies();
+            EventBus.getDefault().post(new CheckForDownloadableEpisodes());
         });
     }
 

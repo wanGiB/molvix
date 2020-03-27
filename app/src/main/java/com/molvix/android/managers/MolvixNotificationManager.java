@@ -150,7 +150,7 @@ public class MolvixNotificationManager {
     }
 
     public static void checkAndResumeUnFinishedDownloads() {
-        if (!AppConstants.MAIN_ACTIVITY_IN_FOCUS.get()) {
+        if (!AppConstants.MAIN_ACTIVITY_IN_FOCUS.get() && !ApplicationLoader.globalDownloadListener.isEnable()) {
             Set<String> unFinishedDownloads = AppPrefs.getInProgressDownloads();
             if (!unFinishedDownloads.isEmpty()) {
 

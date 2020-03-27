@@ -39,10 +39,10 @@ public class FileDownloadManager {
 
     private static void cleanUpDownloadWithInvalidParameters(Episode episode, String downloadUrl, String filePath) {
         if (downloadUrl == null) {
-            MolvixLogger.d(ContentManager.class.getSimpleName(), "Download url is null");
+            MolvixLogger.d(ContentManager.class.getSimpleName(), "Download url is null for " + EpisodesManager.getEpisodeFullName(episode));
         }
         if (filePath == null) {
-            MolvixLogger.d(ContentManager.class.getSimpleName(), "FilePath is null");
+            MolvixLogger.d(ContentManager.class.getSimpleName(), "FilePath is null for " + EpisodesManager.getEpisodeFullName(episode));
         }
         AppPrefs.removeFromInProgressDownloads(episode);
         EpisodesManager.popDownloadableEpisode(episode);
@@ -65,12 +65,13 @@ public class FileDownloadManager {
         }
         AppPrefs.removeFromInProgressDownloads(episode);
         ApplicationLoader.resetEpisodeDownloadProgress(episode);
-        MolvixLogger.d(ContentManager.class.getSimpleName(), "Episode " + episode.getEpisodeName() + " cancelled");
+        MolvixLogger.d(ContentManager.class.getSimpleName(), EpisodesManager.getEpisodeFullName(episode) + " was cancelled");
     }
 
     private static Pair<String, String> getDownloadUrlAndDirPathFrom(Episode episode) {
-        MolvixLogger.d(ContentManager.class.getSimpleName(), "Download about to begin for " + episode.toString());
+        MolvixLogger.d(ContentManager.class.getSimpleName(), "Preparing download of " + EpisodesManager.getEpisodeFullName(episode));
         AppPrefs.addToInProgressDownloads(episode);
+        MolvixDB.deepLinkEpisodeProperly(episode);
         Season season = episode.getSeason();
         Movie movie = season.getMovie();
         String movieName = WordUtils.capitalize(movie.getMovieName());
