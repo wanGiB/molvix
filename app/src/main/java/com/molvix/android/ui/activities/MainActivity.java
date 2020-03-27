@@ -125,7 +125,6 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
     View contentFilterer;
 
     private ProgressDialog gamificationHostDialog;
-
     private List<Fragment> fragments;
     private DataSubscription presetsSubscription;
     private AtomicBoolean activeVideoPlayBackPaused = new AtomicBoolean(false);
@@ -133,7 +132,8 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
     private RewardedVideoAd mRewardedVideoAd;
     public static AtomicBoolean canShowLoadedVideoAd = new AtomicBoolean(false);
 
-    private AtomicReference<String> lastCaptchaErrorMessage = new AtomicReference<>(null);
+    private AtomicReference<String> lastCaptchaErrorMessage = new AtomicReference<>("");
+    private AtomicBoolean solvableCaptchaDialogShowing = new AtomicBoolean(false);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -480,6 +480,7 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
     }
 
     private void prepareToByPassCaptcha(AdvancedWebView hackWebView) {
+        MolvixLogger.d(ContentManager.class.getSimpleName(), "Preparing to bypass captcha");
         String currentPageUrl = hackWebView.getUrl();
         String captchaBase64String = "javascript:(function getBase64StringOfCaptcha() {\n" +
                 "    var pageImgs = document.getElementsByTagName(\"img\");\n" +
@@ -591,7 +592,7 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
                     return;
                 }
                 if (mimeTypeOfUrl.toLowerCase().contains("video")) {
-                    lastCaptchaErrorMessage.set(null);
+                    lastCaptchaErrorMessage.set("");
                     hackWebView.stopLoading();
                     if (episode.getEpisodeQuality() == AppConstants.STANDARD_QUALITY) {
                         episode.setStandardQualityDownloadLink(url);
@@ -636,25 +637,31 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
                         e.printStackTrace();
                     }
                 } else if (consoleMessageString.contains("molvixCaptcha")) {
-                    MolvixLogger.d(ContentManager.class.getSimpleName(),consoleMessageString);
+                    MolvixLogger.d(ContentManager.class.getSimpleName(), consoleMessageString);
                     try {
                         JSONObject jsonObject = new JSONObject(consoleMessageString);
                         String bodyString = jsonObject.optString("molvixCaptcha");
                         if (StringUtils.isNotEmpty(bodyString)) {
-                            if (StringUtils.containsIgnoreCase(bodyString, "Error: Captcha Does Not Match")) {
+                            if (bodyString.toLowerCase().contains("Captcha Does Not Match".toLowerCase())
+                                    && !bodyString.toLowerCase().contains("Please update your browser first and then try again, it will start working".toLowerCase())) {
                                 //Display captcha error
+                                MolvixLogger.d(ContentManager.class.getSimpleName(), "Last Captcha was incorrect");
                                 lastCaptchaErrorMessage.set("Last Captcha was incorrect.");
                                 if (hackWebView.canGoBack()) {
+                                    MolvixLogger.d(ContentManager.class.getSimpleName(), "WebView can go back");
                                     hackWebView.goBack();
+                                } else {
+                                    MolvixLogger.d(ContentManager.class.getSimpleName(), "Sorry, WebView cannot go back");
                                 }
                             } else {
                                 prepareToByPassCaptcha(hackWebView);
                             }
-                        }else{
+                        } else {
                             prepareToByPassCaptcha(hackWebView);
                         }
                     } catch (JSONException e) {
                         e.printStackTrace();
+                        MolvixLogger.d(ContentManager.class.getSimpleName(), e.getMessage());
                     }
                 }
                 return super.onConsoleMessage(consoleMessage);
@@ -668,20 +675,25 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
             byte[] decodedString = Base64.decode(cleanImage, Base64.DEFAULT);
             Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
             if (decodedByte != null) {
-                loadUserSolveCaptcha(advancedWebView, decodedByte);
+                if (!solvableCaptchaDialogShowing.get()) {
+                    loadUserSolvableCaptcha(advancedWebView, decodedByte);
+                }
             }
         }
     }
 
     @SuppressLint("SetTextI18n")
-    private void loadUserSolveCaptcha(AdvancedWebView advancedWebView, Bitmap bitmap) {
-        new LovelyTextInputDialog(this)
-                .setTopColorRes(ThemeManager.getThemeSelection() == ThemeManager.ThemeSelection.DARK
-                        ? R.color.dracula_primary :
-                        R.color.colorPrimary)
+    private void loadUserSolvableCaptcha(AdvancedWebView advancedWebView, Bitmap bitmap) {
+        LovelyTextInputDialog dialog = new LovelyTextInputDialog(this)
+                .setTopColorRes(R.color.colorAccentDark)
                 .setTitle(R.string.enter_text_shown_title)
-                .setMessage((lastCaptchaErrorMessage.get() != null ? "Your last entry was wrong\n" : "") + "Please enter the text shown above to complete download")
+                .setCancelable(false)
+                .setMessage((StringUtils.isNotEmpty(lastCaptchaErrorMessage.get()) ? "Your last entry was wrong\n" : "") + "Please enter the text shown above to start series downloads")
                 .setIcon(bitmap)
+                .configureEditText(v -> {
+                    v.setImeOptions(6);
+                    v.setSingleLine(true);
+                })
                 .setInputFilter(R.string.text_input_error_message, text -> text.matches("\\w+"))
                 .setConfirmButton(android.R.string.ok, text -> {
                     if (StringUtils.isNotEmpty(text)) {
@@ -692,13 +704,15 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
                                 "    captchaInput.value=captcha;\n" +
                                 "    captchaButton.click();\n" +
                                 "}\n" +
-                                "injectCaptcha(\"+" + text + "\");";
+                                "injectCaptcha(\"" + text + "\");";
                         evaluateJavaScript(advancedWebView, injectionString);
+                        solvableCaptchaDialogShowing.set(false);
                     } else {
-                        UiUtils.showSafeToast("Nothing was entered");
+                        UiUtils.showSafeToast("Please enter the captcha above");
                     }
-                })
-                .show();
+                }).setNegativeButton(android.R.string.cancel, view -> solvableCaptchaDialogShowing.set(false));
+        dialog.show();
+        solvableCaptchaDialogShowing.set(true);
     }
 
     private void observeNewIntent(Intent intent) {

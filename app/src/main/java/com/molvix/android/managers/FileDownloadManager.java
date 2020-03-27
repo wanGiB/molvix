@@ -69,7 +69,7 @@ public class FileDownloadManager {
     }
 
     private static Pair<String, String> getDownloadUrlAndDirPathFrom(Episode episode) {
-        MolvixLogger.d(ContentManager.class.getSimpleName(), "Download about to begin for " + episode.getSeason().getMovie().getMovieName() + "/" + episode.getSeason().getSeasonName() + "/" + episode.getEpisodeName());
+        MolvixLogger.d(ContentManager.class.getSimpleName(), "Download about to begin for " + episode.toString());
         AppPrefs.addToInProgressDownloads(episode);
         Season season = episode.getSeason();
         Movie movie = season.getMovie();

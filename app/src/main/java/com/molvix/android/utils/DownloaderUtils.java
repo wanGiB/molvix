@@ -19,6 +19,8 @@ public class DownloaderUtils {
                     }
                 }
             }
+        } else {
+            UiUtils.showSafeToast("Failed to resume downloads due to a network error!");
         }
     }
 }

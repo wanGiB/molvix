@@ -25,6 +25,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import io.objectbox.Box;
 
@@ -159,7 +160,7 @@ public class MolvixDB {
             }
             //This is a hack to update all downloaded episodes of movies
             //That the movies might have changed positions
-            updateNotifications();
+            updateDetachedEpisodes();
             return null;
         }
 
@@ -170,7 +171,7 @@ public class MolvixDB {
                     newMovie.setNewMovie(true);
                     if (newMovieList.contains(newMovie)) {
                         int indexOfNewMovie = newMovieList.indexOf(newMovie);
-                        newMovieList.set(indexOfNewMovie,newMovie);
+                        newMovieList.set(indexOfNewMovie, newMovie);
                     }
                 }
             }
@@ -189,32 +190,42 @@ public class MolvixDB {
             return intersection;
         }
 
-        private void updateNotifications() {
+        private void updateDetachedEpisodes() {
             List<Notification> notifications = MolvixDB.getNotificationBox().query().equal(Notification_.destination, AppConstants.DESTINATION_DOWNLOADED_EPISODE).build().find();
             if (!notifications.isEmpty()) {
                 for (Notification notification : notifications) {
                     String destinationKey = notification.getDestinationKey();
                     if (destinationKey != null) {
-                        Episode episode = MolvixDB.getEpisode(destinationKey);
-                        if (episode != null) {
-                            Season season = episode.getSeason();
-                            if (season != null) {
-                                String seasonLink = season.getSeasonLink();
-                                String seasonName = season.getSeasonName();
-                                if (seasonLink != null && seasonName != null) {
-                                    String moviePart = StringUtils.substringAfterLast(StringUtils.removeEnd(seasonLink, "/" + seasonName + "/index.html"), "/");
-                                    if (StringUtils.isNotEmpty(moviePart)) {
-                                        Movie movie = MolvixDB.getMovieBox().query().contains(Movie_.movieLink, moviePart).build().findFirst();
-                                        if (movie != null) {
-                                            Movie existingMovie = season.getMovie();
-                                            if (existingMovie == null) {
-                                                season.movie.setTarget(movie);
-                                                MolvixDB.updateSeason(season);
-                                                MolvixLogger.d(ContentManager.class.getSimpleName(), "Updating recently downloaded episodes with latest movie positions");
-                                            }
-                                        }
-                                    }
-                                }
+                        updateEpisode(destinationKey);
+                    }
+                }
+            }
+            Set<String> activeDownloads = AppPrefs.getInProgressDownloads();
+            if (!activeDownloads.isEmpty()) {
+                for (String episodeId : activeDownloads) {
+                    updateEpisode(episodeId);
+                }
+            }
+        }
+    }
+
+    private static void updateEpisode(String episodeId) {
+        Episode episode = MolvixDB.getEpisode(episodeId);
+        if (episode != null) {
+            Season season = episode.getSeason();
+            if (season != null) {
+                String seasonLink = season.getSeasonLink();
+                String seasonName = season.getSeasonName();
+                if (seasonLink != null && seasonName != null) {
+                    String moviePart = StringUtils.substringAfterLast(StringUtils.removeEnd(seasonLink, "/" + seasonName + "/index.html"), "/");
+                    if (StringUtils.isNotEmpty(moviePart)) {
+                        Movie movie = MolvixDB.getMovieBox().query().contains(Movie_.movieLink, moviePart).build().findFirst();
+                        if (movie != null) {
+                            Movie existingMovie = season.getMovie();
+                            if (existingMovie == null) {
+                                season.movie.setTarget(movie);
+                                MolvixDB.updateSeason(season);
+                                MolvixLogger.d(ContentManager.class.getSimpleName(), "Updating recently downloaded episodes with latest movie positions");
                             }
                         }
                     }
