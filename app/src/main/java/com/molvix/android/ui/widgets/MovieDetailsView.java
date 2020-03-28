@@ -21,6 +21,7 @@ import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
@@ -40,6 +41,7 @@ import com.molvix.android.preferences.AppPrefs;
 import com.molvix.android.ui.activities.MainActivity;
 import com.molvix.android.ui.adapters.EpisodesAdapter;
 import com.molvix.android.utils.ConnectivityUtils;
+import com.molvix.android.utils.MolvixLogger;
 import com.molvix.android.utils.UiUtils;
 
 import org.apache.commons.lang3.text.WordUtils;
@@ -192,11 +194,20 @@ public class MovieDetailsView extends FrameLayout {
     }
 
     private void loadBannerAd(AdView adView) {
-        AdRequest.Builder builder = new AdRequest.Builder();
+        AdRequest.Builder adBuilder = new AdRequest.Builder();
         if (BuildConfig.DEBUG) {
-            builder.addTestDevice(AppConstants.TEST_DEVICE_ID);
+            adBuilder.addTestDevice(AppConstants.TEST_DEVICE_ID);
         }
-        AdRequest adRequest = builder.build();
+        AdRequest adRequest = adBuilder.build();
+        adView.setAdListener(new AdListener() {
+            
+            @Override
+            public void onAdFailedToLoad(int errorCode) {
+                super.onAdFailedToLoad(errorCode);
+                MolvixLogger.d(ContentManager.class.getSimpleName(), "Banner ad failed to load with error code " + errorCode);
+            }
+
+        });
         adView.loadAd(adRequest);
     }
 

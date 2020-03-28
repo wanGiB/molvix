@@ -127,7 +127,7 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
     private DataSubscription presetsSubscription;
     private RewardedVideoAd mRewardedVideoAd;
 
-    public static AtomicBoolean canShowLoadedVideoAd = new AtomicBoolean(false);
+    public static AtomicBoolean canShowLoadedRewardedVideoAd = new AtomicBoolean(false);
     private AtomicReference<String> lastCaptchaErrorMessage = new AtomicReference<>("");
     private AtomicBoolean solvableCaptchaDialogShowing = new AtomicBoolean(false);
     private AtomicBoolean activeVideoPlayBackPaused = new AtomicBoolean(false);
@@ -148,7 +148,7 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
         checkAndDisplayUnFinishedDownloads();
         cleanUpUnLinkedDownloadKeys();
         setupRewardedVideoAd();
-        resetAdsLoader();
+        resetLastAdLoadTime();
         AdsLoadManager.spin();
     }
 
@@ -210,7 +210,7 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
             genresDialogBuilder.setNegativeButton("CLOSE", (dialog, which) -> dialog.dismiss());
             genresDialogBuilder.create().show();
         } else {
-            UiUtils.showSafeToast("Sorry, failed to load genres.Please try again.");
+            UiUtils.showSafeToast("Sorry, we couldn't load available genres.Please try again later.");
         }
     }
 
@@ -229,7 +229,7 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
                 adBuilder.build());
     }
 
-    private void resetAdsLoader() {
+    private void resetLastAdLoadTime() {
         AppPrefs.persistLastAdLoadTime(System.currentTimeMillis());
     }
 
@@ -640,7 +640,7 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
                         if (bodyString.toLowerCase().contains("Webpage not available".toLowerCase())) {
                             unLockAppCaptchaSolver();
                             if (hackWebView.getUrl() != null && !hackWebView.getUrl().contains("google")) {
-                                displayEpisodeDownloadErrorMessage("An error occurred while trying to download <b>" + EpisodesManager.getEpisodeFullName(episode) + "</b>.Please try again", episode);
+                                displayEpisodeDownloadErrorMessage("An error occurred while trying to download <b>" + EpisodesManager.getEpisodeFullName(episode) + "</b>.Please review your data connection", episode);
                             }
                         }
                     } catch (JSONException e) {
@@ -974,8 +974,8 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
         molvixVideoPlayerView.playVideos(downloadedVideoItems, downloadedVideoItems.indexOf(startItem));
     }
 
-    public void loadRewardedVideoAd() {
-        canShowLoadedVideoAd.set(true);
+    public void loadRewardedVideoAsRequested() {
+        canShowLoadedRewardedVideoAd.set(true);
         if (mRewardedVideoAd.isLoaded()) {
             mRewardedVideoAd.show();
         } else {
@@ -989,7 +989,7 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
     public void onRewardedVideoAdLoaded() {
         closeGamificationProgressDialog();
         MolvixLogger.d(ContentManager.class.getSimpleName(), "Rewarded Video ad loaded");
-        if (canShowLoadedVideoAd.get()) {
+        if (canShowLoadedRewardedVideoAd.get()) {
             mRewardedVideoAd.show();
         }
     }
@@ -1014,7 +1014,7 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
         MolvixLogger.d(ContentManager.class.getSimpleName(), "Rewarded Video reward with " + rewardItem.getType() + ",amount=" + rewardItem.getAmount());
         AppPrefs.incrementDownloadCoins(12);
         UiUtils.showSafeToast("You have received 12 download coins!!!");
-        canShowLoadedVideoAd.set(false);
+        canShowLoadedRewardedVideoAd.set(false);
     }
 
     @Override
@@ -1025,7 +1025,7 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
     @Override
     public void onRewardedVideoAdFailedToLoad(int i) {
         closeGamificationProgressDialog();
-        if (canShowLoadedVideoAd.get()) {
+        if (canShowLoadedRewardedVideoAd.get()) {
             UiUtils.showSafeToast("Failed to load video ad.Please review your data connection and try again.");
         }
         MolvixLogger.d(ContentManager.class.getSimpleName(), "Rewarded Video Failed to load due to error code " + i);

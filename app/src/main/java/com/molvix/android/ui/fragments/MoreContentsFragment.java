@@ -145,7 +145,7 @@ public class MoreContentsFragment extends PreferenceFragmentCompat implements Pr
                 ThemeManager.setThemeSelection(ThemeManager.ThemeSelection.LIGHT);
                 themePref.setDefaultValue(false);
             }
-            UiUtils.snackMessage(getString(R.string.please_wait), getView(), false, null, null);
+            UiUtils.snackMessage("Switching theme.Please wait...", getView(), false, null, null);
             restartApp();
         }
         return true;

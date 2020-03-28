@@ -81,7 +81,7 @@ public class HomeFragment extends BaseFragment {
         MODE_DEFAULT,
         MODE_SEARCH,
         MODE_GENRES,
-        MODE_LATEST_MOVIES
+        MODE_LATEST_SERIES
     }
 
     public static AtomicReference<LoadMode> activeLoadMode = new AtomicReference<>(LoadMode.MODE_DEFAULT);
@@ -186,7 +186,7 @@ public class HomeFragment extends BaseFragment {
                     .build()
                     .find();
             clearCurrentData();
-            loadMovies(results, LoadMode.MODE_LATEST_MOVIES);
+            loadMovies(results, LoadMode.MODE_LATEST_SERIES);
         }).start();
     }
 
@@ -323,7 +323,7 @@ public class HomeFragment extends BaseFragment {
             if (loadMode == LoadMode.MODE_DEFAULT) {
                 displayTotalNumberOfMoviesLoadedInHeader();
             } else {
-                displayTotalNumberOfFoundResultsInHeader(result);
+                displayTotalNumberOfFoundResultsInHeader(result, loadMode);
             }
             swipeRefreshLayout.setRefreshing(false);
 //            createDebugPresets();
@@ -457,11 +457,17 @@ public class HomeFragment extends BaseFragment {
     }
 
     @SuppressLint("SetTextI18n")
-    private void displayTotalNumberOfFoundResultsInHeader(List<Movie> queriedMovies) {
+    private void displayTotalNumberOfFoundResultsInHeader(List<Movie> queriedMovies, LoadMode loadMode) {
         mUiHandler.post(() -> {
             int totalNumberOfMovies = queriedMovies.size();
             DecimalFormat moviesNoFormatter = new DecimalFormat("#,###");
-            String resultMsg = totalNumberOfMovies == 1 ? "result" : "results";
+            String postMsg;
+            if (loadMode == LoadMode.MODE_LATEST_SERIES) {
+                postMsg = " latest series";
+            } else {
+                postMsg = "result";
+            }
+            String resultMsg = totalNumberOfMovies == 1 ? postMsg : postMsg.endsWith("s") ? postMsg : postMsg + "s";
             headerTextView.setText(moviesNoFormatter.format(totalNumberOfMovies) + " " + resultMsg + " found");
             if (queriedMovies.isEmpty()) {
                 UiUtils.toggleViewVisibility(contentLoadingView, false);

@@ -52,8 +52,8 @@ public class AdsLoadManager {
                     }
                 }
             }, 0, 20000);
-        } catch (Exception ignored) {
-
+        } catch (Exception ex) {
+            MolvixLogger.d(ContentManager.class.getSimpleName(), "An error has occurred while spinning ads load manager.Error message = " + ex.getMessage());
         }
     }
 
@@ -86,7 +86,7 @@ public class AdsLoadManager {
             AdLoader adLoader = builder.withAdListener(new AdListener() {
                 @Override
                 public void onAdFailedToLoad(int errorCode) {
-                    MolvixLogger.d(ContentManager.class.getSimpleName(), "Error loading ads due to " + errorCode);
+                    MolvixLogger.d(ContentManager.class.getSimpleName(), "Error loading native ads due to " + errorCode);
                     AppPrefs.persistLastAdLoadTime(System.currentTimeMillis());
                 }
             }).build();

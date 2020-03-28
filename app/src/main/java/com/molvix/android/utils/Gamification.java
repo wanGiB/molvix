@@ -18,7 +18,7 @@ public class Gamification {
             dialog.dismiss();
             if (context instanceof MainActivity){
                 MainActivity scope = (MainActivity) context;
-                scope.loadRewardedVideoAd();
+                scope.loadRewardedVideoAsRequested();
             }
         });
         coinEssenceDialogBuilder.setNegativeButton("CLOSE", (dialog, which) -> dialog.dismiss());
