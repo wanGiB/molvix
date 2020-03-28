@@ -56,7 +56,7 @@ public class SplashActivity extends BaseActivity {
                     public void onPermissionsChecked(MultiplePermissionsReport report) {
                         if (report.areAllPermissionsGranted()) {
                             navigateToMainActivity();
-                        }else{
+                        } else {
                             finish();
                         }
                     }
