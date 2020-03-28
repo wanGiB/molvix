@@ -18,6 +18,7 @@ public class EpisodesManager {
         DownloadableEpisode existingDownloadableEpisode = MolvixDB.getDownloadableEpisode(episode.getEpisodeId());
         if (existingDownloadableEpisode != null) {
             MolvixLogger.d(ContentManager.class.getSimpleName(), "An already existing downloadable was found for " + getEpisodeFullName(episode) + ".Nothing to do further");
+            EventBus.getDefault().post(new CheckForDownloadableEpisodes());
             return;
         }
         DownloadableEpisode newDownloadableEpisode = new DownloadableEpisode();

@@ -10,7 +10,6 @@ import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -41,7 +40,6 @@ import com.molvix.android.R;
 import com.molvix.android.beans.DownloadedVideoItem;
 import com.molvix.android.companions.AppConstants;
 import com.molvix.android.components.ApplicationLoader;
-import com.molvix.android.contracts.DoneCallback;
 import com.molvix.android.database.MolvixDB;
 import com.molvix.android.eventbuses.CheckForDownloadableEpisodes;
 import com.molvix.android.eventbuses.ConnectivityChangedEvent;
@@ -87,11 +85,7 @@ import org.greenrobot.eventbus.EventBus;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -498,88 +492,38 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
         }
     }
 
-    private void grabBase64OfEpisodeCaptcha(AdvancedWebView hackWebView) {
-        String currentPageUrl = hackWebView.getUrl();
-        String captchaBase64String = "javascript:(function getBase64StringOfCaptcha() {\n" +
-                "    var pageImgs = document.getElementsByTagName(\"img\");\n" +
-                "    if (pageImgs != undefined) {\n" +
-                "        var pageImgsLength = pageImgs.length;\n" +
-                "        var i;\n" +
-                "        for (i = 0; i < pageImgsLength; i++) {\n" +
-                "            var pageImg = pageImgs[i];\n" +
-                "            var imageSrc = pageImg.src;\n" +
-                "            var targetKeyword = \"captcha\";\n" +
-                "            if (imageSrc.toLowerCase().indexOf(targetKeyword) != -1) {\n" +
-                "                var canvas = document.createElement(\"canvas\");\n" +
-                "                var ctx = canvas.getContext(\"2d\");\n" +
-                "                ctx.drawImage(pageImg, 0, 0);\n" +
-                "                var dataURL = canvas.toDataURL(\"image/png\");\n" +
-                "                var result = {};\n" +
-                "                result[\"imageData\"] = dataURL;\n" +
-                "                result[\"molvixData\"] = \"molvixData\";\n" +
-                "                console.log(JSON.stringify(result));\n" +
-                "                break;\n" +
+    private void checkForCaptchaAvailability(AdvancedWebView hackWebView) {
+        String checkForCaptchaAvailability = "javascript:(function checkForCaptchaAvailability() {\n" +
+                "    var formElement = document.getElementsByTagName(\"form\")[0];\n" +
+                "    if (formElement != null) {\n" +
+                "        var allImages = document.getElementsByTagName(\"img\");\n" +
+                "        if (allImages != undefined) {\n" +
+                "            var pageImgsLength = allImages.length;\n" +
+                "            var i;\n" +
+                "            var captchaFound = false;\n" +
+                "            for (i = 0; i < pageImgsLength; i++) {\n" +
+                "                var pageImg = allImages[i];\n" +
+                "                var imageSrc = pageImg.src;\n" +
+                "                var targetKeyword = \"captcha\";\n" +
+                "                if (imageSrc.toLowerCase().indexOf(targetKeyword) != -1) {\n" +
+                "                    captchaFound = true;\n" +
+                "                }\n" +
+                "            }\n" +
+                "            if (captchaFound) {\n" +
+                "                console.log(\"_solve_complex_captcha\");\n" +
+                "            } else {\n" +
+                "                console.log(\"_no_complex_captcha\");\n" +
                 "            }\n" +
                 "        }\n" +
+                "    } else {\n" +
+                "        console.log(\"_no_form_element_found\");\n" +
                 "    }\n" +
-                "})();\n";
-
-        String continueDownload =
-                "javascript:(function clickCaptchaButton() {\n" +
-                        "    document.getElementsByTagName('input')[0].click();\n" +
-                        "})();";
-        new CaptchaPageInfoTask(currentPageUrl, (response, e) -> {
-            if (response != null) {
-                runOnUiThread(() -> {
-                    if (response.equals(AppConstants.SOLVE_COMPLEX_CAPTCHA)) {
-                        evaluateJavaScript(hackWebView, captchaBase64String);
-                    } else if (response.equals(AppConstants.NO_COMPLEX_CAPTCHA)) {
-                        evaluateJavaScript(hackWebView, continueDownload);
-                    }
-                });
-            }
-        }).execute();
+                "})();";
+        evaluateJavaScript(hackWebView, checkForCaptchaAvailability);
     }
 
     private void evaluateJavaScript(AdvancedWebView hackWebView, String javascript) {
         hackWebView.evaluateJavascript(javascript, null);
-    }
-
-    static class CaptchaPageInfoTask extends AsyncTask<Void, Void, Void> {
-
-        private String pageUrl;
-        private DoneCallback<String> hackDoneCallback;
-
-        CaptchaPageInfoTask(String pageUrl, DoneCallback<String> hackDoneCallback) {
-            this.pageUrl = pageUrl;
-            this.hackDoneCallback = hackDoneCallback;
-        }
-
-        @Override
-        protected Void doInBackground(Void... voids) {
-            try {
-                Document document = Jsoup.connect(pageUrl).get();
-                Element formElement = document.selectFirst("form");
-                if (formElement != null) {
-                    Element firstCaptchaImg = formElement.selectFirst("img");
-                    if (firstCaptchaImg != null) {
-                        String imageSrc = firstCaptchaImg.attr("src");
-                        if (imageSrc != null) {
-                            hackDoneCallback.done(AppConstants.SOLVE_COMPLEX_CAPTCHA, null);
-                        } else {
-                            hackDoneCallback.done(AppConstants.NO_COMPLEX_CAPTCHA, null);
-                        }
-                    } else {
-                        hackDoneCallback.done(AppConstants.NO_COMPLEX_CAPTCHA, null);
-                    }
-                } else {
-                    hackDoneCallback.done(AppConstants.NO_FORM_ELEMENT_FOUND, null);
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            return null;
-        }
     }
 
     private void solveEpisodeCaptchaChallenge(AdvancedWebView hackWebView, Episode episode) {
@@ -624,10 +568,10 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
                                     MolvixLogger.d(ContentManager.class.getSimpleName(), "Sorry, WebView cannot go back");
                                 }
                             } else {
-                                grabBase64OfEpisodeCaptcha(hackWebView);
+                                checkForCaptchaAvailability(hackWebView);
                             }
                         } else {
-                            grabBase64OfEpisodeCaptcha(hackWebView);
+                            checkForCaptchaAvailability(hackWebView);
                         }
                     } catch (JSONException e) {
                         e.printStackTrace();
@@ -640,12 +584,51 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
                         if (bodyString.toLowerCase().contains("Webpage not available".toLowerCase())) {
                             unLockAppCaptchaSolver();
                             if (hackWebView.getUrl() != null && !hackWebView.getUrl().contains("google")) {
-                                displayEpisodeDownloadErrorMessage("An error occurred while trying to download <b>" + EpisodesManager.getEpisodeFullName(episode) + "</b>.Please review your data connection", episode);
+                                if (!ApplicationLoader.globalDownloadListener.isEnable()) {
+                                    displayEpisodeDownloadErrorMessage("An error occurred while trying to download <b>" + EpisodesManager.getEpisodeFullName(episode) + "</b>.Please review your data connection", episode);
+                                } else {
+                                    MolvixLogger.d(ContentManager.class.getSimpleName(), "A download error happened but, not to worry it would self fix");
+                                }
                             }
                         }
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
+                } else if (consoleMessageString.contains(AppConstants.SOLVE_COMPLEX_CAPTCHA)) {
+                    MolvixLogger.d(ContentManager.class.getSimpleName(), consoleMessageString);
+                    String captchaBase64String = "javascript:(function getBase64StringOfCaptcha() {\n" +
+                            "    var pageImgs = document.getElementsByTagName(\"img\");\n" +
+                            "    if (pageImgs != undefined) {\n" +
+                            "        var pageImgsLength = pageImgs.length;\n" +
+                            "        var i;\n" +
+                            "        for (i = 0; i < pageImgsLength; i++) {\n" +
+                            "            var pageImg = pageImgs[i];\n" +
+                            "            var imageSrc = pageImg.src;\n" +
+                            "            var targetKeyword = \"captcha\";\n" +
+                            "            if (imageSrc.toLowerCase().indexOf(targetKeyword) != -1) {\n" +
+                            "                var canvas = document.createElement(\"canvas\");\n" +
+                            "                var ctx = canvas.getContext(\"2d\");\n" +
+                            "                ctx.drawImage(pageImg, 0, 0);\n" +
+                            "                var dataURL = canvas.toDataURL(\"image/png\");\n" +
+                            "                var result = {};\n" +
+                            "                result[\"imageData\"] = dataURL;\n" +
+                            "                result[\"molvixData\"] = \"molvixData\";\n" +
+                            "                console.log(JSON.stringify(result));\n" +
+                            "                break;\n" +
+                            "            }\n" +
+                            "        }\n" +
+                            "    }\n" +
+                            "})();\n";
+                    evaluateJavaScript(hackWebView, captchaBase64String);
+                } else if (consoleMessageString.contains(AppConstants.NO_COMPLEX_CAPTCHA)) {
+                    MolvixLogger.d(ContentManager.class.getSimpleName(), consoleMessageString);
+                    String continueDownload =
+                            "javascript:(function clickCaptchaButton() {\n" +
+                                    "    document.getElementsByTagName('input')[0].click();\n" +
+                                    "})();";
+                    evaluateJavaScript(hackWebView, continueDownload);
+                } else if (consoleMessageString.contains(AppConstants.NO_FORM_ELEMENT_FOUND)) {
+                    MolvixLogger.d(ContentManager.class.getSimpleName(), "No Form Element was found");
                 }
                 return super.onConsoleMessage(consoleMessage);
             }
@@ -655,6 +638,7 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
     @NotNull
     private WebViewClient getWebViewClient(AdvancedWebView hackWebView, Episode episode) {
         return new WebViewClient() {
+
             @Override
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
@@ -706,7 +690,6 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
                     EpisodesManager.popDownloadableEpisode(episode);
                 }
             }
-
         };
     }
 
