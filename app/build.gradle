@@ -8,8 +8,8 @@ android {
         applicationId "com.molvix.android"
         minSdkVersion 19
         targetSdkVersion 29
-        versionCode 14
-        versionName "1.41"
+        versionCode 15
+        versionName "1.42"
         multiDexEnabled true
         vectorDrawables.useSupportLibrary true
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
