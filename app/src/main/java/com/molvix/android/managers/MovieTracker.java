@@ -48,7 +48,7 @@ public class MovieTracker {
         Notification newNotification = new Notification();
         newNotification.setNotificationObjectId(notificationId);
         newNotification.setDestination(AppConstants.DESTINATION_DOWNLOADED_EPISODE);
-        newNotification.setMessage("<b>" + episode.getEpisodeName() + "</b>/<b>" + season.getSeasonName() + "</b> of <b>" + WordUtils.capitalize(movie.getMovieName()) + "</b> successfully downloaded");
+        newNotification.setMessage("<b>" + episode.getEpisodeName() + "</b>,<b>" + season.getSeasonName() + "</b> of <b>" + WordUtils.capitalize(movie.getMovieName()) + "</b> successfully downloaded");
         newNotification.setDestinationKey(episode.getEpisodeId());
         newNotification.setTimeStamp(System.currentTimeMillis());
         MolvixDB.createNewNotification(newNotification);
