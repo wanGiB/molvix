@@ -50,7 +50,7 @@
     <string name="label_voice_reply">Reply</string>
     <string name="downloaded_movies_update_key">downloaded_movies_update_key</string>
     <string name="season">Season</string>
-    <string name="network_error_msg">Network error.Please review your data connection and tap here to try again.</string>
+    <string name="network_error_msg">Network error\n.Please review your data connection and tap here to try again.</string>
     <string name="loading_msg">Loading…</string>
     <string name="no_notifications">No notifications</string>
     <string name="all_caught_up">All Caught Up!</string>
