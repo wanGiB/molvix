@@ -149,6 +149,7 @@ public class ApplicationLoader extends MultiDexApplication {
             if (completedSize > totalSize) {
                 Pump.pause(FileDownloadManager.getDownloadIdFromEpisode(episode));
                 Pump.stop(FileDownloadManager.getDownloadIdFromEpisode(episode));
+                //Fuck, this is mostly an invalid download
                 Pump.deleteById(FileDownloadManager.getDownloadIdFromEpisode(episode));
             }
         } catch (Exception e) {
