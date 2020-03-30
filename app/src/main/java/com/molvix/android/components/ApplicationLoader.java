@@ -93,7 +93,7 @@ public class ApplicationLoader extends MultiDexApplication {
             MolvixLogger.d(ContentManager.class.getSimpleName(), "An error occurred while downloading " + EpisodesManager.getEpisodeFullName(episode));
             EventBus.getDefault().post(new EpisodeDownloadErrorException(episode));
             resetEpisodeDownloadProgress(episode);
-            new Handler().postDelayed(DownloaderUtils::checkAndResumePausedDownloads, 3000);
+            new Handler().postDelayed(DownloaderUtils::checkAndResumePausedDownloads, 5000);
         }
     }
 

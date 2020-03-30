@@ -136,7 +136,7 @@ public class AppPrefs {
     public static void removeFromInProgressDownloads(Episode episode) {
         Set<String> inProgressDownloads = getAppPreferences().getStringSet(AppConstants.IN_PROGRESS_DOWNLOADS, new HashSet<>());
         inProgressDownloads.remove(episode.getEpisodeId());
-        getAppPreferences().edit().putStringSet(AppConstants.IN_PROGRESS_DOWNLOADS, inProgressDownloads).apply();
+        getAppPreferences().edit().putStringSet(AppConstants.IN_PROGRESS_DOWNLOADS, inProgressDownloads).commit();
         updateEpisodeDownloadProgressMsg(episode.getEpisodeId(), "");
         updateEpisodeDownloadProgress(episode.getEpisodeId(), -1);
     }

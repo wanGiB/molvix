@@ -643,6 +643,26 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
                 MolvixLogger.d(ContentManager.class.getSimpleName(), "OnPageFinished and url=" + url);
+                String mimeTypeOfUrl = FileUtils.getMimeType(url);
+                if (mimeTypeOfUrl != null) {
+                    if (mimeTypeOfUrl.toLowerCase().contains("video")) {
+                        lastCaptchaErrorMessage.set("");
+                        hackWebView.stopLoading();
+                        if (episode.getEpisodeQuality() == AppConstants.STANDARD_QUALITY) {
+                            episode.setStandardQualityDownloadLink(url);
+                        } else if (episode.getEpisodeQuality() == AppConstants.HIGH_QUALITY) {
+                            episode.setHighQualityDownloadLink(url);
+                        } else {
+                            episode.setLowQualityDownloadLink(url);
+                        }
+                        MolvixDB.updateEpisode(episode);
+                        FileDownloadManager.downloadEpisode(episode);
+                        //Just re-route to google to refresh the page
+                        hackWebView.loadUrl("https://www.google.come");
+                        EpisodesManager.popDownloadableEpisode(episode);
+                        return;
+                    }
+                }
                 if (url.toLowerCase().contains("areyouhuman")) {
                     //Check that the last captcha was not wrong
                     String captchaAttackFeasibilityTest = "javascript:(function captchaMatchTest(){\n" +
@@ -669,28 +689,10 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
             public void onPageStarted(WebView view, String url, Bitmap favicon) {
                 super.onPageStarted(view, url, favicon);
                 MolvixLogger.d(ContentManager.class.getSimpleName(), "OnPageStarted and url=" + url);
-                String mimeTypeOfUrl = FileUtils.getMimeType(url);
-                if (mimeTypeOfUrl == null) {
-                    return;
-                }
-                if (mimeTypeOfUrl.toLowerCase().contains("video")) {
-                    lastCaptchaErrorMessage.set("");
-                    hackWebView.stopLoading();
-                    if (episode.getEpisodeQuality() == AppConstants.STANDARD_QUALITY) {
-                        episode.setStandardQualityDownloadLink(url);
-                    } else if (episode.getEpisodeQuality() == AppConstants.HIGH_QUALITY) {
-                        episode.setHighQualityDownloadLink(url);
-                    } else {
-                        episode.setLowQualityDownloadLink(url);
-                    }
-                    MolvixDB.updateEpisode(episode);
-                    FileDownloadManager.downloadEpisode(episode);
-                    //Just re-route to google to refresh the page
-                    hackWebView.loadUrl("https://www.google.come");
-                    EpisodesManager.popDownloadableEpisode(episode);
-                }
             }
+
         };
+
     }
 
     private void loadCaptchaImage(AdvancedWebView advancedWebView, String cleanImage) {
