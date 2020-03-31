@@ -91,7 +91,7 @@ public class DownloadedVideoItemView extends FrameLayout {
                 String movieName = StringUtils.substringAfterLast(downloadedFilePath, File.separator);
                 String episodeName = downloadedFile.getName();
                 bottomTitleView.setText(episodeName);
-                downloadedVideoItem.setTitle(movieName + ", " + parentFolderName + "-" + episodeName);
+                downloadedVideoItem.setTitle(episodeName + "," + parentFolderName + " of " + movieName);
                 try {
                     int videoDuration = MediaPlayer.create(getContext(), Uri.fromFile(downloadedFile)).getDuration();
                     String durationText = DateUtils.formatElapsedTime(videoDuration / 1000);

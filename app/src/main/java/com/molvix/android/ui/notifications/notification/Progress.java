@@ -28,4 +28,9 @@ public class Progress extends Builder {
         return this;
     }
 
+    public Progress percentage(String percentageString) {
+        builder.setContentInfo(percentageString);
+        return this;
+    }
+
 }

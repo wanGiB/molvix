@@ -84,8 +84,8 @@ public class MolvixNotificationManager {
         } else {
             mLoad.button(R.drawable.cancel, "CANCEL", cancelPendingIntent);
             mLoad.smallIcon(android.R.drawable.stat_sys_download);
-            mLoad.message("Downloading" + "..." + progressMessage);
-            mLoad.progress().value(progress, 100, false).build();
+            mLoad.message("Downloading..." + progressMessage);
+            mLoad.progress().value(progress, 100, false).percentage(progress + "%").build();
         }
     }
 

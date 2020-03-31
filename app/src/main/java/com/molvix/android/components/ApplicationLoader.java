@@ -20,9 +20,9 @@ import com.molvix.android.eventbuses.EpisodeDownloadErrorException;
 import com.molvix.android.managers.ContentManager;
 import com.molvix.android.managers.EpisodesManager;
 import com.molvix.android.managers.FileDownloadManager;
-import com.molvix.android.managers.VideoCleaner;
 import com.molvix.android.managers.MolvixNotificationManager;
 import com.molvix.android.managers.MovieTracker;
+import com.molvix.android.managers.VideoCleaner;
 import com.molvix.android.models.DownloadableEpisode;
 import com.molvix.android.models.Episode;
 import com.molvix.android.models.Movie;
@@ -114,7 +114,6 @@ public class ApplicationLoader extends MultiDexApplication {
         Season season = episode.getSeason();
         Movie movie = season.getMovie();
         String movieName = WordUtils.capitalize(movie.getMovieName());
-        String seasonName = season.getSeasonName();
         String seasonId = season.getSeasonId();
         String movieDescription = movie.getMovieDescription();
         String episodeId = episode.getEpisodeId();
@@ -128,7 +127,7 @@ public class ApplicationLoader extends MultiDexApplication {
         }
         MovieTracker.recordEpisodeAsDownloaded(episode);
         AppPrefs.removeFromInProgressDownloads(episode);
-        MolvixNotificationManager.showEpisodeDownloadProgressNotification(movieName, movieDescription, seasonId, episodeId, movieName + "/" + seasonName + "/" + episode.getEpisodeName(), 100, "");
+        MolvixNotificationManager.showEpisodeDownloadProgressNotification(movieName, movieDescription, seasonId, episodeId, EpisodesManager.getEpisodeFullName(episode), 100, "");
     }
 
     private static void updateDownloadProgress(Episode episode, @NotNull DownloadInfo downloadInfo) {
@@ -138,12 +137,11 @@ public class ApplicationLoader extends MultiDexApplication {
             String movieName = WordUtils.capitalize(movie.getMovieName());
             String movieDescription = movie.getMovieDescription();
             String seasonId = season.getSeasonId();
-            String seasonName = season.getSeasonName();
             int progressPercent = downloadInfo.getProgress();
             long completedSize = downloadInfo.getCompletedSize();
             long totalSize = downloadInfo.getContentLength();
             String progressMessage = FileUtils.getDataSize(completedSize) + "/" + FileUtils.getDataSize(totalSize);
-            MolvixNotificationManager.showEpisodeDownloadProgressNotification(movieName, movieDescription, seasonId, episode.getEpisodeId(), episode.getEpisodeName() + "/" + seasonName + "/" + movieName, progressPercent, progressMessage);
+            MolvixNotificationManager.showEpisodeDownloadProgressNotification(movieName, movieDescription, seasonId, episode.getEpisodeId(), EpisodesManager.getEpisodeFullName(episode), progressPercent, progressMessage);
             AppPrefs.updateEpisodeDownloadProgress(episode.getEpisodeId(), progressPercent);
             AppPrefs.updateEpisodeDownloadProgressMsg(episode.getEpisodeId(), progressMessage);
             if (completedSize > totalSize) {
