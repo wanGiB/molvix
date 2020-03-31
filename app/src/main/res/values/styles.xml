@@ -100,25 +100,26 @@
     </style>
 
     <!-- styles for Login buttons -->
-    <style name="Widget.Button.Login" parent="Widget.AppCompat.Button">
+    <style name="Widget.Button.Login" parent="Widget.MaterialComponents.Button">
         <item name="android:textColor">@android:color/white</item>
     </style>
 
-    <style name="Widget.Button.Normal" parent="Widget.AppCompat.Button">
-        <item name="colorButtonNormal">@color/linked_in</item>
+    <style name="Widget.Button.Normal" parent="Widget.MaterialComponents.Button">
+        <item name="colorAccent">@color/linked_in</item>
     </style>
 
-    <style name="Widget.Button.Delete" parent="Widget.AppCompat.Button">
+    <style name="Widget.Button.Delete" parent="Widget.MaterialComponents.Button">
         <item name="colorButtonNormal">@color/colorGoogle</item>
     </style>
 
     <string name="ad_attribution">Ad</string>
 
-    <style name="Theme.Rating" parent="Theme.AppCompat.Light">
+    <style name="Theme.Rating" parent="Theme.MaterialComponents.Light">
         <item name="colorAccent">@color/rating_bar_progress_tint</item>
+        <item name="colorControlActivated">@color/rating_bar_progress_tint</item>
     </style>
 
-    <style name="Theme.SeekBar" parent="Theme.AppCompat.Light">
+    <style name="Theme.SeekBar" parent="Theme.MaterialComponents.Light">
         <item name="colorAccent">@color/white</item>
     </style>
 
