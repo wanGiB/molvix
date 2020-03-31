@@ -1,7 +1,6 @@
 package com.molvix.android.companions;
 
 import android.annotation.SuppressLint;
-import android.util.SparseBooleanArray;
 
 import com.google.android.gms.ads.formats.UnifiedNativeAd;
 
@@ -29,8 +28,6 @@ public class AppConstants {
     @SuppressLint("ConstantLocale")
     public static final SimpleDateFormat DATE_FORMATTER_IN_YEARS = new SimpleDateFormat("yyyy", Locale.getDefault());
 
-    @SuppressWarnings("SpellCheckingInspection")
-    public static final String TEST_DEVICE_ID = "53D46815EE1FBEED38704D3C418F4402";
     public static final String DOWNLOADABLE = "o2tvseries.com/download/";
 
     public static final String APP_PREFS_NAME = "molvixapp_prefs";

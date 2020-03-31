@@ -25,7 +25,6 @@ import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
-import com.molvix.android.BuildConfig;
 import com.molvix.android.R;
 import com.molvix.android.companions.AppConstants;
 import com.molvix.android.contracts.DoneCallback;
@@ -195,12 +194,9 @@ public class MovieDetailsView extends FrameLayout {
 
     private void loadBannerAd(AdView adView) {
         AdRequest.Builder adBuilder = new AdRequest.Builder();
-        if (BuildConfig.DEBUG) {
-            adBuilder.addTestDevice(AppConstants.TEST_DEVICE_ID);
-        }
         AdRequest adRequest = adBuilder.build();
         adView.setAdListener(new AdListener() {
-            
+
             @Override
             public void onAdFailedToLoad(int errorCode) {
                 super.onAdFailedToLoad(errorCode);

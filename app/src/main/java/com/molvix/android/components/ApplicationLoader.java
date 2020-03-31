@@ -8,10 +8,12 @@ import androidx.multidex.MultiDex;
 import androidx.multidex.MultiDexApplication;
 
 import com.google.android.gms.ads.MobileAds;
+import com.google.android.gms.ads.RequestConfiguration;
 import com.huxq17.download.Pump;
 import com.huxq17.download.config.DownloadConfig;
 import com.huxq17.download.core.DownloadInfo;
 import com.huxq17.download.core.DownloadListener;
+import com.molvix.android.BuildConfig;
 import com.molvix.android.R;
 import com.molvix.android.companions.AppConstants;
 import com.molvix.android.database.MolvixDB;
@@ -32,6 +34,7 @@ import com.molvix.android.ui.notifications.notification.MolvixNotification;
 import com.molvix.android.utils.AuthorizationHeaderConnection;
 import com.molvix.android.utils.DownloaderUtils;
 import com.molvix.android.utils.FileUtils;
+import com.molvix.android.utils.MolvixGenUtils;
 import com.molvix.android.utils.MolvixLogger;
 import com.molvix.android.utils.NetworkClient;
 
@@ -39,6 +42,8 @@ import org.apache.commons.lang3.text.WordUtils;
 import org.greenrobot.eventbus.EventBus;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 public class ApplicationLoader extends MultiDexApplication {
@@ -203,6 +208,15 @@ public class ApplicationLoader extends MultiDexApplication {
     }
 
     private void initAdMob() {
+        if (BuildConfig.DEBUG) {
+            List<String> testDevices = new ArrayList<>();
+            testDevices.add(MolvixGenUtils.getDeviceId());
+            RequestConfiguration requestConfiguration
+                    = new RequestConfiguration.Builder()
+                    .setTestDeviceIds(testDevices)
+                    .build();
+            MobileAds.setRequestConfiguration(requestConfiguration);
+        }
         MobileAds.initialize(this, getString(R.string.admob_app_id));
     }
 

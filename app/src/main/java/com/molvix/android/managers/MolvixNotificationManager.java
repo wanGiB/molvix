@@ -74,7 +74,6 @@ public class MolvixNotificationManager {
                 .title(title)
                 .largeIcon(R.mipmap.ic_launcher);
         mLoad.identifier(identifier);
-
         if (progress == 100) {
             mLoad.click(mainPendingIntent);
             mLoad.smallIcon(android.R.drawable.stat_sys_download_done);

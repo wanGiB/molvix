@@ -9,7 +9,6 @@ import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.VideoOptions;
 import com.google.android.gms.ads.formats.NativeAdOptions;
 import com.google.android.gms.ads.formats.UnifiedNativeAd;
-import com.molvix.android.BuildConfig;
 import com.molvix.android.R;
 import com.molvix.android.companions.AppConstants;
 import com.molvix.android.components.ApplicationLoader;
@@ -91,9 +90,6 @@ public class AdsLoadManager {
                 }
             }).build();
             AdRequest.Builder adRequestBuilder = new AdRequest.Builder();
-            if (BuildConfig.DEBUG) {
-                adRequestBuilder.addTestDevice(AppConstants.TEST_DEVICE_ID);
-            }
             adLoader.loadAds(adRequestBuilder.build(), NUMBER_OF_ADS);
         }
 

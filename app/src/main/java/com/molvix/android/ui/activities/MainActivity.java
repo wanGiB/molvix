@@ -216,9 +216,6 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
 
     private void loadRewardedVideoAdNow() {
         AdRequest.Builder adBuilder = new AdRequest.Builder();
-        if (BuildConfig.DEBUG) {
-            adBuilder.addTestDevice(AppConstants.TEST_DEVICE_ID);
-        }
         mRewardedVideoAd.loadAd(getString(R.string.rewarded_video_release_ad_unit_id),
                 adBuilder.build());
     }
