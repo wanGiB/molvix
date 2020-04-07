@@ -35,7 +35,6 @@ import com.google.android.gms.ads.reward.RewardItem;
 import com.google.android.gms.ads.reward.RewardedVideoAd;
 import com.google.android.gms.ads.reward.RewardedVideoAdListener;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.molvix.android.BuildConfig;
 import com.molvix.android.R;
 import com.molvix.android.beans.DownloadedVideoItem;
 import com.molvix.android.companions.AppConstants;
@@ -366,7 +365,7 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
 
     private void checkAndDisplayUnFinishedDownloads() {
         Set<String> pausedDownloads = AppPrefs.getInProgressDownloads();
-        if (!pausedDownloads.isEmpty()) {
+        if (!pausedDownloads.isEmpty() && ConnectivityUtils.isDeviceConnectedToTheInternet()) {
             int sizeOfUnFinishedDownloads = pausedDownloads.size();
             String quantifier = sizeOfUnFinishedDownloads == 1 ? "download" : "downloads";
             String message = "You have " + sizeOfUnFinishedDownloads + " unfinished " + quantifier;

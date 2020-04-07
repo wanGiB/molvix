@@ -1,7 +1,7 @@
 <resources>
 
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+    <style name="AppTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
         <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
@@ -114,12 +114,12 @@
 
     <string name="ad_attribution">Ad</string>
 
-    <style name="Theme.Rating" parent="Theme.MaterialComponents.Light">
+    <style name="Theme.Rating" parent="Theme.AppCompat.Light">
         <item name="colorAccent">@color/rating_bar_progress_tint</item>
         <item name="colorControlActivated">@color/rating_bar_progress_tint</item>
     </style>
 
-    <style name="Theme.SeekBar" parent="Theme.MaterialComponents.Light">
+    <style name="Theme.SeekBar" parent="Theme.AppCompat.Light">
         <item name="colorAccent">@color/white</item>
     </style>
 

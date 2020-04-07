@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:animateLayoutChanges="true"
     android:background="?attr/app_vibrant_background_color">
 
-    <ImageView
+    <androidx.appcompat.widget.AppCompatImageView
         android:id="@+id/splash_icon"
         android:layout_width="120dp"
         android:layout_height="120dp"
@@ -17,14 +17,14 @@
         tools:ignore="ContentDescription" />
 
     <com.molvix.android.ui.widgets.MolvixTextView
-        app:textStyle="medium"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@id/splash_icon"
         android:layout_centerHorizontal="true"
         android:paddingTop="10dp"
-        android:textSize="14sp"
+        android:text="@string/free_series_downloader"
         android:textColor="?attr/movie_seasons_color"
-        android:text="@string/free_series_downloader" />
+        android:textSize="14sp"
+        app:textStyle="medium" />
 
 </RelativeLayout>

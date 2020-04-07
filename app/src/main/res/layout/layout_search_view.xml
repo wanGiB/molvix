@@ -13,7 +13,7 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal">
 
-        <androidx.appcompat.widget.AppCompatEditText
+        <EditText
             android:id="@+id/search_box"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -24,6 +24,8 @@
             android:drawablePadding="10dp"
             android:gravity="center_vertical"
             android:hint="@string/search_movies"
+            android:importantForAutofill="no"
+            android:inputType="text"
             android:padding="16dp"
             android:textColor="?attr/search_text_color"
             android:textColorHint="?attr/search_hint_color"

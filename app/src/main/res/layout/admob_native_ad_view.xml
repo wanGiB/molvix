@@ -71,7 +71,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="match_parent"
                                 android:gravity="bottom"
-                                android:textColor="@color/colorAccent"
+                                android:textColor="@color/rating_bar_progress_tint"
                                 android:textSize="14sp"
                                 app:textStyle="bold" />
 
@@ -155,7 +155,7 @@
                             android:textColor="@android:color/white"
                             android:textSize="12sp"
                             android:textStyle="bold"
-                            app:backgroundTint="@color/linked_in" />
+                            android:theme="@style/Widget.Button.Normal" />
 
                     </LinearLayout>
 
