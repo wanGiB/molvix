@@ -52,11 +52,11 @@ public class ManagedSpaceActivity extends BaseActivity {
                         boolean molvixDirDelete = FileUtils.deleteDirectory(molvixFolder);
                         if (molvixDirDelete) {
                             UiUtils.showSafeToast("Downloaded Videos and other data successfully cleared");
-                        }else{
+                        } else {
                             UiUtils.showSafeToast("Sorry, we couldn't delete downloaded videos. Please try again.");
                         }
                     }
-                }else{
+                } else {
                     UiUtils.showSafeToast("Data successfully cleared");
                 }
             } else {

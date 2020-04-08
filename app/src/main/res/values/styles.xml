@@ -100,15 +100,15 @@
     </style>
 
     <!-- styles for Login buttons -->
-    <style name="Widget.Button.Login" parent="Widget.MaterialComponents.Button">
+    <style name="Widget.Button.Login" parent="Widget.Button">
         <item name="android:textColor">@android:color/white</item>
     </style>
 
-    <style name="Widget.Button.Normal" parent="Widget.MaterialComponents.Button">
-        <item name="colorAccent">@color/linked_in</item>
+    <style name="Widget.Button.Normal" parent="Widget.Button">
+        <item name="colorButtonNormal">@color/linked_in</item>
     </style>
 
-    <style name="Widget.Button.Delete" parent="Widget.MaterialComponents.Button">
+    <style name="Widget.Button.Delete" parent="Widget.Button">
         <item name="colorButtonNormal">@color/colorGoogle</item>
     </style>
 

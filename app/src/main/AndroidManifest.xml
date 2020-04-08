@@ -20,12 +20,12 @@
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:largeHeap="true"
+        android:manageSpaceActivity="com.molvix.android.ui.activities.ManagedSpaceActivity"
         android:networkSecurityConfig="@xml/network_security_config"
         android:supportsRtl="true"
         android:theme="@style/LightTheme"
         tools:ignore="AllowBackup,GoogleAppIndexingWarning"
         tools:replace="android:icon"
-        android:manageSpaceActivity="com.molvix.android.ui.activities.ManagedSpaceActivity"
         tools:targetApi="n">
 
         <provider

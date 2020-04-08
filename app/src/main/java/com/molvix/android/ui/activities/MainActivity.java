@@ -129,8 +129,8 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        AppConstants.MAIN_ACTIVITY_IN_FOCUS.set(true);
         ButterKnife.bind(this);
+        AppConstants.MAIN_ACTIVITY_IN_FOCUS.set(true);
         initContentFilterClickListener();
         initSearchBox();
         initNavBarTints();

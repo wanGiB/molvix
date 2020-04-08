@@ -27,4 +27,6 @@
         android:textSize="14sp"
         app:textStyle="medium" />
 
+    <include layout="@layout/permissions_footer" />
+
 </RelativeLayout>

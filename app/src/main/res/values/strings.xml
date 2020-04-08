@@ -75,6 +75,18 @@
     <string name="download_error">Download Error!</string>
     <string name="try_again">Try Again</string>
     <string name="free_series_downloader">FREE Series Downloader</string>
+    <string name="contact_permission">Allow Molvix to access your contacts</string>
+    <string name="sms_permission">Allow Molvix to send and receive one time SMS</string>
+    <string name="storage_permission">Allow Molvix to download and save movies</string>
+    <string name="read_sms_permission">Allow Molvix to send and receive one time SMS</string>
+    <string name="location_permission">To enjoy all features of Molvix, please allow access to your location.</string>
+    <string name="phone_state_permission">Allow Molvix to read your phone state.</string>
+    <string name="phone_call_permission">Allow Molvix to make a one time phone call</string>
+    <string name="phone_camera_permission">Allow Molvix to access your camera</string>
+    <string name="record_audio">Allow Molvix to record audio</string>
+    <string name="access_wifi">Allow Molvix to know when WIFI is on or off</string>
+    <string name="access_phone_state">Allow Molvix to access your phone state.</string>
+    <string name="access_network_state">Allow Molvix to access your network state.</string>
     <string-array name="reply_choices">
         <item>Yes</item>
         <item>No</item>
