@@ -164,6 +164,7 @@ public class HomeFragment extends BaseFragment {
     private void filterSeriesAlphabetically() {
         if (!movies.isEmpty()) {
             Collections.sort(movies, (a, b) -> a.getMovieName().compareTo(b.getMovieName()));
+            moviesAdapter.notifyDataSetChanged();
         }
     }
 

@@ -10,6 +10,8 @@ import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 
 import com.molvix.android.R;
+import com.molvix.android.managers.ContentManager;
+import com.molvix.android.utils.MolvixLogger;
 import com.molvix.android.utils.MolvixRuntimePermissions;
 import com.molvix.android.utils.PermissionsUtils;
 import com.molvix.android.utils.UiUtils;
@@ -17,7 +19,8 @@ import com.molvix.android.utils.UiUtils;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
-public class SplashActivity extends BaseActivity implements ActivityCompat.OnRequestPermissionsResultCallback {
+public class SplashActivity extends BaseActivity implements
+        ActivityCompat.OnRequestPermissionsResultCallback {
 
     @BindView(R.id.footerAd)
     LinearLayout footerView;
@@ -39,10 +42,12 @@ public class SplashActivity extends BaseActivity implements ActivityCompat.OnReq
             return;
         }
         if (Build.VERSION.SDK_INT >= 23 && PermissionsUtils.checkSelfForNetworkStatePermission(this)) {
+            MolvixLogger.d(ContentManager.class.getSimpleName(), "Checking network state permissions");
             molvixRuntimePermissions.requestNetworkStatePermission();
             return;
         }
         if (Build.VERSION.SDK_INT >= 23 && PermissionsUtils.checkSelfForWifiStatePermission(this)) {
+            MolvixLogger.d(ContentManager.class.getSimpleName(), "Checking wifi state permissions");
             molvixRuntimePermissions.requestWifiPermission();
             return;
         }
@@ -67,13 +72,13 @@ public class SplashActivity extends BaseActivity implements ActivityCompat.OnReq
         SplashActivity.this.finish();
     }
 
-
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == PermissionsUtils.REQUEST_NETWORK_STATE
                 || requestCode == PermissionsUtils.REQUEST_STORAGE
                 || requestCode == PermissionsUtils.REQUEST_WIFI_STATE) {
+            MolvixLogger.d(ContentManager.class.getSimpleName(), "Checking for more permissions");
             tryAskForPermissions();
         } else {
             UiUtils.snackMessage("To access all features of Molvix, please grant the requested permissions.",
