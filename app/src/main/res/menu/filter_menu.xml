@@ -1,12 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <item android:id="@+id/display_new_movies"
-        android:title="@string/show_newest_series"
-        android:icon="@drawable/ic_new_releases"/>
+    <item
+        android:id="@+id/display_new_movies"
+        android:icon="@drawable/ic_new_releases"
+        android:title="@string/show_newest_series" />
 
-    <item android:id="@+id/filter_by_genre"
-        android:title="@string/filter_by_genre"
-        android:icon="@drawable/ic_genre_24dp"/>
+    <item
+        android:id="@+id/filter_by_genre"
+        android:icon="@drawable/ic_genre_24dp"
+        android:title="@string/filter_by_genre" />
+
+    <item
+        android:id="@+id/filter_alphabetically"
+        android:icon="@drawable/ic_format_list_bulleted_black_24dp"
+        android:title="@string/a_to_z" />
 
 </menu>

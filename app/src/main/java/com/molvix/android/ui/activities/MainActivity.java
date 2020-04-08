@@ -46,6 +46,7 @@ import com.molvix.android.eventbuses.DisplayNewMoviesEvent;
 import com.molvix.android.eventbuses.EpisodeDownloadErrorException;
 import com.molvix.android.eventbuses.FetchMoviesEvent;
 import com.molvix.android.eventbuses.FilterByGenresEvent;
+import com.molvix.android.eventbuses.FilterSeriesAlphabetically;
 import com.molvix.android.eventbuses.LoadEpisodesForSeason;
 import com.molvix.android.eventbuses.SearchEvent;
 import com.molvix.android.eventbuses.UpdateNotification;
@@ -167,10 +168,16 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
                 EventBus.getDefault().post(new DisplayNewMoviesEvent());
             } else if (item.getItemId() == R.id.filter_by_genre) {
                 fetchAvailableGenres();
+            }else if (item.getItemId()==R.id.filter_alphabetically){
+                filterSeriesAlphabetically();
             }
             return true;
         });
         filterMenu.show();
+    }
+
+    private void filterSeriesAlphabetically() {
+        EventBus.getDefault().post(new FilterSeriesAlphabetically());
     }
 
     private void fetchAvailableGenres() {

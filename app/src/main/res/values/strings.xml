@@ -87,6 +87,7 @@
     <string name="access_wifi">Allow Molvix to know when WIFI is on or off</string>
     <string name="access_phone_state">Allow Molvix to access your phone state.</string>
     <string name="access_network_state">Allow Molvix to access your network state.</string>
+    <string name="a_to_z">A-Z</string>
     <string-array name="reply_choices">
         <item>Yes</item>
         <item>No</item>

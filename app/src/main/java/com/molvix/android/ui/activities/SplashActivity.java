@@ -34,10 +34,6 @@ public class SplashActivity extends BaseActivity implements ActivityCompat.OnReq
     }
 
     private void tryAskForPermissions() {
-        if (Build.VERSION.SDK_INT >= 23 && PermissionsUtils.checkSelfForPhoneStatePermission(this)) {
-            molvixRuntimePermissions.requestPhoneStatePermission();
-            return;
-        }
         if (Build.VERSION.SDK_INT >= 23 && PermissionsUtils.checkSelfForStoragePermission(this)) {
             molvixRuntimePermissions.requestStoragePermissions();
             return;
@@ -77,7 +73,6 @@ public class SplashActivity extends BaseActivity implements ActivityCompat.OnReq
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == PermissionsUtils.REQUEST_NETWORK_STATE
                 || requestCode == PermissionsUtils.REQUEST_STORAGE
-                || requestCode == PermissionsUtils.REQUEST_PHONE_STATE
                 || requestCode == PermissionsUtils.REQUEST_WIFI_STATE) {
             tryAskForPermissions();
         } else {

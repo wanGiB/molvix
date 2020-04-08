@@ -27,6 +27,7 @@ import com.molvix.android.eventbuses.ConnectivityChangedEvent;
 import com.molvix.android.eventbuses.DisplayNewMoviesEvent;
 import com.molvix.android.eventbuses.FetchMoviesEvent;
 import com.molvix.android.eventbuses.FilterByGenresEvent;
+import com.molvix.android.eventbuses.FilterSeriesAlphabetically;
 import com.molvix.android.eventbuses.SearchEvent;
 import com.molvix.android.managers.ContentManager;
 import com.molvix.android.managers.MovieManager;
@@ -37,6 +38,7 @@ import com.molvix.android.utils.ConnectivityUtils;
 import com.molvix.android.utils.MolvixGenUtils;
 import com.molvix.android.utils.UiUtils;
 
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.greenrobot.eventbus.EventBus;
 
@@ -153,8 +155,16 @@ public class HomeFragment extends BaseFragment {
                 displayMoviesByGenre(filterByGenresEvent.getSelectedGenres());
             } else if (event instanceof FetchMoviesEvent) {
                 fetchMovies();
+            } else if (event instanceof FilterSeriesAlphabetically) {
+                filterSeriesAlphabetically();
             }
         });
+    }
+
+    private void filterSeriesAlphabetically() {
+        if (!movies.isEmpty()) {
+            Collections.sort(movies, (a, b) -> a.getMovieName().compareTo(b.getMovieName()));
+        }
     }
 
     private void displayMoviesByGenre(List<String> selectedGenres) {
@@ -301,6 +311,7 @@ public class HomeFragment extends BaseFragment {
         if (nextAdPosition % 5 == 0) {
             Movie adView = new Movie();
             adView.setAd(true);
+            adView.setMovieName(RandomStringUtils.random(16));
             movies.add(adView);
         }
     }
