@@ -480,7 +480,6 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
                     //in the View Group
                     hackWebView = new AdvancedWebView(MainActivity.this);
                     hackWebView.getSettings().setJavaScriptEnabled(true);
-                    hackWebView.getSettings().setDomStorageEnabled(true);
                     hackWebView.setCookiesEnabled(true);
                     hackWebView.setMixedContentAllowed(true);
                     hackWebView.setThirdPartyCookiesEnabled(true);

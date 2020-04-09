@@ -2,6 +2,7 @@ package com.molvix.android.ui.activities;
 
 import android.os.Build;
 import android.os.Bundle;
+import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 
@@ -30,7 +31,14 @@ public abstract class BaseActivity extends AppCompatActivity {
         if (themeSelection == ThemeManager.ThemeSelection.DARK) {
             tintStatusBar(ContextCompat.getColor(this, R.color.dracula_primary));
         } else {
-            tintStatusBar(ContextCompat.getColor(this, R.color.light_gray));
+            tintStatusBar(ContextCompat.getColor(this, R.color.white));
+            View view = getWindow().getDecorView();
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                view.setSystemUiVisibility(view.getSystemUiVisibility() | View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                view.setSystemUiVisibility(view.getSystemUiVisibility() | View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR);
+            }
         }
     }
 
@@ -50,6 +58,7 @@ public abstract class BaseActivity extends AppCompatActivity {
             Window window = getWindow();
             window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
             window.setStatusBarColor(UiUtils.darker(colorPrimary, 0.9f));
+            window.setNavigationBarColor(UiUtils.darker(colorPrimary, 0.9f));
         }
     }
 
