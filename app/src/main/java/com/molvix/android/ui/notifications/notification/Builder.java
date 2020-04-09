@@ -29,9 +29,36 @@ public abstract class Builder {
         return notificationNotify(notificationId);
     }
 
+    public Notification notificationNotifyWithDefaults() {
+        if (tag != null) {
+            return notificationNotifyWithDefaults(tag, notificationId);
+        }
+        return notificationNotifyWithDefaults(notificationId);
+    }
+
     protected Notification notificationNotify(int identifier) {
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(MolvixNotification.mSingleton.mContext);
         notificationManager.notify(identifier, notification);
+        return notification;
+    }
+
+    protected Notification notificationNotifyWithDefaults(int identifier) {
+        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(MolvixNotification.mSingleton.mContext);
+        notification.defaults =
+                NotificationCompat.DEFAULT_SOUND
+                        | NotificationCompat.DEFAULT_VIBRATE
+                        | NotificationCompat.DEFAULT_LIGHTS;
+        notificationManager.notify(identifier, notification);
+        return notification;
+    }
+
+    protected Notification notificationNotifyWithDefaults(String tag, int identifier) {
+        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(MolvixNotification.mSingleton.mContext);
+        notification.defaults =
+                NotificationCompat.DEFAULT_SOUND
+                        | NotificationCompat.DEFAULT_VIBRATE
+                        | NotificationCompat.DEFAULT_LIGHTS;
+        notificationManager.notify(tag, identifier, notification);
         return notification;
     }
 

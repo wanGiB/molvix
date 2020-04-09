@@ -61,6 +61,7 @@ import com.molvix.android.models.Episode;
 import com.molvix.android.models.Presets;
 import com.molvix.android.models.Season;
 import com.molvix.android.preferences.AppPrefs;
+import com.molvix.android.receivers.ConnectivityChangeReceiver;
 import com.molvix.android.ui.adapters.MainActivityPagerAdapter;
 import com.molvix.android.ui.fragments.DownloadedVideosFragment;
 import com.molvix.android.ui.fragments.HomeFragment;
@@ -116,6 +117,8 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
     @BindView(R.id.content_filterer)
     View contentFilterer;
 
+    private AdvancedWebView hackWebView;
+
     private ProgressDialog gamificationHostDialog;
     private List<Fragment> fragments;
     private DataSubscription presetsSubscription;
@@ -138,12 +141,12 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
         unLockAppCaptchaSolver();
         setupViewPager();
         observeNewIntent(getIntent());
-        fetchDownloadableEpisodes();
         checkAndDisplayUnFinishedDownloads();
         cleanUpUnLinkedDownloadKeys();
         setupRewardedVideoAd();
         resetLastAdLoadTime();
         AdsLoadManager.spin();
+        ConnectivityChangeReceiver.fetchNotifications();
     }
 
     @Override
@@ -168,7 +171,7 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
                 EventBus.getDefault().post(new DisplayNewMoviesEvent());
             } else if (item.getItemId() == R.id.filter_by_genre) {
                 fetchAvailableGenres();
-            }else if (item.getItemId()==R.id.filter_alphabetically){
+            } else if (item.getItemId() == R.id.filter_alphabetically) {
                 filterSeriesAlphabetically();
             }
             return true;
@@ -372,11 +375,35 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
 
     private void checkAndDisplayUnFinishedDownloads() {
         Set<String> pausedDownloads = AppPrefs.getInProgressDownloads();
-        if (!pausedDownloads.isEmpty() && ConnectivityUtils.isDeviceConnectedToTheInternet()) {
-            int sizeOfUnFinishedDownloads = pausedDownloads.size();
-            String quantifier = sizeOfUnFinishedDownloads == 1 ? "download" : "downloads";
-            String message = "You have " + sizeOfUnFinishedDownloads + " unfinished " + quantifier;
-            UiUtils.snackMessage(message, bottomNavView, false, "RESUME", DownloaderUtils::checkAndResumePausedDownloads);
+        if (!pausedDownloads.isEmpty()) {
+            if (ConnectivityUtils.isDeviceConnectedToTheInternet()) {
+                int sizeOfUnFinishedDownloads = pausedDownloads.size();
+                String quantifier = sizeOfUnFinishedDownloads == 1 ? "download" : "downloads";
+                String message = "You have " + sizeOfUnFinishedDownloads + " unfinished " + quantifier;
+                UiUtils.snackMessage(message, bottomNavView, false, "RESUME/CANCEL", () -> {
+                    AlertDialog.Builder resumeOrCancelDialog = new AlertDialog.Builder(MainActivity.this);
+                    resumeOrCancelDialog.setTitle("Select Download Action");
+                    resumeOrCancelDialog.setSingleChoiceItems(new CharSequence[]{"RESUME", "CANCEL DOWNLOAD(S)", "LATER"}, -1, (dialogInterface, i) -> {
+                        dialogInterface.dismiss();
+                        dialogInterface.cancel();
+                        if (i == 0) {
+                            DownloaderUtils.checkAndResumePausedDownloads();
+                        } else if (i == 1) {
+                            for (String episodeId : pausedDownloads) {
+                                Episode episode = MolvixDB.getEpisode(episodeId);
+                                if (episode != null) {
+                                    FileDownloadManager.cancelDownload(episode);
+                                }
+                            }
+                        }
+                    });
+                    resumeOrCancelDialog.create().show();
+                });
+            }
+        } else {
+            if (ConnectivityUtils.isDeviceConnectedToTheInternet()) {
+                fetchDownloadableEpisodes();
+            }
         }
     }
 
@@ -432,23 +459,35 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
     private void tryByPassEpisodeCaptcha(Episode episode) {
         MolvixLogger.d(ContentManager.class.getSimpleName(), "About to bypass captcha for " + EpisodesManager.getEpisodeFullName(episode));
         runOnUiThread(() -> {
-            AdvancedWebView hackWebView;
-            if (rootContainer.getChildAt(getHackWebViewIndex()) instanceof AdvancedWebView) {
-                //We already have an existing hack web view for this app session
-                //Simply re-use it
-                hackWebView = (AdvancedWebView) rootContainer.getChildAt(getHackWebViewIndex());
-            } else {
-                //Otherwise create a new hack web view and add it as the first child
-                //in the View Group
-                hackWebView = new AdvancedWebView(MainActivity.this);
-                hackWebView.getSettings().setJavaScriptEnabled(true);
-                hackWebView.getSettings().setDomStorageEnabled(true);
-                hackWebView.setCookiesEnabled(true);
-                hackWebView.setMixedContentAllowed(true);
-                hackWebView.setThirdPartyCookiesEnabled(true);
-                rootContainer.addView(hackWebView, getHackWebViewIndex());
+            String existingDownloadLink = null;
+            if (episode.getEpisodeQuality() == AppConstants.HIGH_QUALITY) {
+                existingDownloadLink = episode.getHighQualityDownloadLink();
+            } else if (episode.getEpisodeQuality() == AppConstants.STANDARD_QUALITY) {
+                existingDownloadLink = episode.getStandardQualityDownloadLink();
+            } else if (episode.getEpisodeQuality() == AppConstants.LOW_QUALITY) {
+                existingDownloadLink = episode.getLowQualityDownloadLink();
             }
-            solveEpisodeCaptchaChallenge(hackWebView, episode);
+            if (existingDownloadLink != null) {
+                FileDownloadManager.downloadEpisode(episode);
+                EpisodesManager.popDownloadableEpisode(episode);
+            } else {
+                if (rootContainer.getChildAt(getHackWebViewIndex()) instanceof AdvancedWebView) {
+                    //We already have an existing hack web view for this app session
+                    //Simply re-use it
+                    hackWebView = (AdvancedWebView) rootContainer.getChildAt(getHackWebViewIndex());
+                } else {
+                    //Otherwise create a new hack web view and add it as the first child
+                    //in the View Group
+                    hackWebView = new AdvancedWebView(MainActivity.this);
+                    hackWebView.getSettings().setJavaScriptEnabled(true);
+                    hackWebView.getSettings().setDomStorageEnabled(true);
+                    hackWebView.setCookiesEnabled(true);
+                    hackWebView.setMixedContentAllowed(true);
+                    hackWebView.setThirdPartyCookiesEnabled(true);
+                    rootContainer.addView(hackWebView, getHackWebViewIndex());
+                }
+                solveEpisodeCaptchaChallenge(hackWebView, episode);
+            }
         });
     }
 
@@ -735,7 +774,7 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
                 .setTopColorRes(R.color.colorAccentDark)
                 .setTitle(R.string.enter_text_shown_title)
                 .setCancelable(false)
-                .setMessage((StringUtils.isNotEmpty(lastCaptchaErrorMessage.get()) ? "Your last entry was wrong\n" : "") + "Please enter the text shown above to start series downloads")
+                .setMessage((StringUtils.isNotEmpty(lastCaptchaErrorMessage.get()) ? "Your last entry was wrong\n" : "") + "Please enter the text shown above to start your pending downloads")
                 .setIcon(bitmap)
                 .configureEditText(v -> {
                     v.setImeOptions(6);

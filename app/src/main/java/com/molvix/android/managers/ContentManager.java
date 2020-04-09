@@ -12,7 +12,6 @@ import com.molvix.android.models.Movie_;
 import com.molvix.android.models.Notification;
 import com.molvix.android.models.Presets;
 import com.molvix.android.models.Season;
-import com.molvix.android.preferences.AppPrefs;
 import com.molvix.android.utils.ConnectivityUtils;
 import com.molvix.android.utils.CryptoUtils;
 import com.molvix.android.utils.FileUtils;
@@ -80,7 +79,6 @@ public class ContentManager {
     }
 
     private static void offloadPresets(String responseBodyString) {
-        MolvixLogger.d(ContentManager.class.getSimpleName(), "Offloading Fetched Presets");
         try {
             JSONObject presetsObject = new JSONObject(responseBodyString);
             if (presetsObject.length() > 0) {
@@ -194,57 +192,6 @@ public class ContentManager {
             if (!movies.isEmpty()) {
                 MolvixDB.performBulkInsertionOfMovies(movies);
             }
-        }
-    }
-
-    public static void fetchNotifications() {
-        try {
-            String TV_SERIES_URL = "https://o2tvseries.com";
-            Document document = Jsoup.connect(TV_SERIES_URL).get();
-            Element update = document.selectFirst("div.data_list");
-            if (update != null) {
-                Elements updates = update.children();
-                for (Element updateItem : updates) {
-                    String updateTitle = updateItem.text();
-                    String movieTitle = StringUtils.stripStart(StringUtils.stripEnd(StringUtils.substringBefore(updateTitle, "- Season"), "-"), "-").trim();
-                    String secondProcessed = updateTitle.replace(movieTitle, "");
-                    String seasonName = StringUtils.stripEnd(StringUtils.stripStart(StringUtils.substringBefore(secondProcessed, "- Episode"), "-"), "-").trim();
-                    String thirdProcessed = secondProcessed.replace(seasonName, "");
-                    String episodeName = StringUtils.stripStart(StringUtils.stripEnd(StringUtils.substringBeforeLast(thirdProcessed, "-"), "-"), "-").trim();
-                    String realMovieTitle = StringUtils.strip(movieTitle, "-").trim();
-                    String realSeasonName = StringUtils.strip(seasonName, "-").trim();
-                    Movie result = MolvixDB.getMovieBox()
-                            .query()
-                            .equal(Movie_.movieName, realMovieTitle.toLowerCase())
-                            .equal(Movie_.seenByUser, true)
-                            .build()
-                            .findFirst();
-                    if (result != null) {
-                        String realEpisodeName = StringUtils.strip(episodeName, "-").trim();
-                        String message = "<b>" + realMovieTitle + "</b>" + "/" + "<b>" + realSeasonName + "</b>" + "/" + "<b>" + realEpisodeName + "</b>" + " is out.";
-                        String displayMessage = "<b>" + realSeasonName + "</b>" + "/" + "<b>" + realEpisodeName + "</b>" + " is out.";
-                        String checkKey = CryptoUtils.getSha256Digest(realMovieTitle + "/" + realSeasonName + "/" + realEpisodeName);
-                        boolean hasBeenNotified = AppPrefs.hasBeenNotified(checkKey);
-                        if (!hasBeenNotified) {
-                            Notification existingNotification = MolvixDB.getNotification(checkKey);
-                            if (existingNotification != null) {
-                                return;
-                            }
-                            Notification newMovieAvailableNotification = new Notification();
-                            newMovieAvailableNotification.setNotificationObjectId(checkKey);
-                            newMovieAvailableNotification.setMessage(message);
-                            newMovieAvailableNotification.setTimeStamp(System.currentTimeMillis());
-                            newMovieAvailableNotification.setDestination(AppConstants.DESTINATION_NEW_EPISODE_AVAILABLE);
-                            newMovieAvailableNotification.setDestinationKey(result.getMovieId());
-                            MolvixDB.createNewNotification(newMovieAvailableNotification);
-                            MolvixNotificationManager.displayNewMovieNotification(result, displayMessage, newMovieAvailableNotification, checkKey);
-                        }
-                    }
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            spitException(e);
         }
     }
 
@@ -487,7 +434,7 @@ public class ContentManager {
             Episode newEpisode = generateEpisode(season, episodeLink, episodeName);
             if (!season.episodes.isEmpty()) {
                 Episode lastEpisode = season.episodes.get(season.episodes.size() - 1);
-                if (!lastEpisode.getEpisodeName().toLowerCase().contains("finale")){
+                if (!lastEpisode.getEpisodeName().toLowerCase().contains("finale")) {
                     if (!season.episodes.contains(newEpisode)) {
                         season.episodes.add(newEpisode);
                     }

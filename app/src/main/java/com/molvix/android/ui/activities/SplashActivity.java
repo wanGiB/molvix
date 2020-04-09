@@ -25,7 +25,7 @@ public class SplashActivity extends BaseActivity implements
     @BindView(R.id.footerAd)
     LinearLayout footerView;
 
-    MolvixRuntimePermissions molvixRuntimePermissions;
+    private MolvixRuntimePermissions molvixRuntimePermissions;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -86,5 +86,4 @@ public class SplashActivity extends BaseActivity implements
 
         }
     }
-
 }

@@ -6,6 +6,7 @@ import com.huxq17.download.Pump;
 import com.molvix.android.companions.AppConstants;
 import com.molvix.android.components.ApplicationLoader;
 import com.molvix.android.database.MolvixDB;
+import com.molvix.android.eventbuses.CheckForDownloadableEpisodes;
 import com.molvix.android.eventbuses.EpisodeDownloadErrorException;
 import com.molvix.android.models.DownloadableEpisode;
 import com.molvix.android.models.Episode;
@@ -58,13 +59,15 @@ public class FileDownloadManager {
     public static void cancelDownload(Episode episode) {
         String downloadKeyFromEpisode = getDownloadIdFromEpisode(episode);
         MolvixNotification.with(ApplicationLoader.getInstance()).cancel(Math.abs(episode.getEpisodeId().hashCode()));
+        AppPrefs.removeFromInProgressDownloads(episode);
         DownloadableEpisode downloadableEpisode = MolvixDB.getDownloadableEpisode(episode.getEpisodeId());
         if (downloadableEpisode != null) {
-            MolvixDB.deleteDownloadableEpisode(downloadableEpisode);
+            EpisodesManager.popDownloadableEpisode(downloadableEpisode.getEpisode());
+        } else {
+            EpisodesManager.unLockCaptchaSolver();
+            EventBus.getDefault().post(new CheckForDownloadableEpisodes());
         }
-        AppPrefs.removeFromInProgressDownloads(episode);
         ApplicationLoader.resetEpisodeDownloadProgress(episode);
-        Pump.pause(downloadKeyFromEpisode);
         Pump.stop(downloadKeyFromEpisode);
         MolvixLogger.d(ContentManager.class.getSimpleName(), EpisodesManager.getEpisodeFullName(episode) + " was cancelled");
     }

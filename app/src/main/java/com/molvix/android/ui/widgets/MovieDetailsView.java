@@ -157,6 +157,13 @@ public class MovieDetailsView extends FrameLayout {
         bottomSheetTitleView.setText(WordUtils.capitalize(season.getSeasonName()));
         List<Episode> seasonEpisodes = season.getEpisodes();
         List<Episode> episodes = new ArrayList<>(seasonEpisodes);
+        if (episodes.size() >= 2) {
+            Episode lastEpisode = episodes.get(episodes.size() - 1);
+            Episode secondToLastEpisode = episodes.get(episodes.size() - 2);
+            if (secondToLastEpisode.getEpisodeName().toLowerCase().contains("finale")) {
+                episodes.remove(lastEpisode);
+            }
+        }
         episodesAdapter = new EpisodesAdapter(getContext(), episodes);
         LinearLayoutManager bottomSheetLinearLayoutManager = new LinearLayoutManager(getContext());
         bottomSheetRecyclerView.setLayoutManager(bottomSheetLinearLayoutManager);

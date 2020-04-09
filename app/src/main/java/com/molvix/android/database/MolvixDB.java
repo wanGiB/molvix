@@ -148,7 +148,7 @@ public class MolvixDB {
                 newMovie.setMovieName(movieName.toLowerCase());
                 newMovie.setMovieLink(movieLink);
                 newMovie.setRecommendedToUser(false);
-                newMovie.setSeenByUser(false);
+                newMovie.setSeenByUser(hasMovieBeenSeen(movieName.toLowerCase()));
                 newMovieList.add(newMovie);
             }
             long lastMoviesSize = AppPrefs.getLastMoviesSize();
@@ -237,4 +237,14 @@ public class MolvixDB {
             }
         }
     }
+
+    private static boolean hasMovieBeenSeen(String movieName) {
+        Movie movie = getMovieBox().query().equal(Movie_.movieName, movieName).build().findFirst();
+        if (movie != null) {
+            return movie.isSeenByUser();
+        } else {
+            return false;
+        }
+    }
+
 }

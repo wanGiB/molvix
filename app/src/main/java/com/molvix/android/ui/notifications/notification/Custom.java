@@ -83,6 +83,15 @@ public class Custom extends Builder {
         super.notificationNotify();
     }
 
+    public void buildCustomWithDefaults() {
+        if (!(Looper.getMainLooper().getThread() == Thread.currentThread())) {
+            throw new IllegalStateException("Method call should happen from the main thread.");
+        }
+        loadImageBackground();
+        super.build();
+        super.notificationNotifyWithDefaults();
+    }
+
     private void loadImageBackground() {
         builder.setStyle(new NotificationCompat.BigPictureStyle().bigPicture(backgroundBitmap).setBigContentTitle(mTitle).setSummaryText(mMessageSpanned != null ? mMessageSpanned : mMessage));
     }

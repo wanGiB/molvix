@@ -53,7 +53,13 @@ public class EpisodesManager {
     public static String getEpisodeFullName(Episode episode) {
         Season episodeSeason = episode.getSeason();
         Movie episodeMovie = episodeSeason.getMovie();
-        return episode.getEpisodeName() + "," + episodeSeason.getSeasonName() + " of " + WordUtils.capitalize(episodeMovie.getMovieName());
+        return episode.getEpisodeName() + ", " + episodeSeason.getSeasonName() + " of " + WordUtils.capitalize(episodeMovie.getMovieName());
+    }
+
+    public static String getEpisodeAndSeasonDescr(Episode episode) {
+        Season episodeSeason = episode.getSeason();
+        Movie episodeMovie = episodeSeason.getMovie();
+        return episode.getEpisodeName() + " of " + episodeSeason.getSeasonName();
     }
 
 }

@@ -128,7 +128,7 @@ public class ApplicationLoader extends MultiDexApplication {
         MolvixDB.updateMovie(movie);
         DownloadableEpisode downloadableEpisode = MolvixDB.getDownloadableEpisode(episodeId);
         if (downloadableEpisode != null) {
-            MolvixDB.deleteDownloadableEpisode(downloadableEpisode);
+            EpisodesManager.popDownloadableEpisode(downloadableEpisode.getEpisode());
         }
         MovieTracker.recordEpisodeAsDownloaded(episode);
         AppPrefs.removeFromInProgressDownloads(episode);
@@ -150,7 +150,6 @@ public class ApplicationLoader extends MultiDexApplication {
             AppPrefs.updateEpisodeDownloadProgress(episode.getEpisodeId(), progressPercent);
             AppPrefs.updateEpisodeDownloadProgressMsg(episode.getEpisodeId(), progressMessage);
             if (completedSize > totalSize) {
-                Pump.pause(FileDownloadManager.getDownloadIdFromEpisode(episode));
                 Pump.stop(FileDownloadManager.getDownloadIdFromEpisode(episode));
                 //Fuck, this is mostly an invalid download
                 Pump.deleteById(FileDownloadManager.getDownloadIdFromEpisode(episode));

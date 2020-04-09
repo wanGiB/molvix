@@ -70,7 +70,7 @@
         <item name="light_background_color">@color/dracula_surface_color
         </item>
         <item name="app_background_color">@color/dracula_primary</item>
-        <item name="header_text_color">@color/colorPrimary</item>
+        <item name="header_text_color">@color/blue_grey_inactive</item>
         <item name="notification_time_color">@color/movie_seasons_color</item>
         <item name="notification_body_color">@color/white</item>
         <item name="app_vibrant_background_color">@color/dracula_primary</item>

@@ -12,6 +12,7 @@ import android.os.Build;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.app.NotificationCompat;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
@@ -127,6 +128,8 @@ public class MolvixNotificationManager {
                 .notificationChannelId("Molvix Next Rated Movie")
                 .title(WordUtils.capitalize(movie.getMovieName()))
                 .message(UiUtils.fromHtml(displayMessage))
+                .priority(NotificationCompat.PRIORITY_HIGH)
+                .ticker("Molvix")
                 .autoCancel(true)
                 .click(movieDetailsPendingIntent)
                 .smallIcon(R.drawable.ic_stat_molvix_logo)
@@ -134,11 +137,11 @@ public class MolvixNotificationManager {
                 .custom()
                 .background(movieBitmap)
                 .setPlaceholder(R.drawable.ic_placeholder)
-                .build();
+                .buildCustomWithDefaults();
         AppPrefs.setHasBeenNotified(checkKey);
     }
 
-    static void displayNewMovieNotification(Movie updatedMovie, String displayMessage, Notification newMovieAvailableNotification, String checkKey) {
+    public static void displayNewMovieNotification(Movie updatedMovie, String displayMessage, Notification newMovieAvailableNotification, String checkKey) {
         String movieArtUrl = updatedMovie.getMovieArtUrl();
         if (movieArtUrl != null) {
             MolvixLogger.d(ContentManager.class.getSimpleName(), "Movie Art Url for next notification is not null.About to display notification for the movie");
