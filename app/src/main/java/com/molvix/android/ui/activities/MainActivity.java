@@ -480,6 +480,7 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
                     //in the View Group
                     hackWebView = new AdvancedWebView(MainActivity.this);
                     hackWebView.getSettings().setJavaScriptEnabled(true);
+                    hackWebView.getSettings().setDomStorageEnabled(true);
                     hackWebView.setCookiesEnabled(true);
                     hackWebView.setMixedContentAllowed(true);
                     hackWebView.setThirdPartyCookiesEnabled(true);
@@ -670,6 +671,11 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
                     evaluateJavaScript(hackWebView, continueDownload);
                 } else if (consoleMessageString.contains(AppConstants.NO_FORM_ELEMENT_FOUND)) {
                     MolvixLogger.d(ContentManager.class.getSimpleName(), "No Form Element was found");
+                    if (hackWebView.canGoBack()) {
+                        hackWebView.goBack();
+                    } else {
+                        hackWebView.reload();
+                    }
                 }
                 return super.onConsoleMessage(consoleMessage);
             }
