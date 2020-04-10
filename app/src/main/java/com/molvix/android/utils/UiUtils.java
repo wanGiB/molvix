@@ -36,6 +36,7 @@ import com.molvix.android.R;
 import com.molvix.android.components.ApplicationLoader;
 import com.molvix.android.contracts.DoneCallback;
 import com.molvix.android.contracts.SnackBarActionClickedListener;
+import com.molvix.android.managers.ContentManager;
 import com.molvix.android.managers.ThemeManager;
 import com.molvix.android.ui.widgets.LoadingImageView;
 
@@ -110,6 +111,9 @@ public class UiUtils {
                         }
                         ThemeManager.ThemeSelection themeSelection = ThemeManager.getThemeSelection();
                         imageView.setImageDrawable(new ColorDrawable(ContextCompat.getColor(ApplicationLoader.getInstance(), themeSelection == ThemeManager.ThemeSelection.DARK ? R.color.dracula_surface_color : R.color.ease_gray)));
+                        if (e != null) {
+                            MolvixLogger.d(ContentManager.class.getSimpleName(),e.getMessage());
+                        }
                         return false;
                     }
 
