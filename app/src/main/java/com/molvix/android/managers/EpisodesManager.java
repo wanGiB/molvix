@@ -9,6 +9,7 @@ import com.molvix.android.preferences.AppPrefs;
 import com.molvix.android.database.MolvixDB;
 import com.molvix.android.utils.MolvixLogger;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.text.WordUtils;
 import org.greenrobot.eventbus.EventBus;
 
@@ -58,8 +59,17 @@ public class EpisodesManager {
 
     public static String getEpisodeAndSeasonDescr(Episode episode) {
         Season episodeSeason = episode.getSeason();
-        Movie episodeMovie = episodeSeason.getMovie();
         return episode.getEpisodeName() + " of " + episodeSeason.getSeasonName();
+    }
+
+    public static String getEpisodeAbbrev(Episode episode) {
+        Season season = episode.getSeason();
+        Movie movie = season.getMovie();
+        String seasonName = season.getSeasonName();
+        String episodeName = episode.getEpisodeName();
+        String abbrevedSeasonName = seasonName.charAt(0) + "-" + StringUtils.substringAfterLast(seasonName, "-");
+        String abbrevedEpisodeName = episodeName.charAt(0) + "-" + StringUtils.substringAfterLast(episodeName, "-");
+        return abbrevedEpisodeName + "/" + abbrevedSeasonName + " of " + WordUtils.capitalize(movie.getMovieName());
     }
 
 }

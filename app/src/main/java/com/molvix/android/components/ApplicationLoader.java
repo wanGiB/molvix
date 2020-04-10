@@ -18,6 +18,7 @@ import com.molvix.android.R;
 import com.molvix.android.companions.AppConstants;
 import com.molvix.android.database.MolvixDB;
 import com.molvix.android.database.ObjectBox;
+import com.molvix.android.eventbuses.CheckForDownloadableEpisodes;
 import com.molvix.android.eventbuses.EpisodeDownloadErrorException;
 import com.molvix.android.managers.ContentManager;
 import com.molvix.android.managers.EpisodesManager;
@@ -133,6 +134,8 @@ public class ApplicationLoader extends MultiDexApplication {
         MovieTracker.recordEpisodeAsDownloaded(episode);
         AppPrefs.removeFromInProgressDownloads(episode);
         MolvixNotificationManager.showEpisodeDownloadProgressNotification(movieName, movieDescription, seasonId, episodeId, EpisodesManager.getEpisodeFullName(episode), 100, "");
+        EpisodesManager.unLockCaptchaSolver();
+        EventBus.getDefault().post(new CheckForDownloadableEpisodes());
     }
 
     private static void updateDownloadProgress(Episode episode, @NotNull DownloadInfo downloadInfo) {

@@ -21,6 +21,7 @@ import android.webkit.WebChromeClient;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
@@ -35,6 +36,7 @@ import com.google.android.gms.ads.reward.RewardItem;
 import com.google.android.gms.ads.reward.RewardedVideoAd;
 import com.google.android.gms.ads.reward.RewardedVideoAdListener;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.huxq17.download.Pump;
 import com.molvix.android.R;
 import com.molvix.android.beans.DownloadedVideoItem;
 import com.molvix.android.companions.AppConstants;
@@ -67,12 +69,12 @@ import com.molvix.android.ui.fragments.DownloadedVideosFragment;
 import com.molvix.android.ui.fragments.HomeFragment;
 import com.molvix.android.ui.fragments.MoreContentsFragment;
 import com.molvix.android.ui.fragments.NotificationsFragment;
+import com.molvix.android.ui.notifications.notification.MolvixNotification;
 import com.molvix.android.ui.widgets.MolvixSearchView;
 import com.molvix.android.ui.widgets.MolvixVideoPlayerView;
 import com.molvix.android.ui.widgets.MovieDetailsView;
 import com.molvix.android.ui.widgets.NewUpdateAvailableView;
 import com.molvix.android.utils.ConnectivityUtils;
-import com.molvix.android.utils.DownloaderUtils;
 import com.molvix.android.utils.FileUtils;
 import com.molvix.android.utils.MolvixGenUtils;
 import com.molvix.android.utils.MolvixLogger;
@@ -99,6 +101,8 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import im.delight.android.webview.AdvancedWebView;
 import io.objectbox.reactive.DataSubscription;
+
+import static com.molvix.android.preferences.AppPrefs.getAppPreferences;
 
 public class MainActivity extends BaseActivity implements RewardedVideoAdListener {
 
@@ -141,7 +145,7 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
         unLockAppCaptchaSolver();
         setupViewPager();
         observeNewIntent(getIntent());
-        checkAndDisplayUnFinishedDownloads();
+        checkAndDisplayUnFinishedDownloads(false);
         cleanUpUnLinkedDownloadKeys();
         setupRewardedVideoAd();
         resetLastAdLoadTime();
@@ -297,7 +301,7 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
     }
 
     private void cleanUpUnLinkedDownloadKeys() {
-        Map<String, ?> allPrefs = AppPrefs.getAppPreferences().getAll();
+        Map<String, ?> allPrefs = getAppPreferences().getAll();
         List<String> removables = new ArrayList<>();
         if (!allPrefs.isEmpty()) {
             //Let's get keys with episode progress
@@ -367,44 +371,105 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
                 UiUtils.snackMessage("Sorry, an error occurred while downloading " + EpisodesManager.getEpisodeFullName(episode) + ".Please try again", rootContainer, true, null, null);
             } else if (event instanceof ConnectivityChangedEvent) {
                 if (ConnectivityUtils.isDeviceConnectedToTheInternet()) {
-                    checkAndDisplayUnFinishedDownloads();
+                    checkAndDisplayUnFinishedDownloads(false);
                 }
             }
         });
     }
 
-    private void checkAndDisplayUnFinishedDownloads() {
+    private void checkAndDisplayUnFinishedDownloads(boolean showDialogImmediately) {
         Set<String> pausedDownloads = AppPrefs.getInProgressDownloads();
         if (!pausedDownloads.isEmpty()) {
             if (ConnectivityUtils.isDeviceConnectedToTheInternet()) {
                 int sizeOfUnFinishedDownloads = pausedDownloads.size();
                 String quantifier = sizeOfUnFinishedDownloads == 1 ? "download" : "downloads";
                 String message = "You have " + sizeOfUnFinishedDownloads + " unfinished " + quantifier;
-                UiUtils.snackMessage(message, bottomNavView, false, "RESUME/CANCEL", () -> {
-                    AlertDialog.Builder resumeOrCancelDialog = new AlertDialog.Builder(MainActivity.this);
-                    resumeOrCancelDialog.setTitle("Select Download Action");
-                    resumeOrCancelDialog.setSingleChoiceItems(new CharSequence[]{"RESUME", "CANCEL DOWNLOAD(S)", "LATER"}, -1, (dialogInterface, i) -> {
-                        dialogInterface.dismiss();
-                        dialogInterface.cancel();
-                        if (i == 0) {
-                            DownloaderUtils.checkAndResumePausedDownloads();
-                        } else if (i == 1) {
-                            for (String episodeId : pausedDownloads) {
-                                Episode episode = MolvixDB.getEpisode(episodeId);
-                                if (episode != null) {
-                                    FileDownloadManager.cancelDownload(episode);
-                                }
-                            }
+                AlertDialog.Builder pausedEpisodesOptionsDialogBuilder = new AlertDialog.Builder(MainActivity.this);
+                pausedEpisodesOptionsDialogBuilder.setTitle("Incomplete Downloads");
+                List<Episode> episodes = new ArrayList<>();
+                List<CharSequence> episodeNames = new ArrayList<>();
+                for (String episodeId : pausedDownloads) {
+                    Episode episode = MolvixDB.getEpisode(episodeId);
+                    if (episode != null) {
+                        episodes.add(episode);
+                        episodeNames.add(EpisodesManager.getEpisodeAbbrev(episode));
+                    }
+                }
+                List<Episode> selections = new ArrayList<>();
+                pausedEpisodesOptionsDialogBuilder.setMultiChoiceItems(episodeNames.toArray(new CharSequence[0]), null, (dialogInterface, which, selected) -> {
+                    Episode selection = episodes.get(which);
+                    if (selected) {
+                        if (!selections.contains(selection)) {
+                            selections.add(selection);
                         }
-                    });
-                    resumeOrCancelDialog.create().show();
+                    } else {
+                        selections.remove(selection);
+                    }
                 });
+                pausedEpisodesOptionsDialogBuilder.setPositiveButton("RESUME", (dialogInterface, i) -> {
+                    dialogInterface.dismiss();
+                    dialogInterface.cancel();
+                    resume(selections);
+                });
+                pausedEpisodesOptionsDialogBuilder.setNegativeButton("REMOVE", (dialogInterface, i) -> {
+                    dialogInterface.dismiss();
+                    dialogInterface.cancel();
+                    remove(selections);
+                });
+                pausedEpisodesOptionsDialogBuilder.setNeutralButton("CLOSE", (dialogInterface, i) -> {
+                    dialogInterface.dismiss();
+                    dialogInterface.cancel();
+                });
+                if (showDialogImmediately) {
+                    pausedEpisodesOptionsDialogBuilder.create().show();
+                }
+                UiUtils.snackMessage(message, bottomNavView, false, "VIEW", () -> pausedEpisodesOptionsDialogBuilder.create().show());
             }
         } else {
             if (ConnectivityUtils.isDeviceConnectedToTheInternet()) {
                 fetchDownloadableEpisodes();
             }
         }
+    }
+
+    private void remove(List<Episode> selections) {
+        Set<String> ids = AppPrefs.getInProgressDownloads();
+        if (!selections.isEmpty()) {
+            for (Episode episode : selections) {
+                cancelDownload(episode);
+                ids.remove(episode.getEpisodeId());
+            }
+            AppPrefs.updateInProgressDownloads(ids);
+            UiUtils.showSafeToast("Removed successfully!");
+            checkAndDisplayUnFinishedDownloads(true);
+        } else {
+            UiUtils.showSafeToast("No selection made");
+        }
+    }
+
+    private void resume(List<Episode> selections) {
+        if (!selections.isEmpty()) {
+            for (Episode episode : selections) {
+                FileDownloadManager.downloadEpisode(episode);
+            }
+        } else {
+            UiUtils.showSafeToast("No selection made");
+        }
+    }
+
+    public static void cancelDownload(Episode episode) {
+        String downloadKeyFromEpisode = episode.getEpisodeId();
+        MolvixNotification.with(ApplicationLoader.getInstance()).cancel(Math.abs(episode.getEpisodeId().hashCode()));
+        DownloadableEpisode downloadableEpisode = MolvixDB.getDownloadableEpisode(episode.getEpisodeId());
+        if (downloadableEpisode != null) {
+            EpisodesManager.popDownloadableEpisode(downloadableEpisode.getEpisode());
+        } else {
+            EpisodesManager.unLockCaptchaSolver();
+            EventBus.getDefault().post(new CheckForDownloadableEpisodes());
+        }
+        ApplicationLoader.resetEpisodeDownloadProgress(episode);
+        Pump.stop(downloadKeyFromEpisode);
+        MolvixLogger.d(ContentManager.class.getSimpleName(), EpisodesManager.getEpisodeFullName(episode) + " was cancelled");
     }
 
     private void setupViewPager() {
@@ -781,6 +846,16 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
                 .setCancelable(false)
                 .setMessage((StringUtils.isNotEmpty(lastCaptchaErrorMessage.get()) ? "Your last entry was wrong\n" : "") + "Please enter the text shown above to start your pending downloads")
                 .setIcon(bitmap)
+                .configureView(v -> {
+                    ImageView bitmapView = v.findViewById(R.id.ld_icon);
+                    if (bitmapView != null) {
+                        ViewGroup.LayoutParams layoutParams = bitmapView.getLayoutParams();
+                        layoutParams.width = ViewGroup.LayoutParams.MATCH_PARENT;
+                        layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT;
+                        bitmapView.setScaleType(ImageView.ScaleType.FIT_CENTER);
+                        bitmapView.setLayoutParams(layoutParams);
+                    }
+                })
                 .configureEditText(v -> {
                     v.setImeOptions(6);
                     v.setSingleLine(true);
@@ -801,7 +876,10 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
                     } else {
                         UiUtils.showSafeToast("Please enter the captcha above");
                     }
-                }).setNegativeButton(android.R.string.cancel, view -> solvableCaptchaDialogShowing.set(false));
+                }).setNegativeButton(android.R.string.cancel, view -> {
+                    solvableCaptchaDialogShowing.set(false);
+                    EpisodesManager.unLockCaptchaSolver();
+                });
         dialog.show();
         solvableCaptchaDialogShowing.set(true);
     }
@@ -818,7 +896,7 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
                     loadMovieDetails(movieId);
                     break;
                 case AppConstants.SHOW_UNFINISHED_DOWNLOADS:
-                    checkAndDisplayUnFinishedDownloads();
+                    checkAndDisplayUnFinishedDownloads(false);
                     break;
             }
         }

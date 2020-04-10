@@ -133,6 +133,11 @@ public class AppPrefs {
     }
 
     @SuppressLint("ApplySharedPref")
+    public static void updateInProgressDownloads(Set<String> pausedDownloads) {
+        getAppPreferences().edit().putStringSet(AppConstants.IN_PROGRESS_DOWNLOADS, pausedDownloads).commit();
+    }
+
+    @SuppressLint("ApplySharedPref")
     public static void removeFromInProgressDownloads(Episode episode) {
         Set<String> inProgressDownloads = getAppPreferences().getStringSet(AppConstants.IN_PROGRESS_DOWNLOADS, new HashSet<>());
         inProgressDownloads.remove(episode.getEpisodeId());

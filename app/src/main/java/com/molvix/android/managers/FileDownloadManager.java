@@ -63,13 +63,12 @@ public class FileDownloadManager {
         DownloadableEpisode downloadableEpisode = MolvixDB.getDownloadableEpisode(episode.getEpisodeId());
         if (downloadableEpisode != null) {
             EpisodesManager.popDownloadableEpisode(downloadableEpisode.getEpisode());
-        } else {
-            EpisodesManager.unLockCaptchaSolver();
-            EventBus.getDefault().post(new CheckForDownloadableEpisodes());
         }
         ApplicationLoader.resetEpisodeDownloadProgress(episode);
         Pump.stop(downloadKeyFromEpisode);
         MolvixLogger.d(ContentManager.class.getSimpleName(), EpisodesManager.getEpisodeFullName(episode) + " was cancelled");
+        EpisodesManager.unLockCaptchaSolver();
+        EventBus.getDefault().post(new CheckForDownloadableEpisodes());
     }
 
     private static Pair<String, String> getDownloadUrlAndDirPathFrom(Episode episode) {
