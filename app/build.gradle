@@ -8,8 +8,8 @@ android {
         applicationId "com.molvix.android"
         minSdkVersion 19
         targetSdkVersion 29
-        versionCode 19
-        versionName "1.46"
+        versionCode 20
+        versionName "1.47"
         multiDexEnabled true
         vectorDrawables.useSupportLibrary true
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -66,5 +66,4 @@ dependencies {
     implementation 'com.squareup.okhttp3:okhttp:3.11.0'
     implementation 'org.jetbrains:annotations:16.0.2'
     implementation 'com.google.android.gms:play-services-ads:19.0.1'
-    implementation 'com.yarolegovich:lovely-dialog:1.1.0'
 }

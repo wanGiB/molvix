@@ -21,7 +21,6 @@ import android.webkit.WebChromeClient;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.FrameLayout;
-import android.widget.ImageView;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
@@ -74,14 +73,14 @@ import com.molvix.android.ui.widgets.MolvixSearchView;
 import com.molvix.android.ui.widgets.MolvixVideoPlayerView;
 import com.molvix.android.ui.widgets.MovieDetailsView;
 import com.molvix.android.ui.widgets.NewUpdateAvailableView;
+import com.molvix.android.ui.widgets.lovelydialog.LovelyStandardDialog;
+import com.molvix.android.ui.widgets.lovelydialog.LovelyTextInputDialog;
 import com.molvix.android.utils.ConnectivityUtils;
 import com.molvix.android.utils.FileUtils;
 import com.molvix.android.utils.MolvixGenUtils;
 import com.molvix.android.utils.MolvixLogger;
 import com.molvix.android.utils.UiUtils;
 import com.morsebyte.shailesh.twostagerating.dialog.UriHelper;
-import com.yarolegovich.lovelydialog.LovelyStandardDialog;
-import com.yarolegovich.lovelydialog.LovelyTextInputDialog;
 
 import org.apache.commons.lang3.StringUtils;
 import org.greenrobot.eventbus.EventBus;
@@ -852,16 +851,6 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
                 .setCancelable(false)
                 .setMessage((StringUtils.isNotEmpty(lastCaptchaErrorMessage.get()) ? "Your last entry was wrong\n" : "") + "Please enter the text shown above to start your pending downloads")
                 .setIcon(bitmap)
-                .configureView(v -> {
-                    ImageView bitmapView = v.findViewById(R.id.ld_icon);
-                    if (bitmapView != null) {
-                        ViewGroup.LayoutParams layoutParams = bitmapView.getLayoutParams();
-                        layoutParams.width = ViewGroup.LayoutParams.MATCH_PARENT;
-                        layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT;
-                        bitmapView.setScaleType(ImageView.ScaleType.FIT_CENTER);
-                        bitmapView.setLayoutParams(layoutParams);
-                    }
-                })
                 .configureEditText(v -> {
                     v.setImeOptions(6);
                     v.setSingleLine(true);

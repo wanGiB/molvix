@@ -30,6 +30,7 @@ import com.molvix.android.eventbuses.FilterByGenresEvent;
 import com.molvix.android.eventbuses.FilterSeriesAlphabetically;
 import com.molvix.android.eventbuses.SearchEvent;
 import com.molvix.android.managers.ContentManager;
+import com.molvix.android.managers.EpisodesManager;
 import com.molvix.android.managers.MovieManager;
 import com.molvix.android.models.Movie;
 import com.molvix.android.models.Movie_;
@@ -294,6 +295,7 @@ public class HomeFragment extends BaseFragment {
                 ContextCompat.getColor(getActivity(), R.color.gplus_color_3),
                 ContextCompat.getColor(getActivity(), R.color.gplus_color_4));
         swipeRefreshLayout.setOnRefreshListener(() -> {
+            EpisodesManager.unLockCaptchaSolver();
             movies.clear();
             moviesAdapter.notifyDataSetChanged();
             fetchMovies();

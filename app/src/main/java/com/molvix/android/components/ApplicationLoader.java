@@ -2,6 +2,9 @@ package com.molvix.android.components;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.Network;
+import android.os.Build;
 import android.os.Handler;
 
 import androidx.multidex.MultiDex;
@@ -19,6 +22,7 @@ import com.molvix.android.companions.AppConstants;
 import com.molvix.android.database.MolvixDB;
 import com.molvix.android.database.ObjectBox;
 import com.molvix.android.eventbuses.CheckForDownloadableEpisodes;
+import com.molvix.android.eventbuses.ConnectivityChangedEvent;
 import com.molvix.android.eventbuses.EpisodeDownloadErrorException;
 import com.molvix.android.managers.ContentManager;
 import com.molvix.android.managers.EpisodesManager;
@@ -45,6 +49,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 public class ApplicationLoader extends MultiDexApplication {
@@ -186,6 +191,38 @@ public class ApplicationLoader extends MultiDexApplication {
         initDataBase();
         initAdMob();
         initPresets();
+        registerNetworkCallbackManager();
+    }
+
+    private void registerNetworkCallbackManager() {
+        ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                if (connectivityManager != null) {
+                    connectivityManager
+                            .registerDefaultNetworkCallback(Objects.requireNonNull(getNetworkCallback())
+
+                            );
+                }
+            }
+        }
+    }
+
+    private ConnectivityManager.NetworkCallback getNetworkCallback() {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+            return new ConnectivityManager.NetworkCallback() {
+                @Override
+                public void onAvailable(@NotNull Network network) {
+                    EventBus.getDefault().post(new ConnectivityChangedEvent());
+                }
+
+                @Override
+                public void onLost(@NotNull Network network) {
+
+                }
+            };
+        }
+        return null;
     }
 
     private void initDownloadManager() {
