@@ -527,35 +527,22 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
     private void tryByPassEpisodeCaptcha(Episode episode) {
         MolvixLogger.d(ContentManager.class.getSimpleName(), "About to bypass captcha for " + EpisodesManager.getEpisodeFullName(episode));
         runOnUiThread(() -> {
-            String existingDownloadLink = null;
-            if (episode.getEpisodeQuality() == AppConstants.HIGH_QUALITY) {
-                existingDownloadLink = episode.getHighQualityDownloadLink();
-            } else if (episode.getEpisodeQuality() == AppConstants.STANDARD_QUALITY) {
-                existingDownloadLink = episode.getStandardQualityDownloadLink();
-            } else if (episode.getEpisodeQuality() == AppConstants.LOW_QUALITY) {
-                existingDownloadLink = episode.getLowQualityDownloadLink();
-            }
-            if (existingDownloadLink != null) {
-                FileDownloadManager.downloadEpisode(episode);
-                EpisodesManager.popDownloadableEpisode(episode);
+            if (rootContainer.getChildAt(getHackWebViewIndex()) instanceof AdvancedWebView) {
+                //We already have an existing hack web view for this app session
+                //Simply re-use it
+                hackWebView = (AdvancedWebView) rootContainer.getChildAt(getHackWebViewIndex());
             } else {
-                if (rootContainer.getChildAt(getHackWebViewIndex()) instanceof AdvancedWebView) {
-                    //We already have an existing hack web view for this app session
-                    //Simply re-use it
-                    hackWebView = (AdvancedWebView) rootContainer.getChildAt(getHackWebViewIndex());
-                } else {
-                    //Otherwise create a new hack web view and add it as the first child
-                    //in the View Group
-                    hackWebView = new AdvancedWebView(MainActivity.this);
-                    hackWebView.getSettings().setJavaScriptEnabled(true);
-                    hackWebView.getSettings().setDomStorageEnabled(true);
-                    hackWebView.setCookiesEnabled(true);
-                    hackWebView.setMixedContentAllowed(true);
-                    hackWebView.setThirdPartyCookiesEnabled(true);
-                    rootContainer.addView(hackWebView, getHackWebViewIndex());
-                }
-                solveEpisodeCaptchaChallenge(hackWebView, episode);
+                //Otherwise create a new hack web view and add it as the first child
+                //in the View Group
+                hackWebView = new AdvancedWebView(MainActivity.this);
+                hackWebView.getSettings().setJavaScriptEnabled(true);
+                hackWebView.getSettings().setDomStorageEnabled(true);
+                hackWebView.setCookiesEnabled(true);
+                hackWebView.setMixedContentAllowed(true);
+                hackWebView.setThirdPartyCookiesEnabled(true);
+                rootContainer.addView(hackWebView, getHackWebViewIndex());
             }
+            solveEpisodeCaptchaChallenge(hackWebView, episode);
         });
     }
 

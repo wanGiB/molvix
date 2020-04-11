@@ -263,20 +263,7 @@ public class EpisodeView extends FrameLayout {
                     }
                     MolvixDB.updateEpisode(episode);
                     AppPrefs.updateEpisodeDownloadProgress(episode.getEpisodeId(), 0);
-                    String existingDownloadLink = null;
-                    if (episode.getEpisodeQuality() == AppConstants.HIGH_QUALITY) {
-                        existingDownloadLink = episode.getHighQualityDownloadLink();
-                    } else if (episode.getEpisodeQuality() == AppConstants.STANDARD_QUALITY) {
-                        existingDownloadLink = episode.getStandardQualityDownloadLink();
-                    } else if (episode.getEpisodeQuality() == AppConstants.LOW_QUALITY) {
-                        existingDownloadLink = episode.getLowQualityDownloadLink();
-                    }
-                    if (existingDownloadLink != null) {
-                        FileDownloadManager.downloadEpisode(episode);
-                        EpisodesManager.popDownloadableEpisode(episode);
-                    } else {
-                        extractEpisodeDownloadOptions(episode);
-                    }
+                    extractEpisodeDownloadOptions(episode);
                 } else {
                     UiUtils.showSafeToast("Please connect to the internet and try again.");
                 }
