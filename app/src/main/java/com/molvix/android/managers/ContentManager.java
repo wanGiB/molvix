@@ -213,7 +213,9 @@ public class ContentManager {
 
     private static boolean isContentDeleted(Episode episode) {
         String fileName = episode.getEpisodeName() + ".mp4";
-        File downloadedFile = FileUtils.getFilePath(fileName, WordUtils.capitalize(episode.getSeason().getMovie().getMovieName()), WordUtils.capitalize(episode.getSeason().getSeasonName()));
+        Season season = episode.getSeason();
+        Movie movie = season.getMovie();
+        File downloadedFile = FileUtils.getFilePath(fileName, WordUtils.capitalize(movie.getMovieName()), WordUtils.capitalize(season.getSeasonName()));
         return !downloadedFile.exists();
     }
 

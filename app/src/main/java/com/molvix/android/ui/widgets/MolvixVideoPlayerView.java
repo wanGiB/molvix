@@ -24,10 +24,14 @@ import com.devbrackets.android.exomedia.ui.widget.VideoControls;
 import com.devbrackets.android.exomedia.ui.widget.VideoView;
 import com.molvix.android.R;
 import com.molvix.android.beans.DownloadedVideoItem;
+import com.molvix.android.eventbuses.RefreshTheme;
+import com.molvix.android.managers.ThemeManager;
 import com.molvix.android.preferences.AppPrefs;
 import com.molvix.android.ui.activities.MainActivity;
 import com.molvix.android.utils.MolvixLogger;
 import com.molvix.android.utils.UiUtils;
+
+import org.greenrobot.eventbus.EventBus;
 
 import java.io.File;
 import java.util.List;
@@ -58,6 +62,7 @@ public class MolvixVideoPlayerView extends FrameLayout {
     private AtomicBoolean controlsShown = new AtomicBoolean(false);
     private AtomicBoolean titleContainerVisible = new AtomicBoolean(true);
     private AtomicLong totalVideoDurationRef = new AtomicLong(0);
+    private ThemeManager.ThemeSelection initialThemeSelection;
 
     public MolvixVideoPlayerView(@NonNull Context context) {
         super(context);
@@ -239,9 +244,21 @@ public class MolvixVideoPlayerView extends FrameLayout {
     }
 
     @Override
+    protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        initialThemeSelection = ThemeManager.getThemeSelection();
+        ThemeManager.setThemeSelection(ThemeManager.ThemeSelection.DARK);
+        EventBus.getDefault().post(new RefreshTheme());
+    }
+
+    @Override
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
         leaveImmersiveMode();
+        if (initialThemeSelection != null) {
+            ThemeManager.setThemeSelection(initialThemeSelection);
+            EventBus.getDefault().post(new RefreshTheme());
+        }
     }
 
     private void listenToControlButtonClicks(List<DownloadedVideoItem> downloadedVideoItems,

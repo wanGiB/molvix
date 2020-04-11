@@ -50,7 +50,7 @@
                 android:layout_gravity="end|bottom"
                 android:paddingStart="10dp"
                 android:paddingEnd="10dp"
-                android:textColor="?attr/notification_time_color"
+                android:textColor="?attr/header_text_color"
                 android:textSize="12sp"
                 app:textStyle="regular" />
 

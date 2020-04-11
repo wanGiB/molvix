@@ -162,9 +162,26 @@ public class HomeFragment extends BaseFragment {
     }
 
     private void filterSeriesAlphabetically() {
-        if (!movies.isEmpty()) {
-            Collections.sort(movies, (a, b) -> a.getMovieName().compareTo(b.getMovieName()));
-            moviesAdapter.notifyDataSetChanged();
+        try {
+            if (!movies.isEmpty()) {
+                if (activeLoadMode.get() != LoadMode.MODE_DEFAULT) {
+                    fetchMovies();
+                }
+                new Handler().postDelayed(() -> {
+                    Collections.sort(movies, (a, b) -> a.getMovieName().compareTo(b.getMovieName()));
+                    moviesAdapter.notifyDataSetChanged();
+                }, 1000);
+            } else {
+                fetchMovies();
+                new Handler().postDelayed(() -> {
+                    if (!movies.isEmpty()) {
+                        Collections.sort(movies, (a, b) -> a.getMovieName().compareTo(b.getMovieName()));
+                        moviesAdapter.notifyDataSetChanged();
+                    }
+                }, 1000);
+            }
+        } catch (Exception ignored) {
+
         }
     }
 

@@ -32,8 +32,12 @@ public class SplashActivity extends BaseActivity implements
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
         ButterKnife.bind(this);
-        initAndroidPermissions();
+        initMolvixRuntimePermissions();
         checkAndNavigate();
+    }
+
+    private void initMolvixRuntimePermissions() {
+        molvixRuntimePermissions = new MolvixRuntimePermissions(this, footerView);
     }
 
     private void tryAskForPermissions() {
@@ -52,10 +56,6 @@ public class SplashActivity extends BaseActivity implements
             return;
         }
         navigateToMainActivity();
-    }
-
-    private void initAndroidPermissions() {
-        molvixRuntimePermissions = new MolvixRuntimePermissions(this, footerView);
     }
 
     private void checkAndNavigate() {

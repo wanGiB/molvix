@@ -171,6 +171,7 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
         filterMenu.inflate(R.menu.filter_menu);
         filterMenu.setOnMenuItemClickListener(item -> {
             filterMenu.dismiss();
+            fragmentsPager.setCurrentItem(0);
             if (item.getItemId() == R.id.display_new_movies) {
                 EventBus.getDefault().post(new DisplayNewMoviesEvent());
             } else if (item.getItemId() == R.id.filter_by_genre) {
@@ -267,8 +268,8 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
     }
 
     private void checkAndPauseAnyActivePlayBack() {
-        if (rootContainer.getChildAt(rootContainer.getChildCount() - 1) instanceof MolvixVideoPlayerView) {
-            MolvixVideoPlayerView molvixVideoPlayerView = (MolvixVideoPlayerView) rootContainer.getChildAt(rootContainer.getChildCount() - 1);
+        if (rootContainer.getChildAt(rootContainerFront()) instanceof MolvixVideoPlayerView) {
+            MolvixVideoPlayerView molvixVideoPlayerView = (MolvixVideoPlayerView) rootContainer.getChildAt(rootContainerFront());
             if (molvixVideoPlayerView.isVideoPlaying()) {
                 molvixVideoPlayerView.pauseVideo();
                 activeVideoPlayBackPaused.set(true);
@@ -276,9 +277,13 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
         }
     }
 
+    private int rootContainerFront() {
+        return rootContainer.getChildCount() - 1;
+    }
+
     private void checkAndResumeAnyActivePlayBack() {
-        if (rootContainer.getChildAt(rootContainer.getChildCount() - 1) instanceof MolvixVideoPlayerView) {
-            MolvixVideoPlayerView molvixVideoPlayerView = (MolvixVideoPlayerView) rootContainer.getChildAt(rootContainer.getChildCount() - 1);
+        if (rootContainer.getChildAt(rootContainerFront()) instanceof MolvixVideoPlayerView) {
+            MolvixVideoPlayerView molvixVideoPlayerView = (MolvixVideoPlayerView) rootContainer.getChildAt(rootContainerFront());
             if (activeVideoPlayBackPaused.get()) {
                 molvixVideoPlayerView.tryResumeVideo();
                 activeVideoPlayBackPaused.set(false);
@@ -356,7 +361,7 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
             } else if (event instanceof LoadEpisodesForSeason) {
                 LoadEpisodesForSeason loadEpisodesForSeason = (LoadEpisodesForSeason) event;
                 Season seasonToLoad = loadEpisodesForSeason.getSeason();
-                MovieDetailsView movieDetailsView = (MovieDetailsView) rootContainer.getChildAt(rootContainer.getChildCount() - 1);
+                MovieDetailsView movieDetailsView = (MovieDetailsView) rootContainer.getChildAt(rootContainerFront());
                 if (seasonToLoad != null && movieDetailsView != null) {
                     movieDetailsView.loadEpisodesForSeason(seasonToLoad, loadEpisodesForSeason.canShowLoadingProgress());
                 }
@@ -489,7 +494,6 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
 
             @Override
             public void onPageSelected(int position) {
-                UiUtils.toggleViewAlpha(contentFilterer, position == 0);
                 if (position == 0) {
                     bottomNavView.setSelectedItemId(R.id.navigation_home);
                 } else if (position == 1) {
@@ -692,7 +696,9 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
                             unLockAppCaptchaSolver();
                             if (hackWebView.getUrl() != null && !hackWebView.getUrl().contains("google")) {
                                 if (!ApplicationLoader.globalDownloadListener.isEnable()) {
-                                    displayEpisodeDownloadErrorMessage("An error occurred while trying to download <b>" + EpisodesManager.getEpisodeFullName(episode) + "</b>.Please review your data connection", episode);
+                                    if (ConnectivityUtils.isDeviceConnectedToTheInternet()) {
+                                        displayEpisodeDownloadErrorMessage("An error occurred while trying to download <b>" + EpisodesManager.getEpisodeFullName(episode) + "</b>.Please review your data connection", episode);
+                                    }
                                 } else {
                                     MolvixLogger.d(ContentManager.class.getSimpleName(), "A download error happened but, not to worry it would self fix");
                                 }
@@ -916,8 +922,8 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
     }
 
     private void checkAndRemovePreviousMovieDetailsView() {
-        if (rootContainer.getChildAt(rootContainer.getChildCount() - 1) instanceof MovieDetailsView) {
-            rootContainer.removeViewAt(rootContainer.getChildCount() - 1);
+        if (rootContainer.getChildAt(rootContainerFront()) instanceof MovieDetailsView) {
+            rootContainer.removeViewAt(rootContainerFront());
         }
     }
 
@@ -929,15 +935,15 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
 
     @Override
     public void onBackPressed() {
-        if (rootContainer.getChildAt(rootContainer.getChildCount() - 1) instanceof MolvixVideoPlayerView) {
-            MolvixVideoPlayerView molvixVideoPlayerView = (MolvixVideoPlayerView) rootContainer.getChildAt(rootContainer.getChildCount() - 1);
+        if (rootContainer.getChildAt(rootContainerFront()) instanceof MolvixVideoPlayerView) {
+            MolvixVideoPlayerView molvixVideoPlayerView = (MolvixVideoPlayerView) rootContainer.getChildAt(rootContainerFront());
             molvixVideoPlayerView.trySaveCurrentPlayerPosition();
             molvixVideoPlayerView.cleanUpVideoView();
-            rootContainer.removeViewAt(rootContainer.getChildCount() - 1);
+            rootContainer.removeViewAt(rootContainerFront());
             return;
         }
-        if (rootContainer.getChildAt(rootContainer.getChildCount() - 1) instanceof MovieDetailsView) {
-            MovieDetailsView movieDetailsView = (MovieDetailsView) rootContainer.getChildAt(rootContainer.getChildCount() - 1);
+        if (rootContainer.getChildAt(rootContainerFront()) instanceof MovieDetailsView) {
+            MovieDetailsView movieDetailsView = (MovieDetailsView) rootContainer.getChildAt(rootContainerFront());
             if (movieDetailsView.isBottomSheetDialogShowing()) {
                 movieDetailsView.closeBottomSheetDialog();
             } else {
@@ -1037,8 +1043,8 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
             if (packageManager != null) {
                 PackageInfo packageInfo = packageManager.getPackageInfo(ApplicationLoader.getInstance().getPackageName(), 0);
                 if (packageInfo != null) {
-                    if (rootContainer.getChildAt(rootContainer.getChildCount() - 1) instanceof NewUpdateAvailableView) {
-                        rootContainer.removeViewAt(rootContainer.getChildCount() - 1);
+                    if (rootContainer.getChildAt(rootContainerFront()) instanceof NewUpdateAvailableView) {
+                        rootContainer.removeViewAt(rootContainerFront());
                     }
                     long versionCode;
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
@@ -1075,8 +1081,8 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
     }
 
     public void playVideo(List<DownloadedVideoItem> downloadedVideoItems, DownloadedVideoItem startItem) {
-        if (rootContainer.getChildAt(rootContainer.getChildCount() - 1) instanceof MolvixVideoPlayerView) {
-            rootContainer.removeViewAt(rootContainer.getChildCount() - 1);
+        if (rootContainer.getChildAt(rootContainerFront()) instanceof MolvixVideoPlayerView) {
+            rootContainer.removeViewAt(rootContainerFront());
         }
         MolvixVideoPlayerView molvixVideoPlayerView = new MolvixVideoPlayerView(this);
         rootContainer.addView(molvixVideoPlayerView, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));

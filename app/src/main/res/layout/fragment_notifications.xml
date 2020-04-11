@@ -60,7 +60,8 @@
         android:layout_alignParentEnd="true"
         android:layout_alignParentBottom="true"
         android:layout_marginEnd="16dp"
-        app:backgroundTint="?attr/anti_app_vibrant_background_color"
+        android:layout_marginBottom="16dp"
+        app:backgroundTint="?attr/colorAccent"
         app:rippleColor="@color/ease_gray"
         app:srcCompat="@drawable/ic_clear_all" />
 

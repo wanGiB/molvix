@@ -12,6 +12,7 @@ import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.content.ContextCompat;
 
 import com.molvix.android.R;
+import com.molvix.android.eventbuses.RefreshTheme;
 import com.molvix.android.managers.ThemeManager;
 import com.molvix.android.utils.UiUtils;
 
@@ -27,6 +28,10 @@ public abstract class BaseActivity extends AppCompatActivity {
         configureThemePreference();
         super.onCreate(savedInstanceState);
         checkAndRegisterEventBus();
+        tintUI();
+    }
+
+    private void tintUI() {
         ThemeManager.ThemeSelection themeSelection = ThemeManager.getThemeSelection();
         if (themeSelection == ThemeManager.ThemeSelection.DARK) {
             tintStatusBar(ContextCompat.getColor(this, R.color.dracula_primary));
@@ -58,7 +63,11 @@ public abstract class BaseActivity extends AppCompatActivity {
             Window window = getWindow();
             window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
             window.setStatusBarColor(UiUtils.darker(colorPrimary, 0.9f));
-            window.setNavigationBarColor(UiUtils.darker(colorPrimary, 0.9f));
+            if (ThemeManager.getThemeSelection() == ThemeManager.ThemeSelection.DARK) {
+                window.setNavigationBarColor(UiUtils.darker(colorPrimary, 0.65f));
+            } else {
+                window.setNavigationBarColor(UiUtils.darker(colorPrimary, 0.9f));
+            }
         }
     }
 
@@ -118,7 +127,12 @@ public abstract class BaseActivity extends AppCompatActivity {
 
     @Subscribe(threadMode = ThreadMode.ASYNC)
     public void onEventMainThread(Object event) {
-
+        if (event instanceof RefreshTheme) {
+            runOnUiThread(() -> {
+                configureThemePreference();
+                tintUI();
+            });
+        }
     }
 
 }

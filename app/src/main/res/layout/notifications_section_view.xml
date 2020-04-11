@@ -26,7 +26,7 @@
             android:paddingEnd="3dp"
             android:paddingBottom="2dp"
             android:text="@string/Today"
-            android:textColor="?attr/anti_root_view_background_color"
+            android:textColor="?attr/header_text_color"
             android:textSize="18sp"
             app:textStyle="medium" />
 

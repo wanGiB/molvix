@@ -28,7 +28,7 @@
             android:inputType="text"
             android:padding="16dp"
             android:textColor="?attr/search_text_color"
-            android:textColorHint="?attr/search_hint_color"
+            android:textColorHint="?attr/header_text_color"
             android:textSize="15sp" />
 
         <androidx.appcompat.widget.AppCompatImageView
