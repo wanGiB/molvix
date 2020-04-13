@@ -28,6 +28,10 @@ import androidx.appcompat.widget.PopupMenu;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.viewpager.widget.ViewPager;
+import androidx.work.Constraints;
+import androidx.work.NetworkType;
+import androidx.work.PeriodicWorkRequest;
+import androidx.work.WorkManager;
 
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.MobileAds;
@@ -63,6 +67,7 @@ import com.molvix.android.models.Presets;
 import com.molvix.android.models.Season;
 import com.molvix.android.preferences.AppPrefs;
 import com.molvix.android.receivers.ConnectivityChangeReceiver;
+import com.molvix.android.tasks.ConnectivityCheckWorker;
 import com.molvix.android.ui.adapters.MainActivityPagerAdapter;
 import com.molvix.android.ui.fragments.DownloadedVideosFragment;
 import com.molvix.android.ui.fragments.HomeFragment;
@@ -93,6 +98,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -427,7 +433,9 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
                 if (showDialogImmediately) {
                     pausedEpisodesOptionsDialogBuilder.create().show();
                 }
-                UiUtils.snackMessage(message, bottomNavView, false, "VIEW", () -> pausedEpisodesOptionsDialogBuilder.create().show());
+                if (!ApplicationLoader.globalDownloadListener.isEnable()) {
+                    UiUtils.snackMessage(message, bottomNavView, false, "VIEW", () -> pausedEpisodesOptionsDialogBuilder.create().show());
+                }
             }
         } else {
             if (ConnectivityUtils.isDeviceConnectedToTheInternet()) {
@@ -986,6 +994,13 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
         subscribeToPresetsChanges();
         ContentManager.fetchPresets();
         ContentManager.fetchMovieGenres();
+        initConnectivityWorkManager();
+    }
+
+    private void initConnectivityWorkManager() {
+        PeriodicWorkRequest.Builder connectivityPeriodicWorkCheckBuilder = new PeriodicWorkRequest.Builder(ConnectivityCheckWorker.class, TimeUnit.MINUTES.toMillis(15), TimeUnit.MINUTES, TimeUnit.MINUTES.toMillis(10), TimeUnit.MINUTES);
+        connectivityPeriodicWorkCheckBuilder.setConstraints(new Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build());
+        WorkManager.getInstance().enqueue(connectivityPeriodicWorkCheckBuilder.build());
     }
 
     private void subscribeToPresetsChanges() {

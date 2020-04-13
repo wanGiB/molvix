@@ -40,14 +40,18 @@ public class ConnectivityChangeReceiver extends BroadcastReceiver {
             return;
         }
         if (intent.getAction().equals(ConnectivityManager.CONNECTIVITY_ACTION) && ConnectivityUtils.isDeviceConnectedToTheInternet()) {
-            if (AppPrefs.canDailyMoviesBeRecommended()) {
-                MovieTracker.recommendUnWatchedMoviesToUser();
-            }
-            MolvixNotificationManager.checkAndResumeUnFinishedDownloads();
-            EventBus.getDefault().post(new ConnectivityChangedEvent());
-            fetchNotifications();
-            ContentManager.fetchPresets();
+            performAllPossibleNetworkRelatedJobs();
         }
+    }
+
+    public static void performAllPossibleNetworkRelatedJobs() {
+        if (AppPrefs.canDailyMoviesBeRecommended()) {
+            MovieTracker.recommendUnWatchedMoviesToUser();
+        }
+        MolvixNotificationManager.checkAndResumeUnFinishedDownloads();
+        EventBus.getDefault().post(new ConnectivityChangedEvent());
+        fetchNotifications();
+        ContentManager.fetchPresets();
     }
 
     public static void fetchNotifications() {
