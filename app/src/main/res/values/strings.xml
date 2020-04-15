@@ -103,4 +103,5 @@
     <string name="ex_msg_dialog_choice_confirm">Confirm button is only for multi choice lists. You must call setMultiChoiceItems first</string>
     <string name="ex_msg_dialog_view_not_set">You must call method setView before calling configureView.</string>
     <string name="title">Title</string>
+    <string name="close_dialog">Close Dialog</string>
 </resources>

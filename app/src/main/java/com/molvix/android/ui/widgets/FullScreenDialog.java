@@ -7,11 +7,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.molvix.android.R;
 import com.molvix.android.contracts.DoneCallback;
+import com.molvix.android.utils.UiUtils;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -28,6 +30,9 @@ public class FullScreenDialog extends RelativeLayout {
 
     @BindView(R.id.message_view)
     TextView messageView;
+
+    @BindView(R.id.close_dialog)
+    ImageView closeDialogView;
 
     private DoneCallback<Boolean> dismissedCallback;
 
@@ -63,6 +68,10 @@ public class FullScreenDialog extends RelativeLayout {
         if (StringUtils.isNotEmpty(message)) {
             messageView.setText(message);
         }
+        closeDialogView.setOnClickListener(view -> {
+            UiUtils.blinkView(view);
+            dismiss(parentView);
+        });
         return this;
     }
 
