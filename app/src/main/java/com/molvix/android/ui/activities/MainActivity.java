@@ -146,7 +146,7 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
         AppConstants.MAIN_ACTIVITY_IN_FOCUS.set(true);
         initContentFilterClickListener();
         initSearchBox();
-        initNavBarTints();
+        tintNavBar();
         unLockAppCaptchaSolver();
         setupViewPager();
         observeNewIntent(getIntent());
@@ -977,27 +977,22 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
         searchView.setup();
     }
 
-    private void initNavBarTints() {
+    private void tintNavBar() {
         ColorStateList lightModeIconsColorStates = new ColorStateList(
                 new int[][]{new int[]{-android.R.attr.state_checked}, new int[]{android.R.attr.state_checked}},
                 new int[]{ContextCompat.getColor(this, R.color.grey500), Color.BLACK});
-
         ColorStateList lightModeTextColorStates = new ColorStateList(
                 new int[][]{new int[]{-android.R.attr.state_checked},
                         new int[]{android.R.attr.state_checked}},
                 new int[]{ContextCompat.getColor(this, R.color.grey500), Color.BLACK});
-
         ColorStateList darkModeIconsColorStates = new ColorStateList(
                 new int[][]{new int[]{-android.R.attr.state_checked}, new int[]{android.R.attr.state_checked}},
                 new int[]{ContextCompat.getColor(this, R.color.light_gray_inactive_icon), Color.WHITE});
-
         ColorStateList darkModeTextColorStates = new ColorStateList(
                 new int[][]{new int[]{-android.R.attr.state_checked},
                         new int[]{android.R.attr.state_checked}},
                 new int[]{ContextCompat.getColor(this, R.color.light_gray_inactive_icon), Color.WHITE});
-
         ThemeManager.ThemeSelection themeSelection = ThemeManager.getThemeSelection();
-
         bottomNavView.setItemIconTintList(themeSelection == ThemeManager.ThemeSelection.DARK ? darkModeIconsColorStates : lightModeIconsColorStates);
         bottomNavView.setItemTextColor(themeSelection == ThemeManager.ThemeSelection.DARK ? darkModeTextColorStates : lightModeTextColorStates);
     }
