@@ -45,7 +45,7 @@ public class AdsLoadManager {
                     long currentTime = System.currentTimeMillis();
                     long timeDiff = Math.abs(currentTime - lastAdLoadTime);
                     long timeDiffInSecs = TimeUnit.MILLISECONDS.toSeconds(timeDiff);
-                    if (ConnectivityUtils.isDeviceConnectedToTheInternet()
+                    if (ConnectivityUtils.isConnected()
                             && timeDiffInSecs >= 60) {
                         loadAds();
                     }

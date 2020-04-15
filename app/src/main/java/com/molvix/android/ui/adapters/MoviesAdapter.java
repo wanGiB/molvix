@@ -101,7 +101,7 @@ public class MoviesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
 
         void loadAd() {
             UnifiedNativeAd unifiedNativeAd = AppConstants.unifiedNativeAdAtomicReference.get();
-            if (unifiedNativeAd != null && ConnectivityUtils.isDeviceConnectedToTheInternet()) {
+            if (unifiedNativeAd != null && ConnectivityUtils.isConnected()) {
                 UiUtils.toggleViewVisibility(itemView, true);
                 adMobNativeAdView.loadInAd(unifiedNativeAd);
             } else {

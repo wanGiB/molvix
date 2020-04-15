@@ -21,15 +21,15 @@ public class ConnectivityCheckWorker extends Worker {
     @Override
     public Result doWork() {
         MolvixLogger.d(ContentManager.class.getSimpleName(), "ConnectivityCheckWorker is currently running");
-        if (ConnectivityUtils.isDeviceConnectedToTheInternet()) {
-            ConnectivityChangeReceiver.performAllPossibleNetworkRelatedJobs();
+        if (ConnectivityUtils.isConnected()) {
+            ConnectivityChangeReceiver.spinAllNetworkRelatedJobs();
         }
         return Result.success();
     }
 
     @Override
     public void onStopped() {
-        MolvixLogger.d(ContentManager.class.getSimpleName(), "ConnectivityCheckWorker is Stopped");
+        MolvixLogger.d(ContentManager.class.getSimpleName(), "ConnectivityCheckWorker has Stopped");
         super.onStopped();
     }
 

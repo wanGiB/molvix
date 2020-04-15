@@ -277,7 +277,7 @@ public class HomeFragment extends BaseFragment {
 
     private void checkAndInvalidateUI() {
         UiUtils.toggleViewVisibility(contentLoadingView, movies.isEmpty());
-        UiUtils.toggleViewVisibility(contentLoadingProgressMessageView, movies.isEmpty() && ConnectivityUtils.isDeviceConnectedToTheInternet());
+        UiUtils.toggleViewVisibility(contentLoadingProgressMessageView, movies.isEmpty() && ConnectivityUtils.isConnected());
     }
 
     @Override
@@ -471,7 +471,7 @@ public class HomeFragment extends BaseFragment {
 
     @SuppressLint("SetTextI18n")
     private void initMovieExtractionTask() {
-        if (ConnectivityUtils.isDeviceConnectedToTheInternet()) {
+        if (ConnectivityUtils.isConnected()) {
             if (contentPullOverTask != null) {
                 contentPullOverTask.cancel(true);
                 contentPullOverTask = null;

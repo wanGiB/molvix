@@ -44,7 +44,7 @@ import okhttp3.ResponseBody;
 
 public class ContentManager {
     public static void fetchPresets() {
-        if (ConnectivityUtils.isDeviceConnectedToTheInternet()) {
+        if (ConnectivityUtils.isConnected()) {
             if (StringUtils.isNotEmpty(AppConstants.PRESETS_DOWNSTREAM_URL)) {
                 HttpUrl.Builder presetsUrlBuilder = Objects.requireNonNull(HttpUrl.parse(AppConstants.PRESETS_DOWNSTREAM_URL)).newBuilder();
                 Request.Builder presetsRequestBuilder = new Request.Builder();
@@ -65,12 +65,7 @@ public class ContentManager {
                                 ContentManager.offloadPresets(responseBodyString);
                             } catch (IOException e) {
                                 e.printStackTrace();
-                                String errorMessage = e.getMessage();
-                                if (errorMessage != null) {
-                                    MolvixLogger.d(ContentManager.class.getSimpleName(), "Error after Presets Fetch: " + errorMessage);
-                                }
                             }
-
                         }
                     }
                 });

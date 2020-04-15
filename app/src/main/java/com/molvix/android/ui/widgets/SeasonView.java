@@ -1,7 +1,6 @@
 package com.molvix.android.ui.widgets;
 
 import android.annotation.SuppressLint;
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.util.AttributeSet;
@@ -22,6 +21,7 @@ import com.molvix.android.managers.ContentManager;
 import com.molvix.android.managers.SeasonsManager;
 import com.molvix.android.models.Season;
 import com.molvix.android.models.Season_;
+import com.molvix.android.ui.activities.MainActivity;
 import com.molvix.android.utils.ConnectivityUtils;
 import com.molvix.android.utils.UiUtils;
 
@@ -47,8 +47,6 @@ public class SeasonView extends FrameLayout {
 
     private Season season;
     private DataSubscription seasonSubscription;
-    private ProgressDialog progressDialog;
-
     private CallableSeasonEpisodesExtractionTask callableSeasonEpisodesExtractionTask;
 
     public SeasonView(@NonNull Context context) {
@@ -119,8 +117,8 @@ public class SeasonView extends FrameLayout {
         rootView.setOnClickListener(v -> {
             UiUtils.blinkView(rootView);
             if (season.getEpisodes() != null && !season.getEpisodes().isEmpty()) {
-                EventBus.getDefault().post(new LoadEpisodesForSeason(season,true));
-                if (ConnectivityUtils.isDeviceConnectedToTheInternet()) {
+                EventBus.getDefault().post(new LoadEpisodesForSeason(season, true));
+                if (ConnectivityUtils.isConnected()) {
                     callableSeasonEpisodesExtractionTask = new CallableSeasonEpisodesExtractionTask((result, e) -> {
                         if (e == null && result != null) {
                             SeasonsManager.refreshSeasonEpisodes(result, true);
@@ -129,7 +127,7 @@ public class SeasonView extends FrameLayout {
                     callableSeasonEpisodesExtractionTask.execute(season);
                 }
             } else {
-                if (ConnectivityUtils.isDeviceConnectedToTheInternet()) {
+                if (ConnectivityUtils.isConnected()) {
                     showProgressDialog();
                     callableSeasonEpisodesExtractionTask = new CallableSeasonEpisodesExtractionTask((result, e) -> UiUtils.runOnMain(() -> {
                         dismissProgressDialog();
@@ -152,20 +150,26 @@ public class SeasonView extends FrameLayout {
     }
 
     private void showProgressDialog() {
-        progressDialog = ProgressDialog.show(getContext(), "Fetching " + season.getSeasonName() + " Episodes", "Please wait...", true, true);
-        progressDialog.setOnCancelListener(dialog -> {
-            if (callableSeasonEpisodesExtractionTask != null && !callableSeasonEpisodesExtractionTask.isCancelled()) {
-                callableSeasonEpisodesExtractionTask.cancel(true);
-                callableSeasonEpisodesExtractionTask = null;
+        if (getContext() instanceof MainActivity) {
+            MainActivity mainActivity = (MainActivity) getContext();
+            FullScreenDialog fullScreenDialog = mainActivity.showProgressDialog(getContext(), "Fetching " + season.getSeasonName() + " Episodes", getContext().getString(R.string.please_wait));
+            if (fullScreenDialog != null) {
+                fullScreenDialog.setOnDismissedCallback((result, e) -> {
+                    if (callableSeasonEpisodesExtractionTask != null && !callableSeasonEpisodesExtractionTask.isCancelled()) {
+                        callableSeasonEpisodesExtractionTask.cancel(true);
+                        callableSeasonEpisodesExtractionTask = null;
+                    }
+                });
             }
-        });
+        }
     }
 
     private void dismissProgressDialog() {
-        if (progressDialog != null && progressDialog.isShowing()) {
-            progressDialog.dismiss();
-            progressDialog.cancel();
-            progressDialog = null;
+        if (getContext() instanceof MainActivity) {
+            MainActivity mainActivity = (MainActivity) getContext();
+            if (mainActivity.isProgressDialogShowing()) {
+                mainActivity.dismissProgressDialog();
+            }
         }
     }
 

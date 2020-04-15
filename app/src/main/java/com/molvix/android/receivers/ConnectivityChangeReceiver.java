@@ -7,6 +7,7 @@ import android.net.ConnectivityManager;
 import android.os.AsyncTask;
 
 import com.molvix.android.companions.AppConstants;
+import com.molvix.android.components.ApplicationLoader;
 import com.molvix.android.database.MolvixDB;
 import com.molvix.android.eventbuses.ConnectivityChangedEvent;
 import com.molvix.android.managers.ContentManager;
@@ -19,6 +20,7 @@ import com.molvix.android.models.Movie_;
 import com.molvix.android.models.Notification;
 import com.molvix.android.models.Season;
 import com.molvix.android.preferences.AppPrefs;
+import com.molvix.android.ui.notifications.notification.MolvixNotification;
 import com.molvix.android.utils.ConnectivityUtils;
 import com.molvix.android.utils.CryptoUtils;
 import com.molvix.android.utils.FileUtils;
@@ -31,7 +33,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public class ConnectivityChangeReceiver extends BroadcastReceiver {
-    private DeletedContentCleanUpTask deletedContentCleanUpTask;
+    private DeletedContentsCleanUpTask deletedContentsCleanUpTask;
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -39,12 +41,20 @@ public class ConnectivityChangeReceiver extends BroadcastReceiver {
         if (intent.getAction() == null) {
             return;
         }
-        if (intent.getAction().equals(ConnectivityManager.CONNECTIVITY_ACTION) && ConnectivityUtils.isDeviceConnectedToTheInternet()) {
-            performAllPossibleNetworkRelatedJobs();
+        if (intent.getAction().equals(ConnectivityManager.CONNECTIVITY_ACTION)) {
+            if (ConnectivityUtils.isConnected()) {
+                spinAllNetworkRelatedJobs();
+            } else {
+                cleanUpStaleNotifications();
+            }
         }
     }
 
-    public static void performAllPossibleNetworkRelatedJobs() {
+    public static void cleanUpStaleNotifications() {
+        MolvixNotification.with(ApplicationLoader.getInstance()).cancel(Math.abs(AppConstants.SHOW_UNFINISHED_DOWNLOADS.hashCode()));
+    }
+
+    public static void spinAllNetworkRelatedJobs() {
         if (AppPrefs.canDailyMoviesBeRecommended()) {
             MovieTracker.recommendUnWatchedMoviesToUser();
         }
@@ -144,15 +154,15 @@ public class ConnectivityChangeReceiver extends BroadcastReceiver {
     }
 
     private void performDeletedContentsCleanUp() {
-        if (deletedContentCleanUpTask != null) {
-            deletedContentCleanUpTask.cancel(true);
-            deletedContentCleanUpTask = null;
+        if (deletedContentsCleanUpTask != null) {
+            deletedContentsCleanUpTask.cancel(true);
+            deletedContentsCleanUpTask = null;
         }
-        deletedContentCleanUpTask = new DeletedContentCleanUpTask();
-        deletedContentCleanUpTask.execute();
+        deletedContentsCleanUpTask = new DeletedContentsCleanUpTask();
+        deletedContentsCleanUpTask.execute();
     }
 
-    static class DeletedContentCleanUpTask extends AsyncTask<Void, Void, Void> {
+    static class DeletedContentsCleanUpTask extends AsyncTask<Void, Void, Void> {
 
         @Override
         protected Void doInBackground(Void... voids) {

@@ -9,7 +9,7 @@ import android.os.Build;
 import com.molvix.android.components.ApplicationLoader;
 
 public class ConnectivityUtils {
-    public static boolean isDeviceConnectedToTheInternet() {
+    public static boolean isConnected() {
         ConnectivityManager connectivityManager = (ConnectivityManager) ApplicationLoader.getInstance().getSystemService(Context.CONNECTIVITY_SERVICE);
         if (connectivityManager != null) {
             if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -34,4 +34,9 @@ public class ConnectivityUtils {
         }
         return false;
     }
+
+    public static ConnectivityManager getConnectivityManager() {
+        return (ConnectivityManager) ApplicationLoader.getInstance().getSystemService(Context.CONNECTIVITY_SERVICE);
+    }
+
 }

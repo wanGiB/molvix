@@ -9,7 +9,7 @@ import java.util.Set;
 
 public class DownloaderUtils {
     public static void checkAndResumePausedDownloads() {
-        if (ConnectivityUtils.isDeviceConnectedToTheInternet()) {
+        if (ConnectivityUtils.isConnected()) {
             Set<String> pausedDownloads = AppPrefs.getInProgressDownloads();
             if (!pausedDownloads.isEmpty()) {
                 for (String episodeId : pausedDownloads) {

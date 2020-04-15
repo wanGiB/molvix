@@ -243,7 +243,7 @@ public class EpisodeView extends FrameLayout {
                     UiUtils.showSafeToast("Oops! Sorry, an error occurred while attempting to play video.");
                 }
             } else {
-                if (ConnectivityUtils.isDeviceConnectedToTheInternet()) {
+                if (ConnectivityUtils.isConnected()) {
                     if (AppPrefs.getEpisodeDownloadProgress(episode.getEpisodeId()) > -1) {
                         UiUtils.showSafeToast("Download already in progress");
                         return;

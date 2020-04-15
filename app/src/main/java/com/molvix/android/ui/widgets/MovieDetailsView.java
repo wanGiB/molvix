@@ -107,7 +107,7 @@ public class MovieDetailsView extends FrameLayout {
             if (movie != null) {
                 List<Season> movieSeasons = movie.getSeasons();
                 if (movieSeasons == null || movieSeasons.isEmpty()) {
-                    if (ConnectivityUtils.isDeviceConnectedToTheInternet()) {
+                    if (ConnectivityUtils.isConnected()) {
                         pullMovieDetailsFromTheInternet(movie);
                     } else {
                         UiUtils.showSafeToast("Please connect to the internet and try again.");

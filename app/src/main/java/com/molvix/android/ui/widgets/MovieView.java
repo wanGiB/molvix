@@ -179,7 +179,7 @@ public class MovieView extends FrameLayout {
     }
 
     private void refreshMovieDetails(Movie movie) {
-        if (MovieManager.canFetchMovieDetails(movie.getMovieId()) && ConnectivityUtils.isDeviceConnectedToTheInternet()) {
+        if (MovieManager.canFetchMovieDetails(movie.getMovieId()) && ConnectivityUtils.isConnected()) {
             MovieMetadataExtractionTask movieMetadataExtractionTask = new MovieMetadataExtractionTask();
             movieMetadataExtractionTask.execute(movie);
         }

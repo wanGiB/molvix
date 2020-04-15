@@ -1,7 +1,6 @@
 package com.molvix.android.ui.activities;
 
 import android.annotation.SuppressLint;
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
@@ -31,6 +30,7 @@ import androidx.viewpager.widget.ViewPager;
 import androidx.work.Constraints;
 import androidx.work.NetworkType;
 import androidx.work.PeriodicWorkRequest;
+import androidx.work.WorkInfo;
 import androidx.work.WorkManager;
 
 import com.google.android.gms.ads.AdRequest;
@@ -74,6 +74,7 @@ import com.molvix.android.ui.fragments.HomeFragment;
 import com.molvix.android.ui.fragments.MoreContentsFragment;
 import com.molvix.android.ui.fragments.NotificationsFragment;
 import com.molvix.android.ui.notifications.notification.MolvixNotification;
+import com.molvix.android.ui.widgets.FullScreenDialog;
 import com.molvix.android.ui.widgets.MolvixSearchView;
 import com.molvix.android.ui.widgets.MolvixVideoPlayerView;
 import com.molvix.android.ui.widgets.MovieDetailsView;
@@ -120,15 +121,14 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
     @BindView(R.id.bottom_navigation_view)
     BottomNavigationView bottomNavView;
 
-    @BindView(R.id.container)
-    FrameLayout rootContainer;
-
     @BindView(R.id.content_filterer)
     View contentFilterer;
 
+    @BindView(R.id.container)
+    FrameLayout rootContainer;
+
     private AdvancedWebView hackWebView;
 
-    private ProgressDialog gamificationHostDialog;
     private List<Fragment> fragments;
     private DataSubscription presetsSubscription;
     private RewardedVideoAd mRewardedVideoAd;
@@ -273,8 +273,8 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
     }
 
     private void checkAndPauseAnyActivePlayBack() {
-        if (rootContainer.getChildAt(rootContainerFront()) instanceof MolvixVideoPlayerView) {
-            MolvixVideoPlayerView molvixVideoPlayerView = (MolvixVideoPlayerView) rootContainer.getChildAt(rootContainerFront());
+        if (rootContainer.getChildAt(rootContainerPenultimateFront()) instanceof MolvixVideoPlayerView) {
+            MolvixVideoPlayerView molvixVideoPlayerView = (MolvixVideoPlayerView) rootContainer.getChildAt(rootContainerPenultimateFront());
             if (molvixVideoPlayerView.isVideoPlaying()) {
                 molvixVideoPlayerView.pauseVideo();
                 activeVideoPlayBackPaused.set(true);
@@ -282,13 +282,13 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
         }
     }
 
-    private int rootContainerFront() {
+    private int rootContainerPenultimateFront() {
         return rootContainer.getChildCount() - 1;
     }
 
     private void checkAndResumeAnyActivePlayBack() {
-        if (rootContainer.getChildAt(rootContainerFront()) instanceof MolvixVideoPlayerView) {
-            MolvixVideoPlayerView molvixVideoPlayerView = (MolvixVideoPlayerView) rootContainer.getChildAt(rootContainerFront());
+        if (rootContainer.getChildAt(rootContainerPenultimateFront()) instanceof MolvixVideoPlayerView) {
+            MolvixVideoPlayerView molvixVideoPlayerView = (MolvixVideoPlayerView) rootContainer.getChildAt(rootContainerPenultimateFront());
             if (activeVideoPlayBackPaused.get()) {
                 molvixVideoPlayerView.tryResumeVideo();
                 activeVideoPlayBackPaused.set(false);
@@ -366,7 +366,7 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
             } else if (event instanceof LoadEpisodesForSeason) {
                 LoadEpisodesForSeason loadEpisodesForSeason = (LoadEpisodesForSeason) event;
                 Season seasonToLoad = loadEpisodesForSeason.getSeason();
-                MovieDetailsView movieDetailsView = (MovieDetailsView) rootContainer.getChildAt(rootContainerFront());
+                MovieDetailsView movieDetailsView = (MovieDetailsView) rootContainer.getChildAt(rootContainerPenultimateFront());
                 if (seasonToLoad != null && movieDetailsView != null) {
                     movieDetailsView.loadEpisodesForSeason(seasonToLoad, loadEpisodesForSeason.canShowLoadingProgress());
                 }
@@ -380,7 +380,7 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
                 Episode episode = episodeDownloadErrorException.getEpisode();
                 UiUtils.snackMessage("Sorry, an error occurred while downloading " + EpisodesManager.getEpisodeFullName(episode) + ".Please try again", rootContainer, true, null, null);
             } else if (event instanceof ConnectivityChangedEvent) {
-                if (ConnectivityUtils.isDeviceConnectedToTheInternet()) {
+                if (ConnectivityUtils.isConnected()) {
                     checkAndDisplayUnFinishedDownloads(false);
                 }
             }
@@ -390,7 +390,7 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
     private void checkAndDisplayUnFinishedDownloads(boolean showDialogImmediately) {
         Set<String> pausedDownloads = AppPrefs.getInProgressDownloads();
         if (!pausedDownloads.isEmpty()) {
-            if (ConnectivityUtils.isDeviceConnectedToTheInternet()) {
+            if (ConnectivityUtils.isConnected()) {
                 int sizeOfUnFinishedDownloads = pausedDownloads.size();
                 String quantifier = sizeOfUnFinishedDownloads == 1 ? "download" : "downloads";
                 String message = "You have " + sizeOfUnFinishedDownloads + " unfinished " + quantifier;
@@ -438,7 +438,7 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
                 }
             }
         } else {
-            if (ConnectivityUtils.isDeviceConnectedToTheInternet()) {
+            if (ConnectivityUtils.isConnected()) {
                 fetchDownloadableEpisodes();
             }
         }
@@ -586,7 +586,7 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
             MolvixLogger.d(ContentManager.class.getSimpleName(), "Some processed downloads waiting to be downloaded have being received...");
             DownloadableEpisode first = changedData.get(0);
             if (EpisodesManager.isCaptchaSolvable()) {
-                if (ConnectivityUtils.isDeviceConnectedToTheInternet()) {
+                if (ConnectivityUtils.isConnected()) {
                     tryByPassEpisodeCaptcha(first.getEpisode());
                 } else {
                     MolvixLogger.d(ContentManager.class.getSimpleName(), "No network to bypass captcha of " + EpisodesManager.getEpisodeFullName(first.getEpisode()));
@@ -690,7 +690,7 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
                             unLockAppCaptchaSolver();
                             if (hackWebView.getUrl() != null && !hackWebView.getUrl().contains("google")) {
                                 if (!ApplicationLoader.globalDownloadListener.isEnable()) {
-                                    if (ConnectivityUtils.isDeviceConnectedToTheInternet()) {
+                                    if (ConnectivityUtils.isConnected()) {
                                         displayEpisodeDownloadErrorMessage("An error occurred while trying to download <b>" + EpisodesManager.getEpisodeFullName(episode) + "</b>.Please review your data connection", episode);
                                     }
                                 } else {
@@ -826,7 +826,7 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
                 .setCancelable(false)
                 .setMessage(UiUtils.fromHtml(errorMessage))
                 .setPositiveButton("Try Again", view -> {
-                    if (ConnectivityUtils.isDeviceConnectedToTheInternet()) {
+                    if (ConnectivityUtils.isConnected()) {
                         EventBus.getDefault().post(new CheckForDownloadableEpisodes());
                     } else {
                         UiUtils.snackMessage("Network error!", bottomNavView, true, null, null);
@@ -906,8 +906,8 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
     }
 
     private void checkAndRemovePreviousMovieDetailsView() {
-        if (rootContainer.getChildAt(rootContainerFront()) instanceof MovieDetailsView) {
-            rootContainer.removeViewAt(rootContainerFront());
+        if (rootContainer.getChildAt(rootContainerPenultimateFront()) instanceof MovieDetailsView) {
+            rootContainer.removeViewAt(rootContainerPenultimateFront());
         }
     }
 
@@ -917,17 +917,31 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
         observeNewIntent(intent);
     }
 
+    public boolean isProgressDialogShowing() {
+        return rootContainer.getChildAt(rootContainerPenultimateFront()) instanceof FullScreenDialog;
+    }
+
+    public void dismissProgressDialog() {
+        FullScreenDialog fullScreenDialog = (FullScreenDialog) rootContainer.getChildAt(rootContainerPenultimateFront());
+        fullScreenDialog.dismiss(rootContainer, null);
+    }
+
     @Override
     public void onBackPressed() {
-        if (rootContainer.getChildAt(rootContainerFront()) instanceof MolvixVideoPlayerView) {
-            MolvixVideoPlayerView molvixVideoPlayerView = (MolvixVideoPlayerView) rootContainer.getChildAt(rootContainerFront());
-            molvixVideoPlayerView.trySaveCurrentPlayerPosition();
-            molvixVideoPlayerView.cleanUpVideoView();
-            rootContainer.removeViewAt(rootContainerFront());
+        if (rootContainer.getChildAt(rootContainerPenultimateFront()) instanceof FullScreenDialog) {
+            FullScreenDialog fullScreenDialog = (FullScreenDialog) rootContainer.getChildAt(rootContainerPenultimateFront());
+            fullScreenDialog.dismiss(rootContainer, (result, e) -> canShowLoadedRewardedVideoAd.set(false));
             return;
         }
-        if (rootContainer.getChildAt(rootContainerFront()) instanceof MovieDetailsView) {
-            MovieDetailsView movieDetailsView = (MovieDetailsView) rootContainer.getChildAt(rootContainerFront());
+        if (rootContainer.getChildAt(rootContainerPenultimateFront()) instanceof MolvixVideoPlayerView) {
+            MolvixVideoPlayerView molvixVideoPlayerView = (MolvixVideoPlayerView) rootContainer.getChildAt(rootContainerPenultimateFront());
+            molvixVideoPlayerView.trySaveCurrentPlayerPosition();
+            molvixVideoPlayerView.cleanUpVideoView();
+            rootContainer.removeViewAt(rootContainerPenultimateFront());
+            return;
+        }
+        if (rootContainer.getChildAt(rootContainerPenultimateFront()) instanceof MovieDetailsView) {
+            MovieDetailsView movieDetailsView = (MovieDetailsView) rootContainer.getChildAt(rootContainerPenultimateFront());
             if (movieDetailsView.isBottomSheetDialogShowing()) {
                 movieDetailsView.closeBottomSheetDialog();
             } else {
@@ -994,13 +1008,21 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
         subscribeToPresetsChanges();
         ContentManager.fetchPresets();
         ContentManager.fetchMovieGenres();
-        initConnectivityWorkManager();
+        enqueConnectivityCheckWorker();
     }
 
-    private void initConnectivityWorkManager() {
-        PeriodicWorkRequest.Builder connectivityPeriodicWorkCheckBuilder = new PeriodicWorkRequest.Builder(ConnectivityCheckWorker.class, TimeUnit.MINUTES.toMillis(15), TimeUnit.MINUTES, TimeUnit.MINUTES.toMillis(10), TimeUnit.MINUTES);
+    private void enqueConnectivityCheckWorker() {
+        PeriodicWorkRequest.Builder connectivityPeriodicWorkCheckBuilder = new PeriodicWorkRequest.Builder(ConnectivityCheckWorker.class, TimeUnit.MINUTES.toMillis(PeriodicWorkRequest.MIN_PERIODIC_INTERVAL_MILLIS), TimeUnit.MINUTES);
         connectivityPeriodicWorkCheckBuilder.setConstraints(new Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build());
-        WorkManager.getInstance().enqueue(connectivityPeriodicWorkCheckBuilder.build());
+        PeriodicWorkRequest connectivityPeriodicWorkRequest = connectivityPeriodicWorkCheckBuilder.build();
+        WorkManager workManager = WorkManager.getInstance();
+        workManager.enqueue(connectivityPeriodicWorkRequest);
+        workManager.getWorkInfoByIdLiveData(connectivityPeriodicWorkRequest.getId()).observe(this, workInfo -> {
+            if (workInfo != null) {
+                WorkInfo.State state = workInfo.getState();
+                MolvixLogger.d(ContentManager.class.getSimpleName(), "Molvix WorkManager State\n" + state.toString());
+            }
+        });
     }
 
     private void subscribeToPresetsChanges() {
@@ -1034,8 +1056,8 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
             if (packageManager != null) {
                 PackageInfo packageInfo = packageManager.getPackageInfo(ApplicationLoader.getInstance().getPackageName(), 0);
                 if (packageInfo != null) {
-                    if (rootContainer.getChildAt(rootContainerFront()) instanceof NewUpdateAvailableView) {
-                        rootContainer.removeViewAt(rootContainerFront());
+                    if (rootContainer.getChildAt(rootContainerPenultimateFront()) instanceof NewUpdateAvailableView) {
+                        rootContainer.removeViewAt(rootContainerPenultimateFront());
                     }
                     long versionCode;
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
@@ -1072,8 +1094,8 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
     }
 
     public void playVideo(List<DownloadedVideoItem> downloadedVideoItems, DownloadedVideoItem startItem) {
-        if (rootContainer.getChildAt(rootContainerFront()) instanceof MolvixVideoPlayerView) {
-            rootContainer.removeViewAt(rootContainerFront());
+        if (rootContainer.getChildAt(rootContainerPenultimateFront()) instanceof MolvixVideoPlayerView) {
+            rootContainer.removeViewAt(rootContainerPenultimateFront());
         }
         MolvixVideoPlayerView molvixVideoPlayerView = new MolvixVideoPlayerView(this);
         rootContainer.addView(molvixVideoPlayerView, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
@@ -1086,10 +1108,13 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
         if (mRewardedVideoAd.isLoaded()) {
             mRewardedVideoAd.show();
         } else {
-            gamificationHostDialog = ProgressDialog.show(this, "Loading ad", "Please wait...");
-            gamificationHostDialog.setCancelable(true);
+            showProgressDialog(this, "Loading ad", "Please wait...");
             loadRewardedVideoAdNow();
         }
+    }
+
+    public FullScreenDialog showProgressDialog(Context context, String title, String message) {
+        return new FullScreenDialog(context).show(rootContainer, title, message);
     }
 
     @Override
@@ -1140,10 +1165,8 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
 
     private void closeGamificationProgressDialog() {
         try {
-            if (gamificationHostDialog != null && gamificationHostDialog.isShowing()) {
-                gamificationHostDialog.dismiss();
-                gamificationHostDialog.cancel();
-                gamificationHostDialog = null;
+            if (isProgressDialogShowing()) {
+                dismissProgressDialog();
             }
         } catch (Exception ignored) {
 

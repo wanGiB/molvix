@@ -22,7 +22,6 @@ import com.molvix.android.companions.AppConstants;
 import com.molvix.android.database.MolvixDB;
 import com.molvix.android.database.ObjectBox;
 import com.molvix.android.eventbuses.CheckForDownloadableEpisodes;
-import com.molvix.android.eventbuses.ConnectivityChangedEvent;
 import com.molvix.android.eventbuses.EpisodeDownloadErrorException;
 import com.molvix.android.managers.ContentManager;
 import com.molvix.android.managers.EpisodesManager;
@@ -35,8 +34,10 @@ import com.molvix.android.models.Episode;
 import com.molvix.android.models.Movie;
 import com.molvix.android.models.Season;
 import com.molvix.android.preferences.AppPrefs;
+import com.molvix.android.receivers.ConnectivityChangeReceiver;
 import com.molvix.android.ui.notifications.notification.MolvixNotification;
 import com.molvix.android.utils.AuthorizationHeaderConnection;
+import com.molvix.android.utils.ConnectivityUtils;
 import com.molvix.android.utils.DownloaderUtils;
 import com.molvix.android.utils.FileUtils;
 import com.molvix.android.utils.MolvixGenUtils;
@@ -49,7 +50,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 
 public class ApplicationLoader extends MultiDexApplication {
@@ -75,6 +75,8 @@ public class ApplicationLoader extends MultiDexApplication {
         }
 
     };
+
+    private ConnectivityManager.NetworkCallback networkCallback;
 
     private static void tryShutdownPump() {
         Set<String> inProgressDownloads = AppPrefs.getInProgressDownloads();
@@ -195,14 +197,17 @@ public class ApplicationLoader extends MultiDexApplication {
     }
 
     private void registerNetworkCallbackManager() {
-        ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        ConnectivityManager connectivityManager = ConnectivityUtils.getConnectivityManager();
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                 if (connectivityManager != null) {
-                    connectivityManager
-                            .registerDefaultNetworkCallback(Objects.requireNonNull(getNetworkCallback())
-
-                            );
+                    if (networkCallback != null) {
+                        connectivityManager.unregisterNetworkCallback(networkCallback);
+                    }
+                    networkCallback = getNetworkCallback();
+                    if (networkCallback != null) {
+                        connectivityManager.registerDefaultNetworkCallback(networkCallback);
+                    }
                 }
             }
         }
@@ -213,12 +218,12 @@ public class ApplicationLoader extends MultiDexApplication {
             return new ConnectivityManager.NetworkCallback() {
                 @Override
                 public void onAvailable(@NotNull Network network) {
-                    EventBus.getDefault().post(new ConnectivityChangedEvent());
+                    ConnectivityChangeReceiver.spinAllNetworkRelatedJobs();
                 }
 
                 @Override
                 public void onLost(@NotNull Network network) {
-
+                    ConnectivityChangeReceiver.cleanUpStaleNotifications();
                 }
             };
         }
