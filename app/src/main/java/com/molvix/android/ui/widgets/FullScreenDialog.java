@@ -55,7 +55,6 @@ public class FullScreenDialog extends RelativeLayout {
 
     public FullScreenDialog show(ViewGroup parentView, String title, String message) {
         progressRootView.setOnClickListener(view -> {
-            //Just do nothing here, we don't want any form of external click interception
         });
         parentView.addView(this, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
         if (StringUtils.isNotEmpty(title)) {
@@ -67,11 +66,8 @@ public class FullScreenDialog extends RelativeLayout {
         return this;
     }
 
-    public void dismiss(ViewGroup parentView, DoneCallback<Boolean> dismissedCallback) {
+    public void dismiss(ViewGroup parentView) {
         parentView.removeView(this);
-        if (dismissedCallback != null) {
-            dismissedCallback.done(true, null);
-        }
         if (this.dismissedCallback != null) {
             this.dismissedCallback.done(true, null);
         }
