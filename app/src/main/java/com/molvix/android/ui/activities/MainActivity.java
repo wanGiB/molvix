@@ -930,8 +930,8 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
     public void onBackPressed() {
         if (rootContainer.getChildAt(rootContainerPenultimateFront()) instanceof FullScreenDialog) {
             FullScreenDialog fullScreenDialog = (FullScreenDialog) rootContainer.getChildAt(rootContainerPenultimateFront());
-            fullScreenDialog.dismiss(rootContainer);
             fullScreenDialog.setOnDismissedCallback((result, e) -> canShowLoadedRewardedVideoAd.set(false));
+            fullScreenDialog.dismiss(rootContainer);
             return;
         }
         if (rootContainer.getChildAt(rootContainerPenultimateFront()) instanceof MolvixVideoPlayerView) {
