@@ -1009,7 +1009,9 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
 
     private void enqueConnectivityCheckWorker() {
         PeriodicWorkRequest.Builder connectivityPeriodicWorkCheckBuilder = new PeriodicWorkRequest.Builder(ConnectivityCheckWorker.class, TimeUnit.MINUTES.toMillis(PeriodicWorkRequest.MIN_PERIODIC_INTERVAL_MILLIS), TimeUnit.MINUTES);
-        connectivityPeriodicWorkCheckBuilder.setConstraints(new Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build());
+        connectivityPeriodicWorkCheckBuilder.setConstraints(new Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.CONNECTED)
+                .build());
         PeriodicWorkRequest connectivityPeriodicWorkRequest = connectivityPeriodicWorkCheckBuilder.build();
         WorkManager workManager = WorkManager.getInstance();
         workManager.enqueue(connectivityPeriodicWorkRequest);

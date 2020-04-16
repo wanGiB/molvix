@@ -13,6 +13,8 @@ import com.molvix.android.utils.MolvixLogger;
 
 public class ConnectivityCheckWorker extends Worker {
 
+    private boolean running = false;
+
     public ConnectivityCheckWorker(@NonNull Context context, @NonNull WorkerParameters workerParams) {
         super(context, workerParams);
     }
@@ -20,16 +22,21 @@ public class ConnectivityCheckWorker extends Worker {
     @NonNull
     @Override
     public Result doWork() {
-        MolvixLogger.d(ContentManager.class.getSimpleName(), "ConnectivityCheckWorker is currently running");
-        if (ConnectivityUtils.isConnected()) {
-            ConnectivityChangeReceiver.spinAllNetworkRelatedJobs();
+        if (!running) {
+            if (ConnectivityUtils.isConnected()) {
+                MolvixLogger.d(ContentManager.class.getSimpleName(), "Connection found for Network Manager");
+                ConnectivityChangeReceiver.spinAllNetworkRelatedJobs();
+            } else {
+                MolvixLogger.d(ContentManager.class.getSimpleName(), "No Connection found for Network Manager");
+            }
+            running = true;
         }
         return Result.success();
     }
 
     @Override
     public void onStopped() {
-        MolvixLogger.d(ContentManager.class.getSimpleName(), "ConnectivityCheckWorker has Stopped");
+        MolvixLogger.d(ContentManager.class.getSimpleName(), "WorkManager has Stopped");
         super.onStopped();
     }
 
