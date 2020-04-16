@@ -22,6 +22,7 @@ public class AppConstants {
     public static final String NO_COMPLEX_CAPTCHA = "_no_complex_captcha";
     public static final String SOLVE_COMPLEX_CAPTCHA = "_solve_complex_captcha";
     public static final String NO_FORM_ELEMENT_FOUND = "_no_form_element_found";
+    public static final String HAS_WORK_MANAGER_BEING_ENQUEUED = "_has_work_manager_being_enqueued";
     public static HashMap<String, String> MOVIE_NAME_TO_ART_URL_MAP = new HashMap<>();
     @SuppressLint("ConstantLocale")
     public static final SimpleDateFormat DATE_FORMATTER_IN_12HRS = new SimpleDateFormat("h:mm a", Locale.getDefault());

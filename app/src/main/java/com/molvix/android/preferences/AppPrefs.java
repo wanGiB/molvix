@@ -244,5 +244,5 @@ public class AppPrefs {
     public static String getGenresString() {
         return getAppPreferences().getString(AppConstants.GENRES, null);
     }
-
+    
 }

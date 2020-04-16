@@ -1016,7 +1016,7 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
         workManager.getWorkInfoByIdLiveData(connectivityPeriodicWorkRequest.getId()).observe(this, workInfo -> {
             if (workInfo != null) {
                 WorkInfo.State state = workInfo.getState();
-                MolvixLogger.d(ContentManager.class.getSimpleName(), "Molvix WorkManager State\n" + state.toString());
+                MolvixLogger.d(ContentManager.class.getSimpleName(), "Molvix WorkManager Work State=" + state.toString());
             }
         });
     }
