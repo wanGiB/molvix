@@ -1004,10 +1004,10 @@ public class MainActivity extends BaseActivity implements RewardedVideoAdListene
         subscribeToPresetsChanges();
         ContentManager.fetchPresets();
         ContentManager.fetchMovieGenres();
-        enqueConnectivityCheckWorker();
+        enqueueConnectivityCheckWorker();
     }
 
-    private void enqueConnectivityCheckWorker() {
+    private void enqueueConnectivityCheckWorker() {
         PeriodicWorkRequest.Builder connectivityPeriodicWorkCheckBuilder = new PeriodicWorkRequest.Builder(ConnectivityCheckWorker.class, TimeUnit.MINUTES.toMillis(PeriodicWorkRequest.MIN_PERIODIC_INTERVAL_MILLIS), TimeUnit.MINUTES);
         connectivityPeriodicWorkCheckBuilder.setConstraints(new Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.CONNECTED)
