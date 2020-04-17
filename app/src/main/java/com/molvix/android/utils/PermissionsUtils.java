@@ -7,6 +7,7 @@ import android.content.pm.PackageManager;
 
 import androidx.core.app.ActivityCompat;
 
+@SuppressWarnings("WeakerAccess")
 public class PermissionsUtils {
 
     public static final int REQUEST_STORAGE = 0;

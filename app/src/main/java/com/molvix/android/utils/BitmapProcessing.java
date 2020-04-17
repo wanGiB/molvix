@@ -1,31 +1,7 @@
 package com.molvix.android.utils;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Random;
-
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.ColorFilter;
-import android.graphics.ColorMatrix;
-import android.graphics.ColorMatrixColorFilter;
-import android.graphics.LightingColorFilter;
-import android.graphics.Matrix;
-import android.graphics.Paint;
-import android.graphics.PorterDuff;
-import android.graphics.PorterDuffXfermode;
-import android.graphics.RadialGradient;
-import android.graphics.Rect;
-import android.graphics.RectF;
-import android.graphics.Shader;
-
-import androidx.exifinterface.media.ExifInterface;
-
-import com.molvix.android.managers.ContentManager;
-
 public class BitmapProcessing {
-
+/*
     // [-360, +360] -> Default = 0
     public static Bitmap rotate(Bitmap bitmap, float degrees) {
         Matrix matrix = new Matrix();
@@ -755,5 +731,5 @@ public class BitmapProcessing {
                 return bitmap;
         }
     }
-
+*/
 }

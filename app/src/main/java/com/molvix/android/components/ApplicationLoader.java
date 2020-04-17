@@ -28,7 +28,6 @@ import com.molvix.android.managers.EpisodesManager;
 import com.molvix.android.managers.FileDownloadManager;
 import com.molvix.android.managers.MolvixNotificationManager;
 import com.molvix.android.managers.MovieTracker;
-import com.molvix.android.managers.VideoCleaner;
 import com.molvix.android.models.DownloadableEpisode;
 import com.molvix.android.models.Episode;
 import com.molvix.android.models.Movie;
@@ -94,7 +93,6 @@ public class ApplicationLoader extends MultiDexApplication {
             Episode episode = MolvixDB.getEpisode(episodeId);
             MolvixLogger.d(ContentManager.class.getSimpleName(), "Download completed for " + EpisodesManager.getEpisodeFullName(episode));
             finalizeDownload(episode);
-            VideoCleaner.cleanVideoEpisode(episode);
         }
     }
 

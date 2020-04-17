@@ -3,7 +3,6 @@ package com.molvix.android.utils;
 import android.Manifest;
 import android.app.Activity;
 import android.content.pm.PackageManager;
-import android.view.View;
 import android.widget.LinearLayout;
 
 import androidx.core.app.ActivityCompat;
@@ -11,6 +10,7 @@ import androidx.core.app.ActivityCompat;
 import com.google.android.material.snackbar.Snackbar;
 import com.molvix.android.R;
 
+@SuppressWarnings("unused")
 public class MolvixRuntimePermissions {
 
     private Activity activity;
@@ -30,8 +30,6 @@ public class MolvixRuntimePermissions {
     public void checkRuntimePermissionForLocation() {
         if (PermissionsUtils.checkSelfPermissionForLocation(activity)) {
             requestLocationPermissions();
-        } else {
-//            ((MainActivity) activity).processLocation();
         }
     }
 
@@ -43,7 +41,7 @@ public class MolvixRuntimePermissions {
         }
     }
 
-    public void requestLocationPermissions() {
+    private void requestLocationPermissions() {
         if (PermissionsUtils.shouldShowRequestForLocationPermission(activity)) {
             showSnackBar(R.string.location_permission, PermissionsUtils.PERMISSIONS_LOCATION, PermissionsUtils.REQUEST_LOCATION);
         } else {
@@ -112,12 +110,7 @@ public class MolvixRuntimePermissions {
     private void showSnackBar(int resId, final String[] permissions, final int requestCode) {
         snackbar = Snackbar.make(snackBarLayout, resId,
                 Snackbar.LENGTH_INDEFINITE)
-                .setAction(android.R.string.ok, new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        PermissionsUtils.requestPermissions(activity, permissions, requestCode);
-                    }
-                });
+                .setAction(android.R.string.ok, view -> PermissionsUtils.requestPermissions(activity, permissions, requestCode));
         snackbar.show();
     }
 

@@ -2,9 +2,7 @@
 package com.molvix.android.utils;
 
 import android.content.Context;
-import android.os.Build;
 import android.text.format.DateFormat;
-
 
 import androidx.annotation.NonNull;
 
@@ -42,10 +40,7 @@ public class DateUtils extends android.text.format.DateUtils {
     }
 
     private static String getLocalizedPattern(Locale locale) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-            return DateFormat.getBestDateTimePattern(locale, "EEE, MMM d, yyyy");
-        } else {
-            return new SimpleDateFormat("EEE, MMM d, yyyy", locale).toLocalizedPattern();
-        }
+        return DateFormat.getBestDateTimePattern(locale, "EEE, MMM d, yyyy");
     }
+
 }
